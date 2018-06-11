@@ -9,7 +9,6 @@ I am truly grateful for all the support developing VSTeamBuilder. It means a lot
 3. Write unit tests.
 4. Update the psd1 file.
 5. Update the Readme.md file.
-6. Goto 4 for next function.
 
 ### Housekeeping
 
