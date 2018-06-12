@@ -1,2 +1,13 @@
 # Don't checkin the Release output dir.
 Release/
+
+# NuGet Packages
+*.nupkg
+
+# The packages folder can be ignored because of Package Restore
+packages/
+
+src/lib/
+
+*.exe
+

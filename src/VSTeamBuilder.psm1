@@ -6,7 +6,7 @@
 
 function New-TBOrg
 {
-    [cmdletbinding(SupportShouldProcess = $true, ConfirmImpact = "Medium")]
+    [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
         # Parameter help description
@@ -43,7 +43,7 @@ function New-TBOrg
 }
 function Remove-TBOrg
 {
-    [cmdletbinding(SupportShouldProcess = $true, ConfirmImpact = "Medium")]
+    [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
         # Parameter help description
@@ -80,7 +80,7 @@ function Remove-TBOrg
 }
 function New-TBTeam
 {
-    [cmdletbinding(SupportShouldProcess = $true, ConfirmImpact = "Medium")]
+    [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
         # Parameter help description
@@ -117,7 +117,7 @@ function New-TBTeam
 }
 function Remove-TBTeam
 {
-    [cmdletbinding(SupportShouldProcess = $true, ConfirmImpact = "Medium")]
+    [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
         # Parameter help description
@@ -154,7 +154,7 @@ function Remove-TBTeam
 }
 function New-TBSecurityGroup
 {
-    [cmdletbinding(SupportShouldProcess = $true, ConfirmImpact = "Medium")]
+    [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
         # Parameter help description
@@ -224,7 +224,7 @@ function Get-TBSecurityGroup
 }
 function Add-TBSecurityGroupMember
 {
-    [cmdletbinding(SupportShouldProcess = $true, ConfirmImpact = "Medium")]
+    [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
         # Parameter help description
@@ -261,7 +261,7 @@ function Add-TBSecurityGroupMember
 }
 function Remove-TBSecurityGroupMember
 {
-    [cmdletbinding(SupportShouldProcess = $true, ConfirmImpact = "Medium")]
+    [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
         # Parameter help description
@@ -298,7 +298,7 @@ function Remove-TBSecurityGroupMember
 }
 function Set-TBTeamAreaSetting
 {
-    [cmdletbinding(SupportShouldProcess = $true, ConfirmImpact = "Medium")]
+    [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
         # Parameter help description
@@ -368,7 +368,7 @@ function Get-TBTeamAreaSetting
 }
 function Set-TBTeamIterationSetting
 {
-    [cmdletbinding(SupportShouldProcess = $true, ConfirmImpact = "Medium")]
+    [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
         # Parameter help description
@@ -438,7 +438,7 @@ function Get-TBTeamIterationSetting
 }
 function Add-TBTeamIteration
 {
-    [cmdletbinding(SupportShouldProcess = $true, ConfirmImpact = "Medium")]
+    [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
         # Parameter help description
@@ -508,7 +508,7 @@ function Get-TBTeamIteration
 }
 function Set-TBPermission
 {
-    [cmdletbinding(SupportShouldProcess = $true, ConfirmImpact = "Medium")]
+    [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
         # Parameter help description
@@ -644,31 +644,63 @@ function Get-TBToken
 }
 function Use-TBConnection
 {
-    [cmdletbinding(SupportShouldProcess = $true, ConfirmImpact = "Medium")]
+    [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
-        # Parameter help description
+        # TFS/VSTS Collection Name
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName1,
+        $CollectionName,
 
-        # Parameter help description
+        # TFS/VSTS Server URL or domain
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName2,
+        $ServerURL,
 
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
+        # PAT Token
+        [Parameter(Mandatory = $false)]
         [string]
-        $ParameterName3,
+        $PAT,
 
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName4
+        # Disconnect Switch
+        [switch]
+        $Disconnect
     )
-     if($PSCmdlet.ShouldProcess("Processing section 1.")){
-        #Process something here.
+
+    $ErrorState = $false
+    $VSTBConn = $Global:VSTBConn
+    if($Disconnect){
+        if($VSTBConnection -ne $null){
+            try{
+                $Global:VSTBConn = $null
+            }catch{
+                Write-Verbose "There was an error $_"
+                $ErrorState = $true
+            }
+        }
+        if($null -ne $env:TEAM_ACCT){
+            Remove-VSTeamAccount
+        }
+    }else{
+        if($null -eq $VSTBConn){
+            # if($ServerURL -eq $null -or $ServerURL -eq ''){
+            #     $ErrorState = $true
+            #     throw "No ServerURL parameter available."
+            # }
+            $props = @{
+                "ServerURL" = $ServerURL
+                "Collectionname" = $CollectionName
+                "TeamExplorerConnection" = $null
+                "DefaultProjectName" = $null
+                "VSTeamAccount" = $null
+            }
+
+            $VSTBConn = New-Object -TypeName psobject -Property $props
+        }
+        if($null -eq $($VSTBConn.TeamExplorerConnection)){
+            #$TFSCmdletsModuleBase = (Get-Module -ListAvailable TfsCmdlets).ModuleBase
+            Add-Type
+        }
     }
     <#
         .SYNOPSIS
@@ -677,6 +709,28 @@ function Use-TBConnection
             Use-TBConnection will do something wonderful.
         .EXAMPLE
             Use-TBConnection -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+    #>
+}
+
+function Set-TBDefaultProject
+{
+    Param(
+
+        # TFS/VSTS Project
+        [Parameter(Mandatory = $true)]
+        [string]
+        $ProjectName
+    )
+
+    $VSTBVersionTable.DefaultProject = $ProjectName
+    <#
+        .SYNOPSIS
+            Set-TBDefaultProject will add the project name to the $VSTBVersionTable Object.
+        .DESCRIPTION
+            Set-TBDefaultProject will add the project name to the $VSTBVersionTable Object and have all other
+            functions use it.
+        .EXAMPLE
+            Set-TBDefaultProject -ProjectName "MyProjectName"
     #>
 }
 

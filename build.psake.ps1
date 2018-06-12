@@ -99,7 +99,45 @@ Task Clean -depends Init -requiredVariables OutDir {
     }
 }
 
-Task StageFiles -depends Init, Clean, BeforeStageFiles, CoreStageFiles, AfterStageFiles {
+Task StageFiles -depends Init, Clean, BeforeStageFiles, CoreStageFiles {
+    #Getting TFS dlls from nuget.
+    Write-Verbose "Restoring Microsoft.TeamFoundationServer.Client Nuget package (if needed)"
+
+    if (-not (Test-Path (Join-Path $NugetPackagesDir 'Microsoft.TeamFoundationServer.Client') -PathType Container))
+    {
+        Write-Verbose "Microsoft.TeamFoundationServer.ExtendedClient not found. Downloading from Nuget.org"
+        & $NugetExePath Install Microsoft.TeamFoundationServer.Client -ExcludeVersion -OutputDirectory packages -Verbosity Detailed *>&1 | Write-Verbose
+    }
+    else
+    {
+        Write-Verbose "FOUND! Skipping..."
+    }
+
+    $TargetDir = (Join-Path $SrcRootDir 'lib\')
+
+    if (-not (Test-Path $TargetDir -PathType Container)) { New-Item $TargetDir -ItemType Directory -Force | Out-Null }
+
+    Write-Verbose "Copying TFS Client Object Model assemblies to output folder"
+
+    foreach($d in (Get-ChildItem net4*, native -Directory -Recurse))
+    {
+        try
+        {
+            foreach ($f in (Get-ChildItem $d\*.dll -Recurse -Exclude *.resources.dll))
+            {
+                $SrcPath = $f.FullName
+                $DstPath = Join-Path $TargetDir $f.Name
+
+                if (-not (Test-Path $DstPath))
+                {
+                    Write-Verbose $DstPath
+                    Copy-Item $SrcPath $DstPath
+                }
+            }
+        }
+        finally
+        {}
+    }
 }
 
 Task CoreStageFiles -requiredVariables ModuleOutDir, SrcRootDir {
@@ -113,7 +151,7 @@ Task CoreStageFiles -requiredVariables ModuleOutDir, SrcRootDir {
     Copy-Item -Path $SrcRootDir\* -Destination $ModuleOutDir -Recurse -Exclude $Exclude -Verbose:$VerbosePreference
 }
 
-Task Build -depends Init, Clean, BeforeBuild, StageFiles, Analyze, Sign, AfterBuild {
+Task Build -depends Init, Clean, BeforeBuild, StageFiles, AfterStageFiles, Analyze, Sign, AfterBuild {
 }
 
 Task Analyze -depends StageFiles `

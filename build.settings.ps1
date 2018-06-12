@@ -37,11 +37,24 @@ Properties {
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
     $Exclude = @()
 
+
+    # Source information
+    $RepoCreationDate = Get-Date '2018-05-02'
+    $ProjectDir = $SrcRootDir
+    $ProjectBuildNumber = ((Get-Date) - $RepoCreationDate).Days
+    $ProjectMetadataInfo = "$(Get-Date -Format 'yyyyMMdd').$ProjectBuildNumber"
+
+    # Nuget packaging
+    $NugetExePath = Join-Path $PSScriptRoot 'nuget.exe'
+    $NugetPackagesDir = Join-Path $PSScriptRoot 'packages'
+    $NugetSpecPath = Join-Path $OutDir "VSTeamBuilder.nuspec"
+    #$NugetPackageVersion = $VersionMetadata.LegacySemVer.Replace('-', ".$ProjectBuildNumber-")
+
     # ------------------ Script analysis properties ---------------------------
 
     # Enable/disable use of PSScriptAnalyzer to perform script analysis.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $ScriptAnalysisEnabled = $false
+    $ScriptAnalysisEnabled = $true
 
     # When PSScriptAnalyzer is enabled, control which severity level will generate a build failure.
     # Valid values are Error, Warning, Information and None.  "None" will report errors but will not
@@ -128,13 +141,13 @@ Properties {
     # as a way to import a certificate into the user personal store for later use.
     # This can be provided using the CertPfxPath parameter. PFX passwords will not be stored.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $SettingsPath = "$env:LOCALAPPDATA\Plaster\NewModuleTemplate\SecuredBuildSettings.clixml"
+    $SettingsPath = "$env:LOCALAPPDATA\Plaster\VSTeamBuilder\SecuredBuildSettings.clixml"
 
     # Specifies an output file path to send to Invoke-Pester's -OutputFile parameter.
     # This is typically used to write out test results so that they can be sent to a CI
     # system like AppVeyor.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $TestOutputFile = $null
+    $TestOutputFile = "$TestRootDir\PesterOutput.log"
 
     # Specifies the test output format to use when the TestOutputFile property is given
     # a path.  This parameter is passed through to Invoke-Pester's -OutputFormat parameter.
@@ -148,10 +161,42 @@ Properties {
 
 # Executes before the StageFiles task.
 Task BeforeStageFiles {
+
 }
 
 # Executes after the StageFiles task.
 Task AfterStageFiles {
+
+    #Generate Nuspecfile
+    if(-not (Test-Path $OutDir)) { New-Item $OutDir -ItemType Directory | Out-Null }
+
+    $SourceManifest = Test-ModuleManifest -Path "$SrcRootDir/$ModuleName.psd1"
+
+    $nuspec = @"
+<?xml version="1.0"?>
+<package>
+    <metadata>
+        <id>$($SourceManifest.Name)</id>
+        <title>$($SourceManifest.Name)</title>
+        <version>$NugetPackageVersion</version>
+        <authors>$($SourceManifest.Author)</authors>
+        <owners>$($SourceManifest.Author)</owners>
+        <licenseUrl>$($SourceManifest.PrivateData.LicenseUri)</licenseUrl>
+        <projectUrl>$($SourceManifest.PrivateData.ProjectUri)</projectUrl>
+        <iconUrl>$($SourceManifest.PrivateData.IconUri)</iconUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>$($SourceManifest.Description)</description>
+        <releaseNotes><![CDATA[$($SourceManifest.PrivateData.ReleaseNotes)]]></releaseNotes>
+        <copyright>$($SourceManifest.Copyright)</copyright>
+        <tags>$($SourceManifest.PrivateData.Tags -Join ' ')</tags>
+    </metadata>
+</package>
+"@
+
+    Set-Content -Path $NugetSpecPath -Value $nuspec
+
+    #Copying lib folder
+    Copy-Item -Path $SrcRootDir\lib -Destination $ModuleOutDir -Recurse -Exclude $Exclude -Verbose:$VerbosePreference
 }
 
 ###############################################################################
@@ -160,6 +205,27 @@ Task AfterStageFiles {
 
 # Executes before the BeforeStageFiles phase of the Build task.
 Task BeforeBuild {
+    # Restore/install Nuget
+
+    Write-Verbose "Restoring Nuget client (if needed)"
+
+    $PackagesDir = Join-Path $PSScriptRoot 'packages'
+    $NugetExePath = Join-Path $PSScriptRoot 'nuget.exe'
+
+    Write-Verbose "PackagesDir: $PackagesDir"
+    Write-Verbose "NugetExePath: $NugetExePath"
+
+    if (-not (Test-Path $PackagesDir -PathType Container))
+    {
+        Write-Verbose "Folder $PackagesDir not found. Creating folder."
+        md $PackagesDir -Force | Write-Verbose
+    }
+
+    if (-not (Test-Path $NugetExePath -PathType Leaf))
+    {
+        Write-Verbose "Nuget.exe not found. Downloading from https://dist.nuget.org"
+        Invoke-WebRequest -Uri https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -OutFile $NugetExePath | Write-Verbose
+    }
 }
 
 # Executes after the Build task.
