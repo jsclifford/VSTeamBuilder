@@ -644,6 +644,7 @@ function Get-TBToken
 }
 function Use-TBConnection
 {
+    [OutputType([boolean])]
     [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
@@ -721,7 +722,10 @@ function Use-TBConnection
         }
     }
 
+    $Global:VSTBConn = $VSTBConn
+
     return $ErrorState
+
     <#
         .SYNOPSIS
             Use-TBConnection will do something wonderful.
