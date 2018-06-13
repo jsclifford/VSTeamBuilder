@@ -668,6 +668,7 @@ function Use-TBConnection
     )
 
     $ErrorState = $false
+    $CollectionUrl = "$ServerUrl/$CollectionName"
     $VSTBConn = $Global:VSTBConn
     if($Disconnect){
         if($VSTBConnection -ne $null){
@@ -698,10 +699,29 @@ function Use-TBConnection
             $VSTBConn = New-Object -TypeName psobject -Property $props
         }
         if($null -eq $($VSTBConn.TeamExplorerConnection)){
-            #$TFSCmdletsModuleBase = (Get-Module -ListAvailable TfsCmdlets).ModuleBase
-            Add-Type
+            try{
+                #$TFSCmdletsModuleBase = (Get-Module -ListAvailable TfsCmdlets).ModuleBase
+
+                $tfs = [Microsoft.TeamFoundation.Client.TfsTeamProjectCollectionFactory]::GetTeamProjectcollection($CollectionUrl)
+                $VSTBconn.TeamExplorerConnection = $tfs
+                Write-Verbose "Successfully conected TFS client DLL to: $CollectionName"
+            }catch{
+                Write-Verbose "There was an error $_"
+                $ErrorState = $true
+            }
+        }else{
+            Write-Verbose "Already Connected to TFOM."
+        }
+
+        if($null -eq $env:TEAM_ACCT){
+            Add-VSTeamAccount -Account $CollectionUrl -UseWindowsAuthentication
+            Write-Verbose "Successfully connected TFS VSTeam to: $CollectionName"
+        }else{
+            Write-Verbose "Already Connected to VSTeam"
         }
     }
+
+    return $ErrorState
     <#
         .SYNOPSIS
             Use-TBConnection will do something wonderful.
