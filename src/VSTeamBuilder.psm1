@@ -629,12 +629,67 @@ function Get-TBToken
         $ProjectName
     )
     #region global connection Variables
+    $projectNameLocal = $null
+    $tokenCollection = $null
     $VSTBConn = $Global:VSTBConn
     if(! (_testConnection)){
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
     }
+    if($null -eq $ProjectName){
+        if($null -eq $VSTBConn.DefaultProjectName){
+            Write-Verbose "No ProjectName specified."
+            throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
+        }else{
+            $projectNameLocal = $VSTBConn.DefaultProjectName
+        }
+    }else{
+        $projectNameLocal = $ProjectName
+    }
     #endregion
+
+    #region Get Namespaceid from name
+    if($null -eq $Global:VSTBNamespaceCollection){
+        $holder = Get-TBNamespaceCollection
+    }
+
+    $nameSpaceId = ($Global:VSTBNamespaceCollection | Where-Object -Property name -eq $NsName).Namespaceid
+
+    if($null -eq $nameSpaceId){
+        Write-Verbose "Could not find namespace id. Exiting."
+        return
+    }else{
+        Write-Verbose "Found Namespace Id: $nameSpaceId"
+    }
+    #endregion
+
+    #region Get VSTB Token Collection
+    $tokenCollection = $null
+    if($null -eq $Global:VSTBTokencollection){
+        $tokenCollection = Get-TBTokenCollection -NamespaceId $nameSpaceId -Project $projectNameLocal
+    }else{
+        if($Global:VSTBTokencollection.ContainsKey($nameSpaceId)){
+            $tokenCollection = $Global:VSTBTokencollection[$nameSpaceId]
+        }else{
+            $tokenCollection = Get-TBTokenCollection -NamespaceId $nameSpaceId -Project $projectNameLocal
+        }
+    }
+    #endregion
+
+    $token = $tokenCollection | Where-Object -Property Token -match "^.*$ObjectId$"
+
+    if($null -eq $token){
+        $updateTokencollection = Get-TBTokenCollection -NamespaceId $nameSpaceId -Project $projectNameLocal -ForceRefresh
+        $token = $updateTokencollection | Where-Object -Property Token -match "^.*$ObjectId$"
+    }
+
+    $props = @{
+        "namespaceId" = $nameSpaceId
+        "token" = $token.token
+    }
+    $returnObj = New-Object -TypeName PSObject -Property $props
+
+    return $returnObj
 
     <#
         .SYNOPSIS
