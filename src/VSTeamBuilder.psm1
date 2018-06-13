@@ -631,7 +631,7 @@ function Get-TBToken
     #region global connection Variables
     $VSTBConn = $Global:VSTBConn
     if(! (_testConnection)){
-        Write-Verbose "There is no connection made to the server.  Run Use-TBConnection to connect."
+        Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
     }
     #endregion
@@ -645,7 +645,7 @@ function Get-TBToken
             Get-TBToken -ObjectId "group1" -NsName "security" -ProjectName "myproject"
     #>
 }
-function Use-TBConnection
+function Add-TBConnection
 {
     [OutputType([boolean])]
     [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
@@ -664,81 +664,101 @@ function Use-TBConnection
         # PAT Token
         [Parameter(Mandatory = $false)]
         [string]
-        $PAT,
-
-        # Disconnect Switch
-        [switch]
-        $Disconnect
+        $PAT
     )
 
-    $ErrorState = $false
+    $Success = $true
     $CollectionUrl = "$ServerUrl/$CollectionName"
     $VSTBConn = $Global:VSTBConn
-    if($Disconnect){
-        if($VSTBConnection -ne $null){
-            try{
-                $Global:VSTBConn = $null
-            }catch{
-                Write-Verbose "There was an error $_"
-                $ErrorState = $true
-            }
+
+    if($null -eq $VSTBConn){
+        # if($ServerURL -eq $null -or $ServerURL -eq ''){
+        #     $ErrorState = $true
+        #     throw "No ServerURL parameter available."
+        # }
+        $props = @{
+            "ServerURL" = $ServerURL
+            "CollectionName" = $CollectionName
+            "TeamExplorerConnection" = $null
+            "DefaultProjectName" = $null
+            "VSTeamAccount" = $false
         }
-        if($null -ne $env:TEAM_ACCT){
-            Remove-VSTeamAccount
+
+        $VSTBConn = New-Object -TypeName psobject -Property $props
+    }
+    if($null -eq $($VSTBConn.TeamExplorerConnection)){
+        try{
+            #$TFSCmdletsModuleBase = (Get-Module -ListAvailable TfsCmdlets).ModuleBase
+
+            $tfs = [Microsoft.TeamFoundation.Client.TfsTeamProjectCollectionFactory]::GetTeamProjectcollection($CollectionUrl)
+            $VSTBconn.TeamExplorerConnection = $tfs
+            Write-Verbose "Successfully conected TFS client DLL to: $CollectionName"
+        }catch{
+            Write-Verbose "There was an error $_"
+            $Success = $false
         }
-        $Global:VSTBNamespaceCollection = $null
-        $Global:VSTBTokencollection = $null
     }else{
-        if($null -eq $VSTBConn){
-            # if($ServerURL -eq $null -or $ServerURL -eq ''){
-            #     $ErrorState = $true
-            #     throw "No ServerURL parameter available."
-            # }
-            $props = @{
-                "ServerURL" = $ServerURL
-                "CollectionName" = $CollectionName
-                "TeamExplorerConnection" = $null
-                "DefaultProjectName" = $null
-                "VSTeamAccount" = $false
-            }
+        Write-Verbose "Already Connected to TFOM."
+    }
 
-            $VSTBConn = New-Object -TypeName psobject -Property $props
-        }
-        if($null -eq $($VSTBConn.TeamExplorerConnection)){
-            try{
-                #$TFSCmdletsModuleBase = (Get-Module -ListAvailable TfsCmdlets).ModuleBase
-
-                $tfs = [Microsoft.TeamFoundation.Client.TfsTeamProjectCollectionFactory]::GetTeamProjectcollection($CollectionUrl)
-                $VSTBconn.TeamExplorerConnection = $tfs
-                Write-Verbose "Successfully conected TFS client DLL to: $CollectionName"
-            }catch{
-                Write-Verbose "There was an error $_"
-                $ErrorState = $true
-            }
-        }else{
-            Write-Verbose "Already Connected to TFOM."
-        }
-
-        if($null -eq $env:TEAM_ACCT){
-            Add-VSTeamAccount -Account $CollectionUrl -UseWindowsAuthentication
-            $VSTBConn.VSTeamAccount = $true
-            Write-Verbose "Successfully connected TFS VSTeam to: $CollectionName"
-        }else{
-            Write-Verbose "Already Connected to VSTeam"
-        }
+    if($null -eq $env:TEAM_ACCT){
+        Add-VSTeamAccount -Account $CollectionUrl -UseWindowsAuthentication
+        $VSTBConn.VSTeamAccount = $true
+        Write-Verbose "Successfully connected TFS VSTeam to: $CollectionName"
+    }else{
+        Write-Verbose "Already Connected to VSTeam"
     }
 
     $Global:VSTBConn = $VSTBConn
 
-    return $ErrorState
+    return $Success
 
     <#
         .SYNOPSIS
-            Use-TBConnection will do something wonderful.
+            Add-TBConnection will add TB Connection to current session.
         .DESCRIPTION
-            Use-TBConnection will do something wonderful.
+            Add-TBConnection will add TB Connection to current session.
         .EXAMPLE
-            Use-TBConnection -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+            Add-TBConnection -CollectionName "test" -ServerUrl "http://mywebsite.com/tfs"
+    #>
+}
+
+function Remove-TBConnection
+{
+    [OutputType([boolean])]
+    Param(
+        # All Variables switch does nothing.
+        [switch]
+        $AllVariables
+    )
+
+    $Success = $true
+    $CollectionUrl = "$ServerUrl/$CollectionName"
+    $VSTBConn = $Global:VSTBConn
+
+    if($VSTBConn -ne $null){
+        try{
+            $Global:VSTBConn = $null
+        }catch{
+            Write-Verbose "There was an error $_"
+            $Success = $false
+        }
+    }
+    if($null -ne $env:TEAM_ACCT){
+        Remove-VSTeamAccount
+    }
+    $Global:VSTBNamespaceCollection = $null
+    $Global:VSTBTokencollection = $null
+
+
+    return $Success
+    <#
+        .SYNOPSIS
+            Remove-TBConnection will remove Global Variable for this module.
+        .DESCRIPTION
+            Remove-TBConnection will remove Global Variable for this module.
+        .EXAMPLE
+            Remove-TBConnection
     #>
 }
 
