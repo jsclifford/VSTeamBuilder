@@ -683,6 +683,8 @@ function Use-TBConnection
         if($null -ne $env:TEAM_ACCT){
             Remove-VSTeamAccount
         }
+        $Global:VSTBNamespaceCollection = $null
+        $Global:VSTBTokencollection = $null
     }else{
         if($null -eq $VSTBConn){
             # if($ServerURL -eq $null -or $ServerURL -eq ''){
@@ -694,7 +696,7 @@ function Use-TBConnection
                 "Collectionname" = $CollectionName
                 "TeamExplorerConnection" = $null
                 "DefaultProjectName" = $null
-                "VSTeamAccount" = $null
+                "VSTeamAccount" = $false
             }
 
             $VSTBConn = New-Object -TypeName psobject -Property $props
@@ -716,6 +718,7 @@ function Use-TBConnection
 
         if($null -eq $env:TEAM_ACCT){
             Add-VSTeamAccount -Account $CollectionUrl -UseWindowsAuthentication
+            $VSTBConn.VSTeamAccount = $true
             Write-Verbose "Successfully connected TFS VSTeam to: $CollectionName"
         }else{
             Write-Verbose "Already Connected to VSTeam"
