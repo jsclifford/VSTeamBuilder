@@ -133,6 +133,9 @@ PrivateData = @{
         # TFS Client Version
         TfsClientVersion = '${TfsOmNugetVersion}'
 
+        #External dependent modules of this module
+        ExternalModuleDependencies = 'VSTeam'
+
     } # End of PSData hashtable
 
 } # End of PrivateData hashtable

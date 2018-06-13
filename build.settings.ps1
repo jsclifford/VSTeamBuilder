@@ -186,7 +186,7 @@ Task AfterStageFiles {
         <iconUrl>$($SourceManifest.PrivateData.IconUri)</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>$($SourceManifest.Description)</description>
-        <releaseNotes><![CDATA[$($SourceManifest.PrivateData.ReleaseNotes)]]></releaseNotes>
+        <releaseNotes><![CDATA[$($SourceManifest.ReleaseNotes)]]></releaseNotes>
         <copyright>$($SourceManifest.Copyright)</copyright>
         <tags>$($SourceManifest.PrivateData.Tags -Join ' ')</tags>
     </metadata>
@@ -196,7 +196,7 @@ Task AfterStageFiles {
     Set-Content -Path $NugetSpecPath -Value $nuspec
 
     #Copying lib folder
-    Copy-Item -Path $SrcRootDir\lib -Destination $ModuleOutDir -Recurse -Exclude $Exclude -Verbose:$VerbosePreference
+    Copy-Item -Path $SrcRootDir\lib -Destination $ModuleOutDir -Recurse -Exclude $Exclude -Verbose:$VerbosePreference -Force
 }
 
 ###############################################################################
@@ -230,6 +230,9 @@ Task BeforeBuild {
 
 # Executes after the Build task.
 Task AfterBuild {
+    $TfsOmNugetVersion = (& $NugetExePath list -Source (Join-Path $NugetPackagesDir 'Microsoft.TeamFoundationServer.Client'))
+
+    (Get-Content "$OutDir\$ModuleName\$ModuleName.psd1").Replace('${TfsOmNugetVersion}',$TfsOmNugetVersion) | Set-content "$OutDir\$ModuleName\$ModuleName.psd1"
 }
 
 ###############################################################################
