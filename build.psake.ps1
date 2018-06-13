@@ -101,12 +101,12 @@ Task Clean -depends Init -requiredVariables OutDir {
 
 Task StageFiles -depends Init, Clean, BeforeStageFiles, CoreStageFiles {
     #Getting TFS dlls from nuget.
-    Write-Verbose "Restoring Microsoft.TeamFoundationServer.Client Nuget package (if needed)"
+    Write-Verbose "Restoring Microsoft.TeamFoundationServer.ExtendedClient Nuget package (if needed)"
 
-    if (-not (Test-Path (Join-Path $NugetPackagesDir 'Microsoft.TeamFoundationServer.Client') -PathType Container))
+    if (-not (Test-Path (Join-Path $NugetPackagesDir 'Microsoft.TeamFoundationServer.ExtendedClient') -PathType Container))
     {
-        Write-Verbose "Microsoft.TeamFoundationServer.Client not found. Downloading from Nuget.org"
-        & $NugetExePath Install Microsoft.TeamFoundationServer.Client -ExcludeVersion -OutputDirectory packages -Verbosity Detailed *>&1 | Write-Verbose
+        Write-Verbose "Microsoft.TeamFoundationServer.ExtendedClient not found. Downloading from Nuget.org"
+        & $NugetExePath Install Microsoft.TeamFoundationServer.ExtendedClient -ExcludeVersion -OutputDirectory packages -Verbosity Detailed *>&1 | Write-Verbose
     }
     else
     {
@@ -125,7 +125,7 @@ Task StageFiles -depends Init, Clean, BeforeStageFiles, CoreStageFiles {
         {
             foreach ($f in (Get-ChildItem $d\*.dll -Recurse -Exclude *.resources.dll))
             {
-                if($f.Name -eq 'Microsoft.TeamFoundation.Common.dll' -or $f.name -eq 'Microsoft.TeamFoundationServer.Client.dll'){
+                #if($f.Name -eq 'Microsoft.TeamFoundation.Common.dll' -or $f.name -eq 'Microsoft.TeamFoundationServer.Client.dll'){
                     $SrcPath = $f.FullName
                     $DstPath = Join-Path $TargetDir $f.Name
 
@@ -134,7 +134,7 @@ Task StageFiles -depends Init, Clean, BeforeStageFiles, CoreStageFiles {
                         Write-Verbose $DstPath
                         Copy-Item $SrcPath $DstPath
                     }
-                }
+                # }
             }
         }
         finally

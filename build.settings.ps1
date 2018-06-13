@@ -230,7 +230,7 @@ Task BeforeBuild {
 
 # Executes after the Build task.
 Task AfterBuild {
-    $TfsOmNugetVersion = (& $NugetExePath list -Source (Join-Path $NugetPackagesDir 'Microsoft.TeamFoundationServer.Client'))
+    $TfsOmNugetVersion = (& $NugetExePath list -Source (Join-Path $NugetPackagesDir 'Microsoft.TeamFoundationServer.ExtendedClient'))
 
     (Get-Content "$OutDir\$ModuleName\$ModuleName.psd1").Replace('${TfsOmNugetVersion}',$TfsOmNugetVersion) | Set-content "$OutDir\$ModuleName\$ModuleName.psd1"
 }
