@@ -613,33 +613,36 @@ function Get-TBToken
 {
     Param(
 
-        # Parameter help description
+        # TFS ObjectID (Group Name)
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName1,
+        $ObjectId,
 
-        # Parameter help description
+        # NamespaceName
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName2,
+        $NsName,
 
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
+        # Team Project to search from
+        [Parameter(Mandatory = $false)]
         [string]
-        $ParameterName3,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName4
+        $ProjectName
     )
+    #region global connection Variables
+    $VSTBConn = $Global:VSTBConn
+    if(! (_testConnection)){
+        Write-Verbose "There is no connection made to the server.  Run Use-TBConnection to connect."
+        return
+    }
+    #endregion
+
     <#
         .SYNOPSIS
-            Get-TBToken will do something wonderful.
+            Get-TBToken return a token object with namespaceid and token id
         .DESCRIPTION
-            Get-TBToken will do something wonderful.
+            Get-TBToken return a token object with namespaceid and token id
         .EXAMPLE
-            Get-TBToken -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+            Get-TBToken -ObjectId "group1" -NsName "security" -ProjectName "myproject"
     #>
 }
 function Use-TBConnection
@@ -693,7 +696,7 @@ function Use-TBConnection
             # }
             $props = @{
                 "ServerURL" = $ServerURL
-                "Collectionname" = $CollectionName
+                "CollectionName" = $CollectionName
                 "TeamExplorerConnection" = $null
                 "DefaultProjectName" = $null
                 "VSTeamAccount" = $false
@@ -736,6 +739,31 @@ function Use-TBConnection
             Use-TBConnection will do something wonderful.
         .EXAMPLE
             Use-TBConnection -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+    #>
+}
+
+function _testConnection
+{
+    [OutputType([boolean])]
+    Param(
+        # Test all variables
+        [switch]
+        $TestAll
+    )
+
+    $VSTBConn = $Global:VSTBConn
+    if($null -eq $VSTBConn.ServerURL -and $null -eq $VSTBConn.CollectionName -and $null -eq $VSTBConn.TeamExplorerConnection){
+        return $false
+    }else{
+        return $true
+    }
+    <#
+        .SYNOPSIS
+            _testTBConnection tests if TFS connection is made.
+        .DESCRIPTION
+            _testTBConnection tests if TFS connection is made.
+        .EXAMPLE
+            _testTBConnection
     #>
 }
 
