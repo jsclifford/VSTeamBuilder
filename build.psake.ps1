@@ -125,16 +125,16 @@ Task StageFiles -depends Init, Clean, BeforeStageFiles, CoreStageFiles {
         {
             foreach ($f in (Get-ChildItem $d\*.dll -Recurse -Exclude *.resources.dll))
             {
-                #if($f.Name -eq 'Microsoft.TeamFoundation.Common.dll' -or $f.name -eq 'Microsoft.TeamFoundationServer.Client.dll'){
-                $SrcPath = $f.FullName
-                $DstPath = Join-Path $TargetDir $f.Name
+                if($f.Name -eq 'Microsoft.TeamFoundation.Common.dll' -or $f.name -eq 'Microsoft.TeamFoundation.Client.dll'){
+                    $SrcPath = $f.FullName
+                    $DstPath = Join-Path $TargetDir $f.Name
 
-                if (-not (Test-Path $DstPath))
-                {
-                    Write-Verbose $DstPath
-                    Copy-Item $SrcPath $DstPath
+                    if (-not (Test-Path $DstPath))
+                    {
+                        Write-Verbose $DstPath
+                        Copy-Item $SrcPath $DstPath
+                    }
                 }
-                # }
             }
         }
         finally
