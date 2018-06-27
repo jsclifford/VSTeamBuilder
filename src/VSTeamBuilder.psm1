@@ -578,39 +578,56 @@ function Get-TBTokenCollection
 }
 function Get-TBNamespaceCollection
 {
+    [cmdletbinding()]
     Param(
 
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName1,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName2,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName3,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName4
+        # Refresh the Collection object in memory
+        [switch]
+        $ForceRefresh
     )
+
+    #region global connection Variables
+    $projectNameLocal = $null
+    $VSTBConn = $Global:VSTBConn
+    if(! (_testConnection)){
+        Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
+        return
+    }
+    if($null -eq $ProjectName){
+        if($null -eq $VSTBConn.DefaultProjectName){
+            Write-Verbose "No ProjectName specified."
+            throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
+        }else{
+            $projectNameLocal = $VSTBConn.DefaultProjectName
+        }
+    }else{
+        $projectNameLocal = $ProjectName
+    }
+    #endregion
+
+    if($null -eq $Global:TFSnamespaceCollection -or $ForceRefresh){
+        $namespaces = Invoke-VSTeamRequest -area "securitynamespaces" -resource "00000000-0000-0000-000000000000" -method -Get -version 1.0
+        $Global:TFSnamespaceCollection = $namespaces.value
+        return $namespaces.value
+    }else{
+        return $Global:TFSnamespaceCollection
+    }
     <#
         .SYNOPSIS
-            Get-TBNamespaceCollection will do something wonderful.
+            Get-TBNamespaceCollection pulls all namespaces from TFS for permission identification.
         .DESCRIPTION
-            Get-TBNamespaceCollection will do something wonderful.
+            Get-TBNamespaceCollection pulls all namespaces from TFS for permission identification.  This is primarily used in Set-TBPermission.  This functions
+            sets the variable $Global:VSTBNamespaceCollection.
         .EXAMPLE
-            Get-TBNamespaceCollection -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+            Get-TBNamespaceCollection
+        .EXAMPLE
+            Get-TBNamespaceCollection -ForceRefresh
+            This refreshes the Global variable $Global:VSTBNamespaceCollection
     #>
 }
 function Get-TBToken
 {
+    [cmdletbinding()]
     Param(
 
         # TFS ObjectID (Group Name)
