@@ -511,57 +511,42 @@ function Set-TBPermission
     [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
-        # Parameter help description
+        # TFS Token Object
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName1,
+        $TFStoken,
 
-        # Parameter help description
+        # Group Name to assign permission to.
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName2,
+        $GroupName,
 
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName3,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName4
-    )
-     if($PSCmdlet.ShouldProcess("Processing section 1.")){
-        #Process something here.
-    }
-    <#
-        .SYNOPSIS
-            Set-TBPermission will do something wonderful.
-        .DESCRIPTION
-            Set-TBPermission will do something wonderful.
-        .EXAMPLE
-            Set-TBPermission -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
-    #>
-}
-function Get-TBTokenCollection
-{
-    [cmdletbinding()]
-    Param(
-
-        # TFS Namespace ID
+        # NamespaceID obtained from TFS API guide or Get-TBNamespaceCollection
         [Parameter(Mandatory = $true)]
         [string]
         $NamespaceId,
 
-        # TFS Project Name
+        # Allow Permission value.  Allow Permission values are added together like linux unix file permissions.
         [Parameter(Mandatory = $false)]
-        [string]
-        $ProjectName,
+        [int]
+        $AllowValue = 0,
 
-        # Force Refresh of Token Collection
+        # Deny Permission value.  Deny Permission values are added together like linux unix file permissions.
+        [Parameter(Mandatory = $false)]
+        [int]
+        $DenyValue,
+
+        # Will not merge settings and wipe permissions of token
+        [Parameter(Mandatory = $true)]
         [switch]
-        $ForceRefresh
+        $NoMerge,
+
+        # TFS/VSTS Project Name
+        [Parameter(Mandatory = $true)]
+        [string]
+        $ProjectName
     )
+
     #region global connection Variables
     $projectNameLocal = $null
     $VSTBConn = $Global:VSTBConn
@@ -578,6 +563,74 @@ function Get-TBTokenCollection
         }
     }else{
         $projectNameLocal = $ProjectName
+    }
+    #endregion
+
+    $SecurityGroup = Get-TBSecurityGroup -Name $GroupName -ProjectName $projectNameLocal
+    if($null -ne $SecurityGroup){
+        $Descriptor = "$($SecurityGroup.Descriptor.IdentityType);$($SecurityGroup.Descriptor.Identifier)"
+
+        $merge = $true
+        if($NoMerge){
+            $merge = $false
+        }
+
+        $props = @{
+            "token"                 =   "$TFSToken";
+            "merge"                 =   $merge;
+            "accessControllEntries" =   @(
+                @{
+                    "descriptor"    =   "$Descriptor";
+                    "allow"         =   $AllowValue;
+                    "deny"          =   $DenyValue;
+                    "extendedinfo"  =   @{}
+                }
+            )
+        }
+
+        $JSONObject = New-Object -TypeName PSObject -Property $props
+        $JSON = Convertto-Json $JSONObject -Depth 20
+        try{
+            if($PSCmdlet.ShouldProcess("Setting permission on token $TFSToken for Group name $GroupName")){
+                $result = Invoke-VSTeamRequest -area "accesscontrolentries" -resource $NamespaceId -method Post -body $JSON -ContentType "application/json" -version 1.0
+            }
+        }
+        catch
+        {
+            Write-Verbose "There was an error: $_"
+        }
+    }
+
+
+
+    <#
+        .SYNOPSIS
+            Set-TBPermission sets a tfs permission for a tfs token object.
+        .DESCRIPTION
+            Set-TBPermission sets a tfs permission for a tfs token object.
+        .EXAMPLE
+            Set-TBPermission -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+    #>
+}
+function Get-TBTokenCollection
+{
+    [cmdletbinding()]
+    Param(
+
+        # TFS Namespace ID
+        [Parameter(Mandatory = $true)]
+        [string]
+        $NamespaceId,
+
+        # Force Refresh of Token Collection
+        [switch]
+        $ForceRefresh
+    )
+    #region global connection Variables
+    $VSTBConn = $Global:VSTBConn
+    if(! (_testConnection)){
+        Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
+        return
     }
     #endregion
 
@@ -606,7 +659,7 @@ function Get-TBTokenCollection
         .DESCRIPTION
             Get-TBTokenCollection retrieves all the tokens for a specific namespace and project.
         .EXAMPLE
-            Get-TBTokenCollection -NamespaceId "000" -ProjectName "MyFirstProject"
+            Get-TBTokenCollection -NamespaceId "000"
             Outputs TFS Token Collection and sets global variable TFSTokenCollection
     #>
 }
