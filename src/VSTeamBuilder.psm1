@@ -191,35 +191,79 @@ function New-TBSecurityGroup
 }
 function Get-TBSecurityGroup
 {
+    [cmdletbinding()]
     Param(
 
         # Parameter help description
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName1,
+        $Name,
 
         # Parameter help description
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [string]
-        $ParameterName2,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName3,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName4
+        $ProjectName
     )
+
+    #region global connection Variables
+    $projectNameLocal = $null
+    $VSTBConn = $Global:VSTBConn
+    if(! (_testConnection)){
+        Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
+        return
+    }
+    if($null -eq $ProjectName){
+        if($null -eq $VSTBConn.DefaultProjectName){
+            Write-Verbose "No ProjectName specified."
+            throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
+        }else{
+            $projectNameLocal = $VSTBConn.DefaultProjectName
+        }
+    }else{
+        $projectNameLocal = $ProjectName
+    }
+
+    $result = $null
+    #endregion
+
+    #region Connect to TFS/VSTS with TeamFoundation Client DLL class.
+    #Team Explorer Connection
+    $tExConn = $null
+
+    try{
+        $tExConn = $VSTBConn.TeamExplorerConnection
+        $tExConn.EnsureAuthenticated()
+    }
+    catch
+    {
+        Write-verbose "There was an error connection to the TFS/VSTS server. $_"
+        return $null
+    }
+    #endregion
+
+    $tfsSecGroup = ""
+
+    $idService = $tExConn.GetService("Microsoft.TeamFoundation.Framework.Client.IIdentitymanagementService")
+    $groupArr = $idService.ReadIdentities(
+                    [Microsoft.TeamFoundation.Framework.Common.IdentitySearchFactor]::AcccountName,
+                    "[$projectNameLocal]\$Name",
+                    [Microsoft.TeamFoundation.Framework.Common.MembershipQuery]::Expanded,
+                    [Microsoft.TeamFoundation.Framework.Common.ReadIdentityOptions]::TrueSid
+                )
+
+    $tfsSecGroup = $groupArr[0][0]
+
+    Write-Verbose "Security Group Found.  Name: $Name"
+
+    return $tfsSecGroup
+
     <#
         .SYNOPSIS
-            Get-TBSecurityGroup will do something wonderful.
+            Get-TBSecurityGroup outputs the TFS security group object.
         .DESCRIPTION
-            Get-TBSecurityGroup will do something wonderful.
+            Get-TBSecurityGroup outputs the TFS security group object.
         .EXAMPLE
-            Get-TBSecurityGroup -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+            Get-TBSecurityGroup -Name "MySecurityGroup" -ProjectName "MyFirstProject"
     #>
 }
 function Add-TBSecurityGroupMember
@@ -301,36 +345,78 @@ function Set-TBTeamAreaSetting
     [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
-        # Parameter help description
+        # Default Area Path for the team.
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName1,
+        $AreaPath,
 
-        # Parameter help description
+        # TFS Team Name
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName2,
+        $TeamName,
 
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
+        # TFS Project Name
+        [Parameter(Mandatory = $false)]
         [string]
-        $ParameterName3,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName4
+        $ProjectName
     )
-     if($PSCmdlet.ShouldProcess("Processing section 1.")){
-        #Process something here.
+
+    #region global connection Variables
+    $projectNameLocal = $null
+    $VSTBConn = $Global:VSTBConn
+    if(! (_testConnection)){
+        Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
+        return
     }
+    if($null -eq $ProjectName){
+        if($null -eq $VSTBConn.DefaultProjectName){
+            Write-Verbose "No ProjectName specified."
+            throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
+        }else{
+            $projectNameLocal = $VSTBConn.DefaultProjectName
+        }
+    }else{
+        $projectNameLocal = $ProjectName
+    }
+
+    $result = $null
+    #endregion
+
+    if($AreaPath -notlike "$Projectname*"){
+        $AreaPath = "$ProjectName\$AreaPath"
+    }
+
+    $props = @{
+        "defaultValue"  =   "$AreaPath";
+        "values"        =   @(
+            @{
+                "value"             =   "$AreaPath";
+                "includeChildren"   =   $true;
+            }
+        )
+    }
+    $JSONObject = New-Object -TypeName PSObject -Property $props
+    $JSON = ConvertTo-Json $JSONObject
+
+    try{
+        if($PSCmdlet.ShouldProcess("Adding IterationID: $iterationId to team: $TeamName")){
+            $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings/teamfieldvalues" -method Patch -body $JSON -ContentType "application/json" -version 2.0-preview.1
+        }
+    }
+    catch
+    {
+        Write-Verbose "There was an error: $_"
+    }
+
+    return $result
+
     <#
         .SYNOPSIS
-            Set-TBTeamAreaSetting will do something wonderful.
+            Set-TBTeamAreaSetting will set the default area for the team.
         .DESCRIPTION
-            Set-TBTeamAreaSetting will do something wonderful.
+            Set-TBTeamAreaSetting will set the default area for the team.
         .EXAMPLE
-            Set-TBTeamAreaSetting -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+            Set-TBTeamAreaSetting -AreaPath "Team1-AreaPath" -Teamname "MyFavoriteTeam" -ProjectName "MyFirstProject"
     #>
 }
 function Get-TBTeamAreaSetting
