@@ -335,35 +335,58 @@ function Set-TBTeamAreaSetting
 }
 function Get-TBTeamAreaSetting
 {
+    [cmdletbinding()]
     Param(
 
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName1,
+         # TFS Team Name
+         [Parameter(Mandatory = $true)]
+         [string]
+         $TeamName,
 
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName2,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName3,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName4
+         # TFS Project Name
+         [Parameter(Mandatory = $false)]
+         [string]
+         $ProjectName
     )
+
+    #region global connection Variables
+    $projectNameLocal = $null
+    $VSTBConn = $Global:VSTBConn
+    if(! (_testConnection)){
+        Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
+        return
+    }
+    if($null -eq $ProjectName){
+        if($null -eq $VSTBConn.DefaultProjectName){
+            Write-Verbose "No ProjectName specified."
+            throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
+        }else{
+            $projectNameLocal = $VSTBConn.DefaultProjectName
+        }
+    }else{
+        $projectNameLocal = $ProjectName
+    }
+
+    $result = $null
+    #endregion
+
+    try{
+        $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings/teamfieldvalues" -method Get -version 2.0-preview.1
+    }
+    catch
+    {
+        Write-Verbose "There was an error: $_"
+    }
+
+    return $result
+
     <#
         .SYNOPSIS
-            Get-TBTeamAreaSetting will do something wonderful.
+            Get-TBTeamAreaSetting will get default team area.
         .DESCRIPTION
-            Get-TBTeamAreaSetting will do something wonderful.
+            Get-TBTeamAreaSetting will get default team area.
         .EXAMPLE
-            Get-TBTeamAreaSetting -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+            Get-TBTeamAreaSetting -TeamName "MyTeam" -ProjectName "MyFirstProject"
     #>
 }
 function Set-TBTeamIterationSetting
