@@ -157,36 +157,97 @@ function New-TBSecurityGroup
     [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName1,
+       # Security Group Name
+       [Parameter(Mandatory = $true)]
+       [string]
+       $Name,
 
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName2,
+       # Security group description
+       [Parameter(Mandatory = $false)]
+       [string]
+       $Description,
 
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName3,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName4
+       # Parameter help description
+       [Parameter(Mandatory = $false)]
+       [string]
+       $ProjectName
     )
-     if($PSCmdlet.ShouldProcess("Processing section 1.")){
-        #Process something here.
+
+    #region global connection Variables
+    $projectNameLocal = $null
+    $VSTBConn = $Global:VSTBConn
+    if(! (_testConnection)){
+        Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
+        return
     }
+    if($null -eq $ProjectName){
+        if($null -eq $VSTBConn.DefaultProjectName){
+            Write-Verbose "No ProjectName specified."
+            throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
+        }else{
+            $projectNameLocal = $VSTBConn.DefaultProjectName
+        }
+    }else{
+        $projectNameLocal = $ProjectName
+    }
+
+    $result = $null
+    #endregion
+
+    #region Connect to TFS/VSTS with TeamFoundation Client DLL class.
+    #Team Explorer Connection
+    $tExConn = $null
+
+    try{
+        $tExConn = $VSTBConn.TeamExplorerConnection
+        $tExConn.EnsureAuthenticated()
+    }
+    catch
+    {
+        Write-verbose "There was an error connection to the TFS/VSTS server. $_"
+        return $null
+    }
+    #endregion
+
+    #region Get TFS Project ID
+    $cssService = $tExConn.GetService("Microsoft.TeamFoundation.Server.ICommonStructureService3")
+    $project = $cssService.GetProjectFromName($projectNameLocal)
+    $projectId = ($project.Uri -split "TeamProject/")[1]
+    if($null -eq $projectId){
+        Write-Verbose "Could not find project $projectNameLocal in Collection.  Exiting Function."
+        return
+    }else{
+        Write-Verbose "Found project id: $projectNameLocal : $projectId"
+    }
+    #endregion
+
+    if($PSCmdlet.ShouldProcess("Creating New team Security Group.  TeamName: $Name")){
+        $idService = $tExConn.GetService("Microsoft.TeamFoundation.Framework.Client.IIdentitymanagementService")
+        $group = Get-TBSecurityGroup -Name $Name -ProjectName $projectNameLocal
+
+        if($null -eq $group.DisplayName){
+            try {
+                $result = $idService.CreateApplicationGroup($projectId, $Name, $Description)
+                Write-Verbose "Creating new security group. Name: $Name"
+                Write-Verbose "Security Group Creation Output.  $result"
+            }
+            catch {
+                Write-Verbose "Group already exists or there was an error creating the group."
+            }
+        }
+
+    }
+
+    return $result
+
+
     <#
         .SYNOPSIS
-            New-TBSecurityGroup will do something wonderful.
+            New-TBSecurityGroup will create a new TFS/VSTS Security group.
         .DESCRIPTION
-            New-TBSecurityGroup will do something wonderful.
+            New-TBSecurityGroup will create a new TFS/VSTS Security group.
         .EXAMPLE
-            New-TBSecurityGroup -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+            New-TBSecurityGroup -Name "MySecurityGroup" -ProjectName "MyFirstProject" -Description "The best Security group."
     #>
 }
 function Get-TBSecurityGroup
@@ -194,12 +255,12 @@ function Get-TBSecurityGroup
     [cmdletbinding()]
     Param(
 
-        # Parameter help description
+        # Security Group Name
         [Parameter(Mandatory = $true)]
         [string]
         $Name,
 
-        # Parameter help description
+        # Project Name
         [Parameter(Mandatory = $false)]
         [string]
         $ProjectName
