@@ -134,7 +134,7 @@ PrivateData = @{
         TfsClientVersion = '${TfsOmNugetVersion}'
 
         #External dependent modules of this module
-        ExternalModuleDependencies = 'VSTeam'
+        ExternalModuleDependencies = 'VSTeam,TFSCmdlets'
 
     } # End of PSData hashtable
 
