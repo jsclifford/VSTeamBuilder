@@ -545,47 +545,23 @@ function Set-TBPermission
 }
 function Get-TBTokenCollection
 {
-    Param(
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName1,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName2,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName3,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName4
-    )
-    <#
-        .SYNOPSIS
-            Get-TBTokenCollection will do something wonderful.
-        .DESCRIPTION
-            Get-TBTokenCollection will do something wonderful.
-        .EXAMPLE
-            Get-TBTokenCollection -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
-    #>
-}
-function Get-TBNamespaceCollection
-{
     [cmdletbinding()]
     Param(
 
-        # Refresh the Collection object in memory
+        # TFS Namespace ID
+        [Parameter(Mandatory = $true)]
+        [string]
+        $NamespaceId,
+
+        # TFS Project Name
+        [Parameter(Mandatory = $false)]
+        [string]
+        $ProjectName,
+
+        # Force Refresh of Token Collection
         [switch]
         $ForceRefresh
     )
-
     #region global connection Variables
     $projectNameLocal = $null
     $VSTBConn = $Global:VSTBConn
@@ -602,6 +578,53 @@ function Get-TBNamespaceCollection
         }
     }else{
         $projectNameLocal = $ProjectName
+    }
+    #endregion
+
+    $TokenCollection = $null
+    if($null -eq $Global:TFSTokenCollection)
+    {
+        $Global:TFSTokenCollection = @{}
+        $TokenCollection = $Global:TFSTokenCollection
+    }else{
+        $TokenCollection = $Global:TFSTokenCollection
+    }
+
+    if($null -eq $TokenCollection[$NamespaceId] -or $ForceRefresh){
+        $acls = Invoke-VSTeamRequest -area "accesscontrollists" -resource $NamespaceId -method Get -version 1.0
+        $TokenCollection.Remove($NamespaceId)
+        $TokenCollection.Add("$NamespaceId",$($acls.value))
+    }
+    $Global:TFSTokenCollection = $TokenCollection
+    $namespaceTokens = $TokenCollection[$NamespaceId]
+
+    return $namespaceTokens
+
+    <#
+        .SYNOPSIS
+            Get-TBTokenCollection retrieves all the tokens for a specific namespace and project.
+        .DESCRIPTION
+            Get-TBTokenCollection retrieves all the tokens for a specific namespace and project.
+        .EXAMPLE
+            Get-TBTokenCollection -NamespaceId "000" -ProjectName "MyFirstProject"
+            Outputs TFS Token Collection and sets global variable TFSTokenCollection
+    #>
+}
+function Get-TBNamespaceCollection
+{
+    [cmdletbinding()]
+    Param(
+
+        # Refresh the Collection object in memory
+        [switch]
+        $ForceRefresh
+    )
+
+    #region global connection Variables
+    $VSTBConn = $Global:VSTBConn
+    if(! (_testConnection)){
+        Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
+        return
     }
     #endregion
 
