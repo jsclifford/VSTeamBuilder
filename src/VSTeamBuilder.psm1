@@ -441,36 +441,74 @@ function Add-TBTeamIteration
     [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
-        # Parameter help description
+        # Adding Iteration to Team.
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName1,
+        $IterationName,
 
-        # Parameter help description
+        # TFS Team Name
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName2,
+        $TeamName,
 
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
+        # TFS Project Name
+        [Parameter(Mandatory = $false)]
         [string]
-        $ParameterName3,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName4
+        $ProjectName
     )
-     if($PSCmdlet.ShouldProcess("Processing section 1.")){
-        #Process something here.
+
+    #region global connection Variables
+    $projectNameLocal = $null
+    $VSTBConn = $Global:VSTBConn
+    if(! (_testConnection)){
+        Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
+        return
     }
+    if($null -eq $ProjectName){
+        if($null -eq $VSTBConn.DefaultProjectName){
+            Write-Verbose "No ProjectName specified."
+            throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
+        }else{
+            $projectNameLocal = $VSTBConn.DefaultProjectName
+        }
+    }else{
+        $projectNameLocal = $ProjectName
+    }
+
+    $result = $null
+    #endregion
+
+    #region Get Iteration ID
+    # Eventually replace this with VSTeam API Call instead of TFSCmdlets Module function.
+    $iterationId = ""
+    $iteration = Get-TfsIteration -Iteration $IterationName -Project $ProjectName -Collection $VSTBConn.CollectionName
+    $iterationId = ($iteration.Uri -split "Node/")[1]
+    #endregion
+
+    $props = @{
+        "id" = "$iterationId"
+    }
+    $JSONObject = New-Object -TypeName PSObject -Property $props
+    $JSON = ConvertTo-Json $JSONObject
+
+    try{
+        if($PSCmdlet.ShouldProcess("Adding IterationID: $iterationId to team: $TeamName")){
+            $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings/iterations" -method Post -body $JSON -ContentType "application/json" -version 2.0-preview.1
+        }
+    }
+    catch
+    {
+        Write-Verbose "There was an error: $_"
+    }
+
+    return $result
     <#
         .SYNOPSIS
-            Add-TBTeamIteration will do something wonderful.
+            Add-TBTeamIteration add the default iteration to a team.
         .DESCRIPTION
-            Add-TBTeamIteration will do something wonderful.
+            Add-TBTeamIteration add the default iteration to a team.
         .EXAMPLE
-            Add-TBTeamIteration -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+            Add-TBTeamIteration -IterationName "Team1-Iteration1" -Teamname "MyFavoriteTeam" -ProjectName "MyFirstProject"
     #>
 }
 function Get-TBTeamIteration
@@ -478,12 +516,12 @@ function Get-TBTeamIteration
     [cmdletbinding()]
     Param(
 
-        # Parameter help description
+        # TFS Team Name
         [Parameter(Mandatory = $true)]
         [string]
         $TeamName,
 
-        # Parameter help description
+        # TFS Project Name
         [Parameter(Mandatory = $false)]
         [string]
         $ProjectName

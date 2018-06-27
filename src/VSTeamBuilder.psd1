@@ -51,7 +51,7 @@ Description = 'Powershell Module that automates VSTS/TFS project creation and co
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @('VSTeam')
+RequiredModules = @('VSTeam','TFSCmdlets')
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
