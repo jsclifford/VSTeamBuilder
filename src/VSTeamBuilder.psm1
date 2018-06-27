@@ -283,8 +283,6 @@ function Get-TBSecurityGroup
     }else{
         $projectNameLocal = $ProjectName
     }
-
-    $result = $null
     #endregion
 
     #region Connect to TFS/VSTS with TeamFoundation Client DLL class.
@@ -1007,6 +1005,7 @@ function Get-TBNamespaceCollection
 }
 function Get-TBToken
 {
+    [OutputType([PSObject])]
     [cmdletbinding()]
     Param(
 
@@ -1100,7 +1099,7 @@ function Get-TBToken
 function Add-TBConnection
 {
     [OutputType([boolean])]
-    [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
+    [cmdletbinding()]
     Param(
 
         # TFS/VSTS Collection Name
@@ -1178,6 +1177,7 @@ function Add-TBConnection
 function Remove-TBConnection
 {
     [OutputType([boolean])]
+    [cmdletbinding()]
     Param(
         # All Variables switch does nothing.
         [switch]
@@ -1185,10 +1185,9 @@ function Remove-TBConnection
     )
 
     $Success = $true
-    $CollectionUrl = "$ServerUrl/$CollectionName"
     $VSTBConn = $Global:VSTBConn
 
-    if($VSTBConn -ne $null){
+    if($null -ne $VSTBConn){
         try{
             $Global:VSTBConn = $null
         }catch{
@@ -1217,6 +1216,7 @@ function Remove-TBConnection
 function _testConnection
 {
     [OutputType([boolean])]
+    [cmdletbinding()]
     Param(
         # Test all variables
         [switch]
@@ -1241,6 +1241,7 @@ function _testConnection
 
 function Set-TBDefaultProject
 {
+    [cmdletbinding()]
     Param(
 
         # TFS/VSTS Project
