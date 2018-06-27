@@ -475,35 +475,57 @@ function Add-TBTeamIteration
 }
 function Get-TBTeamIteration
 {
+    [cmdletbinding()]
     Param(
 
         # Parameter help description
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName1,
+        $TeamName,
 
         # Parameter help description
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [string]
-        $ParameterName2,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName3,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName4
+        $ProjectName
     )
+
+    #region global connection Variables
+    $projectNameLocal = $null
+    $VSTBConn = $Global:VSTBConn
+    if(! (_testConnection)){
+        Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
+        return
+    }
+    if($null -eq $ProjectName){
+        if($null -eq $VSTBConn.DefaultProjectName){
+            Write-Verbose "No ProjectName specified."
+            throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
+        }else{
+            $projectNameLocal = $VSTBConn.DefaultProjectName
+        }
+    }else{
+        $projectNameLocal = $ProjectName
+    }
+
+    $result = $null
+    #endregion
+
+    try{
+        $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings/iterations" -method Get -version 2.0-preview.1
+    }
+    catch
+    {
+        Write-Verbose "There was an error: $_"
+    }
+
+    return $result
     <#
         .SYNOPSIS
-            Get-TBTeamIteration will do something wonderful.
+            Get-TBTeamIteration Retrieves teh Team Iteration object.
         .DESCRIPTION
-            Get-TBTeamIteration will do something wonderful.
+            Get-TBTeamIteration Retrieves teh Team Iteration object.
         .EXAMPLE
-            Get-TBTeamIteration -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+            Get-TBTeamIteration -TeamName "MyTeam" -ProjectName "MyFirstProject"
     #>
 }
 function Set-TBPermission
@@ -602,11 +624,9 @@ function Set-TBPermission
             Write-Verbose "There was an error: $_"
         }
 
-        return $result
     }
 
-
-
+    return $result
     <#
         .SYNOPSIS
             Set-TBPermission sets a tfs permission for a tfs token object.
