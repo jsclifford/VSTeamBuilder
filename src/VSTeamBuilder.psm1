@@ -371,69 +371,140 @@ function Set-TBTeamIterationSetting
     [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
-        # Parameter help description
+        # Adding Iteration to Team.
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName1,
+        $IterationName,
 
-        # Parameter help description
+        # TFS Team Name
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName2,
+        $TeamName,
 
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
+        # TFS Project Name
+        [Parameter(Mandatory = $false)]
         [string]
-        $ParameterName3,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName4
+        $ProjectName
     )
-     if($PSCmdlet.ShouldProcess("Processing section 1.")){
-        #Process something here.
+
+    #region global connection Variables
+    $projectNameLocal = $null
+    $VSTBConn = $Global:VSTBConn
+    if(! (_testConnection)){
+        Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
+        return
     }
+    if($null -eq $ProjectName){
+        if($null -eq $VSTBConn.DefaultProjectName){
+            Write-Verbose "No ProjectName specified."
+            throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
+        }else{
+            $projectNameLocal = $VSTBConn.DefaultProjectName
+        }
+    }else{
+        $projectNameLocal = $ProjectName
+    }
+
+    $result = $null
+    #endregion
+
+    #region Get Iteration ID
+    # Eventually replace this with VSTeam API Call instead of TFSCmdlets Module function.
+    $iterationId = ""
+    $iteration = Get-TfsIteration -Iteration $IterationName -Project $ProjectName -Collection $VSTBConn.CollectionName
+    $iterationId = ($iteration.Uri -split "Node/")[1]
+    #endregion
+
+    $props = @{
+        "bugsBehavior"      =   "AsTasks";
+        "workingDays"       =   @(
+            "monday",
+            "tuesday",
+            "wednesday",
+            "thursday",
+            "friday"
+        );
+        "defaultIteration"  =   "$iterationId"
+        "backlogIteration"  =   "$iterationId"
+    }
+    $JSONObject = New-Object -TypeName PSObject -Property $props
+    $JSON = ConvertTo-Json $JSONObject
+
+    try{
+        if($PSCmdlet.ShouldProcess("Adding IterationID: $iterationId to team: $TeamName")){
+            $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings" -method Patch -body $JSON -ContentType "application/json" -version 2.0-preview.1
+        }
+    }
+    catch
+    {
+        Write-Verbose "There was an error: $_"
+    }
+
+    return $result
+
     <#
         .SYNOPSIS
-            Set-TBTeamIterationSetting will do something wonderful.
+            Set-TBTeamIterationSetting set default iteration settings.
         .DESCRIPTION
-            Set-TBTeamIterationSetting will do something wonderful.
+            Set-TBTeamIterationSetting set default iteration settings.
         .EXAMPLE
-            Set-TBTeamIterationSetting -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+            Set-TBTeamIterationSetting -IterationName "Team1-Iteration1" -Teamname "MyFavoriteTeam" -ProjectName "MyFirstProject"
     #>
 }
 function Get-TBTeamIterationSetting
 {
+    [cmdletbinding()]
     Param(
 
-        # Parameter help description
+        # TFS Team Name
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName1,
+        $TeamName,
 
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
+        # TFS Project Name
+        [Parameter(Mandatory = $false)]
         [string]
-        $ParameterName2,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName3,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName4
+        $ProjectName
     )
+
+    #region global connection Variables
+    $projectNameLocal = $null
+    $VSTBConn = $Global:VSTBConn
+    if(! (_testConnection)){
+        Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
+        return
+    }
+    if($null -eq $ProjectName){
+        if($null -eq $VSTBConn.DefaultProjectName){
+            Write-Verbose "No ProjectName specified."
+            throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
+        }else{
+            $projectNameLocal = $VSTBConn.DefaultProjectName
+        }
+    }else{
+        $projectNameLocal = $ProjectName
+    }
+
+    $result = $null
+    #endregion
+
+    try{
+        $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings" -method Get -version 2.0-preview.1
+    }
+    catch
+    {
+        Write-Verbose "There was an error: $_"
+    }
+
+    return $result
+
     <#
         .SYNOPSIS
-            Get-TBTeamIterationSetting will do something wonderful.
+            Get-TBTeamIterationSetting gets the Team iteration settings.
         .DESCRIPTION
-            Get-TBTeamIterationSetting will do something wonderful.
+            Get-TBTeamIterationSetting gets the Team iteration settings.
         .EXAMPLE
-            Get-TBTeamIterationSetting -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+            Get-TBTeamIterationSetting -TeamName "MyTeam" -ProjectName "MyFirstProject"
     #>
 }
 function Add-TBTeamIteration
@@ -502,11 +573,12 @@ function Add-TBTeamIteration
     }
 
     return $result
+
     <#
         .SYNOPSIS
-            Add-TBTeamIteration add the default iteration to a team.
+            Add-TBTeamIteration adds an iteration to a team.
         .DESCRIPTION
-            Add-TBTeamIteration add the default iteration to a team.
+            Add-TBTeamIteration adds an iteration to a team.
         .EXAMPLE
             Add-TBTeamIteration -IterationName "Team1-Iteration1" -Teamname "MyFavoriteTeam" -ProjectName "MyFirstProject"
     #>
