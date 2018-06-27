@@ -564,6 +564,8 @@ function Set-TBPermission
     }else{
         $projectNameLocal = $ProjectName
     }
+
+    $result = $null
     #endregion
 
     $SecurityGroup = Get-TBSecurityGroup -Name $GroupName -ProjectName $projectNameLocal
@@ -599,6 +601,8 @@ function Set-TBPermission
         {
             Write-Verbose "There was an error: $_"
         }
+
+        return $result
     }
 
 
@@ -609,7 +613,7 @@ function Set-TBPermission
         .DESCRIPTION
             Set-TBPermission sets a tfs permission for a tfs token object.
         .EXAMPLE
-            Set-TBPermission -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+            Set-TBPermission -TFSToken $gitRepoToken.token -GroupName "MyTFSSecurityGroup" -NamespaceId "00-000" -AllowValue 7 -ProjectName "MyFirstProject"
     #>
 }
 function Get-TBTokenCollection
