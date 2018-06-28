@@ -30,7 +30,7 @@ CompanyName = ''
 Copyright = '(c) 2018 JS Clifford. All rights reserved.'
 
 # Description of the functionality provided by this module
-Description = 'Powershell Module that automates VSTS/TFS project creation and configuration for large project configurations.'
+Description = 'Powershell Module that automates VSTS/TFS project creation and configuration for large project setups.'
 
 # Minimum version of the Windows PowerShell engine required by this module
 # PowerShellVersion = ''
