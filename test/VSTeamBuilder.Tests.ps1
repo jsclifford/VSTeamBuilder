@@ -121,9 +121,9 @@ Describe 'Get-TBToken' {
         True | Should Be True
     }
 }
-Describe 'Use-TBConnection' {
-    It 'Passes Use-TBConnection' {
-        Use-TBConnection -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+Describe 'Add-TBConnection' {
+    It 'Passes Add-TBConnection' {
+        Add-TBConnection -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
         True | Should Be True
     }
 }
