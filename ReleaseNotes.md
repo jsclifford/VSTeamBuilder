@@ -1,2 +1,10 @@
-0.1.0 Scaffolding created
-0.1.1 Initial creation half way done.
+# Release Notes
+
+## 0.1.0
+
+Creation of the module and project Scaffolding.
+
+## 0.1.1
+
+Initial creation of powershell functions.
+
