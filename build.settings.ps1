@@ -181,14 +181,14 @@ Task AfterStageFiles {
         <version>$NugetPackageVersion</version>
         <authors>$($SourceManifest.Author)</authors>
         <owners>$($SourceManifest.Author)</owners>
-        <licenseUrl>$($SourceManifest.PrivateData.LicenseUri)</licenseUrl>
-        <projectUrl>$($SourceManifest.PrivateData.ProjectUri)</projectUrl>
-        <iconUrl>$($SourceManifest.PrivateData.IconUri)</iconUrl>
+        <licenseUrl>$($SourceManifest.PrivateData.PSData.LicenseUri)</licenseUrl>
+        <projectUrl>$($SourceManifest.PrivateData.PSData.ProjectUri)</projectUrl>
+        <iconUrl>$($SourceManifest.PrivateData.PSData.IconUri)</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>$($SourceManifest.Description)</description>
         <releaseNotes><![CDATA[$($SourceManifest.ReleaseNotes)]]></releaseNotes>
         <copyright>$($SourceManifest.Copyright)</copyright>
-        <tags>$($SourceManifest.PrivateData.Tags -Join ' ')</tags>
+        <tags>$($SourceManifest.PrivateData.PSData.Tags -Join ' ')</tags>
     </metadata>
 </package>
 "@
