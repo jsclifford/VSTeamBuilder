@@ -83,36 +83,139 @@ function New-TBTeam
     [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
-        # Parameter help description
+        # TFS Team Name
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName1,
+        $Name,
 
-        # Parameter help description
+        # TFS Team Description
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName2,
+        $Description,
 
-        # Parameter help description
+        # TFS TeamCode - Used for Repo, Area, and Iteration Names
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName3,
+        $TeamCode,
 
-        # Parameter help description
+        # TFS Team Iteration/Area Root Path - Nested paths must not have leading back slash. Required back slash as a seperator.
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName4
+        $TeamPath,
+
+        # TFS RepoList - List of repo names to generate.  Default is the TeamCode
+        [Parameter(Mandatory = $false)]
+        [string[]]
+        $RepoList = @('{TeamCode}'),
+
+        # TFS IterationList - List of iteration names to generate.  Default is the TeamCode
+        [Parameter(Mandatory = $false)]
+        [string[]]
+        $IterationList = @('{TeamCode}'),
+
+        # TFS TeamCode - Used for Repo, Area, and Iteration Names
+        [Parameter(Mandatory = $false)]
+        [string]
+        $ProjectName,
+
+        # isCoded switch will make Version Control Repos if set.
+        [switch]
+        $IsCoded
     )
-     if($PSCmdlet.ShouldProcess("Processing section 1.")){
+
+    #region global connection Variables
+    $projectNameLocal = $null
+    $VSTBConn = $Global:VSTBConn
+    if(! (_testConnection)){
+        Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
+        return
+    }
+    if($null -eq $ProjectName){
+        if($null -eq $VSTBConn.DefaultProjectName){
+            Write-Verbose "No ProjectName specified."
+            throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
+        }else{
+            $projectNameLocal = $VSTBConn.DefaultProjectName
+        }
+    }else{
+        $projectNameLocal = $ProjectName
+    }
+
+    $result = $null
+    #endregion
+
+    #region Create Team Area
+    if($PSCmdlet.ShouldProcess("Processing section 1.")){
         #Process something here.
     }
+    #endregion
+
+    #region Create Team Application Security Groups
+    if($PSCmdlet.ShouldProcess("Processing section 1.")){
+        #Process something here.
+    }
+    #endregion
+
+    #region Create Team and set default area.
+    if($PSCmdlet.ShouldProcess("Processing section 1.")){
+        #Process something here.
+    }
+    #endregion
+
+    #TODO
+    #region Add Team Lead and team members
+    if($PSCmdlet.ShouldProcess("Processing section 1.")){
+        #Process something here.
+    }
+    #endregion
+
+    #region Create Version Control Repos
+    if($PSCmdlet.ShouldProcess("Processing section 1.")){
+        #Process something here.
+    }
+    #endregion
+
+    #region Create Team Iterations and set default iteration for the team
+    if($PSCmdlet.ShouldProcess("Processing section 1.")){
+        #Process something here.
+    }
+    #endregion
+
+    #TODO
+    #region Create Team Work Item Query Folder and Work Item Query
+    if($PSCmdlet.ShouldProcess("Processing section 1.")){
+        #Process something here.
+    }
+    #endregion
+
+    #TODO
+    #region Create Build Folder and default build definition
+    if($PSCmdlet.ShouldProcess("Processing section 1.")){
+        #Process something here.
+    }
+    #endregion
+
+    #region Assign TFS Application Groups permissions to objects
+    if($PSCmdlet.ShouldProcess("Processing section 1.")){
+        #Process something here.
+    }
+    #endregion
+
+    #region Add Team to TFS application security group
+    if($PSCmdlet.ShouldProcess("Processing section 1.")){
+        #Process something here.
+    }
+    #endregion
+
+    return $result
+
     <#
         .SYNOPSIS
-            New-TBTeam will do something wonderful.
+            New-TBTeam will create a TFS Team with associated Repos, Areas, Iterations, and TFS Application Security Groups (with assigned permissions)
         .DESCRIPTION
-            New-TBTeam will do something wonderful.
+            New-TBTeam will create a TFS Team with associated Repos, Areas, Iterations, and TFS Application Security Groups (with assigned permissions)
         .EXAMPLE
-            New-TBTeam -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+            New-TBTeam -Name "My Team" -Description "My Best Team" -Teamcode "My-Team" -TeamPath "ParentTeam\MY-TEAM" -ProjectName "MyProject" -IsCoded
     #>
 }
 function Remove-TBTeam

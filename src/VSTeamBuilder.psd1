@@ -76,6 +76,7 @@ FunctionsToExport = @(
     'Remove-TBTeam',
     'New-TBSecurityGroup',
     'Get-TBSecurityGroup',
+    'Remove-TBSecurityGroup',
     'Add-TBSecurityGroupMember',
     'Remove-TBSecurityGroupMember',
     'Set-TBTeamAreaSetting',
