@@ -527,36 +527,86 @@ function Add-TBSecurityGroupMember
     [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
-        # Parameter help description
+        # TFS Member Name
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName1,
+        $MemberName,
 
-        # Parameter help description
+        # GroupName to apply member to.
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName2,
+        $GroupName,
 
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
+        # Project Name.
+        [Parameter(Mandatory = $false)]
         [string]
-        $ParameterName3,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName4
+        $ProjectName
     )
-     if($PSCmdlet.ShouldProcess("Processing section 1.")){
-        #Process something here.
+
+    #region global connection Variables
+    $projectNameLocal = $null
+    $VSTBConn = $Global:VSTBConn
+    if(! (_testConnection)){
+        Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
+        return
     }
+    if($null -eq $ProjectName){
+        if($null -eq $VSTBConn.DefaultProjectName){
+            Write-Verbose "No ProjectName specified."
+            throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
+        }else{
+            $projectNameLocal = $VSTBConn.DefaultProjectName
+        }
+    }else{
+        $projectNameLocal = $ProjectName
+    }
+
+    $result = $null
+    #endregion
+
+    #region Connect to TFS/VSTS with TeamFoundation Client DLL class.
+    #Team Explorer Connection
+    $tExConn = $null
+
+    try{
+        $tExConn = $VSTBConn.TeamExplorerConnection
+        $tExConn.EnsureAuthenticated()
+    }
+    catch
+    {
+        Write-verbose "There was an error connection to the TFS/VSTS server. $_"
+        return $null
+    }
+    #endregion
+
+    if($PSCmdlet.ShouldProcess("Add Member to Security Group")){
+        $idService = $tExConn.GetService("Microsoft.TeamFoundation.Framework.Client.IIdentitymanagementService")
+        $group = Get-TBSecurityGroup -Name $GroupName -ProjectName $projectNameLocal
+        $memberToAdd = Get-TBSecurityGroup -Name $MemberName -ProjectName $projectNameLocal
+        if($null -ne $group.Descriptor -and $null -ne $memberToAdd.Descriptor){
+            try{
+                $result = $idService.AddMemberToApplicationGroup(
+                    $($group.Descriptor),
+                    $($memberToAdd.Descriptor)
+                )
+                Write-Verbose "Added member: $MemberName to GroupName: $GroupName successfully."
+                Write-Verbose "Result output. $result"
+            }
+            catch
+            {
+                Write-Verbose "There was and error adding member to group.  Error: $_"
+            }
+        }
+    }
+
+    return $result
     <#
         .SYNOPSIS
-            Add-TBSecurityGroupMember will do something wonderful.
+            Add-TBSecurityGroupMember will add a TFS member to a TFS Application Security Group.
         .DESCRIPTION
-            Add-TBSecurityGroupMember will do something wonderful.
+            Add-TBSecurityGroupMember will add a TFS member to a TFS Application Security Group.
         .EXAMPLE
-            Add-TBSecurityGroupMember -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+            Add-TBSecurityGroupMember -MemberName "JoeFunny" -GroupName "MyTestGroup" -ProjectName "MyFirstProject"
     #>
 }
 function Remove-TBSecurityGroupMember
@@ -564,36 +614,85 @@ function Remove-TBSecurityGroupMember
     [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName1,
+         # TFS Member Name
+         [Parameter(Mandatory = $true)]
+         [string]
+         $MemberName,
 
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName2,
+         # GroupName to apply member to.
+         [Parameter(Mandatory = $true)]
+         [string]
+         $GroupName,
 
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName3,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName4
+         # Project Name.
+         [Parameter(Mandatory = $false)]
+         [string]
+         $ProjectName
     )
-     if($PSCmdlet.ShouldProcess("Processing section 1.")){
-        #Process something here.
+     #region global connection Variables
+    $projectNameLocal = $null
+    $VSTBConn = $Global:VSTBConn
+    if(! (_testConnection)){
+        Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
+        return
     }
+    if($null -eq $ProjectName){
+        if($null -eq $VSTBConn.DefaultProjectName){
+            Write-Verbose "No ProjectName specified."
+            throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
+        }else{
+            $projectNameLocal = $VSTBConn.DefaultProjectName
+        }
+    }else{
+        $projectNameLocal = $ProjectName
+    }
+
+    $result = $null
+    #endregion
+
+    #region Connect to TFS/VSTS with TeamFoundation Client DLL class.
+    #Team Explorer Connection
+    $tExConn = $null
+
+    try{
+        $tExConn = $VSTBConn.TeamExplorerConnection
+        $tExConn.EnsureAuthenticated()
+    }
+    catch
+    {
+        Write-verbose "There was an error connection to the TFS/VSTS server. $_"
+        return $null
+    }
+    #endregion
+
+    if($PSCmdlet.ShouldProcess("Add Member to Security Group")){
+        $idService = $tExConn.GetService("Microsoft.TeamFoundation.Framework.Client.IIdentitymanagementService")
+        $group = Get-TBSecurityGroup -Name $GroupName -ProjectName $projectNameLocal
+        $memberToAdd = Get-TBSecurityGroup -Name $MemberName -ProjectName $projectNameLocal
+        if($null -ne $group.Descriptor -and $null -ne $memberToAdd.Descriptor){
+            try{
+                $result = $idService.RemoveMemberToApplicationGroup(
+                    $($group.Descriptor),
+                    $($memberToAdd.Descriptor)
+                )
+                Write-Verbose "Removed member: $MemberName to GroupName: $GroupName successfully."
+                Write-Verbose "Result output. $result"
+            }
+            catch
+            {
+                Write-Verbose "There was and error removing member to group.  Error: $_"
+            }
+        }
+    }
+
+    return $result
     <#
         .SYNOPSIS
-            Remove-TBSecurityGroupMember will do something wonderful.
+            Remove-TBSecurityGroupMember will remove a TFS member to a TFS Application Security Group.
         .DESCRIPTION
-            Remove-TBSecurityGroupMember will do something wonderful.
+            Remove-TBSecurityGroupMember will remove a TFS member to a TFS Application Security Group.
         .EXAMPLE
-            Remove-TBSecurityGroupMember -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+            Remove-TBSecurityGroupMember -MemberName "JoeFunny" -GroupName "MyTestGroup" -ProjectName "MyFirstProject"
     #>
 }
 function Set-TBTeamAreaSetting
