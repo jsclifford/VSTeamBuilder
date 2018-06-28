@@ -232,7 +232,7 @@ function New-TBSecurityGroup
                 Write-Verbose "Security Group Creation Output.  $result"
             }
             catch {
-                Write-Verbose "Group already exists or there was an error creating the group."
+                Write-Verbose "Group already exists or there was an error creating the group. Error: $_"
             }
         }
 
@@ -248,6 +248,100 @@ function New-TBSecurityGroup
             New-TBSecurityGroup will create a new TFS/VSTS Security group.
         .EXAMPLE
             New-TBSecurityGroup -Name "MySecurityGroup" -ProjectName "MyFirstProject" -Description "The best Security group."
+    #>
+}
+function Remove-TBSecurityGroup
+{
+    [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
+    Param(
+
+       # Security Group Name
+       [Parameter(Mandatory = $true)]
+       [string]
+       $Name,
+
+       # Parameter help description
+       [Parameter(Mandatory = $false)]
+       [string]
+       $ProjectName
+    )
+
+    #region global connection Variables
+    $projectNameLocal = $null
+    $VSTBConn = $Global:VSTBConn
+    if(! (_testConnection)){
+        Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
+        return
+    }
+    if($null -eq $ProjectName){
+        if($null -eq $VSTBConn.DefaultProjectName){
+            Write-Verbose "No ProjectName specified."
+            throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
+        }else{
+            $projectNameLocal = $VSTBConn.DefaultProjectName
+        }
+    }else{
+        $projectNameLocal = $ProjectName
+    }
+
+    $result = $null
+    #endregion
+
+    #region Connect to TFS/VSTS with TeamFoundation Client DLL class.
+    #Team Explorer Connection
+    $tExConn = $null
+
+    try{
+        $tExConn = $VSTBConn.TeamExplorerConnection
+        $tExConn.EnsureAuthenticated()
+    }
+    catch
+    {
+        Write-verbose "There was an error connection to the TFS/VSTS server. $_"
+        return $null
+    }
+    #endregion
+
+    #region Get TFS Project ID
+    $cssService = $tExConn.GetService("Microsoft.TeamFoundation.Server.ICommonStructureService3")
+    $project = $cssService.GetProjectFromName($projectNameLocal)
+    $projectId = ($project.Uri -split "TeamProject/")[1]
+    if($null -eq $projectId){
+        Write-Verbose "Could not find project $projectNameLocal in Collection.  Exiting Function."
+        return
+    }else{
+        Write-Verbose "Found project id: $projectNameLocal : $projectId"
+    }
+    #endregion
+
+    if($PSCmdlet.ShouldProcess("Remove team Security Group.  GroupName: $Name")){
+        $idService = $tExConn.GetService("Microsoft.TeamFoundation.Framework.Client.IIdentitymanagementService")
+        $group = Get-TBSecurityGroup -Name $Name -ProjectName $projectNameLocal
+
+        if($null -eq $group.DisplayName){
+            try {
+                $groupSID = $group.Descriptor
+                $result = $idService.DeleteApplicationGroup($groupSID)
+                Write-Verbose "Removing security group. Name: $Name"
+                Write-Verbose "Security Group Removal Output.  $result"
+            }
+            catch {
+                Write-Verbose "Group doesn't exists or there was an error removing the group. error: $_"
+            }
+        }
+
+    }
+
+    return $result
+
+
+    <#
+        .SYNOPSIS
+            Remove-TBSecurityGroup will remove a TFS/VSTS Security group.
+        .DESCRIPTION
+            Remove-TBSecurityGroup will remove a TFS/VSTS Security group.
+        .EXAMPLE
+            Remove-TBSecurityGroup -Name "MySecurityGroup" -ProjectName "MyFirstProject"
     #>
 }
 function Get-TBSecurityGroup
@@ -814,7 +908,7 @@ function Set-TBPermission
         # TFS Token Object
         [Parameter(Mandatory = $true)]
         [string]
-        $TFStoken,
+        $TokenObject,
 
         # Group Name to assign permission to.
         [Parameter(Mandatory = $true)]
@@ -822,9 +916,9 @@ function Set-TBPermission
         $GroupName,
 
         # NamespaceID obtained from TFS API guide or Get-TBNamespaceCollection
-        [Parameter(Mandatory = $true)]
-        [string]
-        $NamespaceId,
+        # [Parameter(Mandatory = $true)]
+        # [string]
+        # $NamespaceId,
 
         # Allow Permission value.  Allow Permission values are added together like linux unix file permissions.
         [Parameter(Mandatory = $false)]
@@ -834,7 +928,7 @@ function Set-TBPermission
         # Deny Permission value.  Deny Permission values are added together like linux unix file permissions.
         [Parameter(Mandatory = $false)]
         [int]
-        $DenyValue,
+        $DenyValue = 0,
 
         # Will not merge settings and wipe permissions of token
         [Parameter(Mandatory = $true)]
@@ -842,7 +936,7 @@ function Set-TBPermission
         $NoMerge,
 
         # TFS/VSTS Project Name
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [string]
         $ProjectName
     )
@@ -878,7 +972,7 @@ function Set-TBPermission
         }
 
         $props = @{
-            "token"                 =   "$TFSToken";
+            "token"                 =   "$($TokenObject.token)";
             "merge"                 =   $merge;
             "accessControllEntries" =   @(
                 @{
@@ -894,7 +988,7 @@ function Set-TBPermission
         $JSON = Convertto-Json $JSONObject -Depth 20
         try{
             if($PSCmdlet.ShouldProcess("Setting permission on token $TFSToken for Group name $GroupName")){
-                $result = Invoke-VSTeamRequest -area "accesscontrolentries" -resource $NamespaceId -method Post -body $JSON -ContentType "application/json" -version 1.0
+                $result = Invoke-VSTeamRequest -area "accesscontrolentries" -resource $($token.namespaceId) -method Post -body $JSON -ContentType "application/json" -version 1.0
             }
         }
         catch
@@ -911,7 +1005,8 @@ function Set-TBPermission
         .DESCRIPTION
             Set-TBPermission sets a tfs permission for a tfs token object.
         .EXAMPLE
-            Set-TBPermission -TFSToken $gitRepoToken.token -GroupName "MyTFSSecurityGroup" -NamespaceId "00-000" -AllowValue 7 -ProjectName "MyFirstProject"
+            Set-TBPermission -TokenObject $gitRepoToken.token -GroupName "MyTFSSecurityGroup" -AllowValue 7 -ProjectName "MyFirstProject"
+            --Deprecated -- Set-TBPermission -TokenObject $gitRepoToken.token -GroupName "MyTFSSecurityGroup" -NamespaceId "00-000" -AllowValue 7 -ProjectName "MyFirstProject"
     #>
 }
 function Get-TBTokenCollection
@@ -1015,9 +1110,9 @@ function Get-TBToken
         $ObjectId,
 
         # NamespaceName
-        [Parameter(Mandatory = $true)]
-        [string]
-        $NsName,
+        # [Parameter(Mandatory = $false)]
+        # [string]
+        # $NsName,
 
         # Team Project to search from
         [Parameter(Mandatory = $false)]
@@ -1045,18 +1140,19 @@ function Get-TBToken
     #endregion
 
     #region Get Namespaceid from name
-    if($null -eq $Global:VSTBNamespaceCollection){
-        $holder = Get-TBNamespaceCollection
-    }
 
-    $nameSpaceId = ($Global:VSTBNamespaceCollection | Where-Object -Property name -eq $NsName).Namespaceid
+    # if($null -eq $Global:VSTBNamespaceCollection){
+    #     $holder = Get-TBNamespaceCollection
+    # }
 
-    if($null -eq $nameSpaceId){
-        Write-Verbose "Could not find namespace id. Exiting."
-        return
-    }else{
-        Write-Verbose "Found Namespace Id: $nameSpaceId"
-    }
+    # $nameSpaceId = ($Global:VSTBNamespaceCollection | Where-Object -Property name -eq $NsName).Namespaceid
+
+    # if($null -eq $nameSpaceId){
+    #     Write-Verbose "Could not find namespace id. Exiting."
+    #     return
+    # }else{
+    #     Write-Verbose "Found Namespace Id: $nameSpaceId"
+    # }
     #endregion
 
     #region Get VSTB Token Collection
@@ -1080,7 +1176,7 @@ function Get-TBToken
     }
 
     $props = @{
-        "namespaceId" = $nameSpaceId
+        "namespaceId" = $token.namespaceid
         "token" = $token.token
     }
     $returnObj = New-Object -TypeName PSObject -Property $props
@@ -1093,7 +1189,8 @@ function Get-TBToken
         .DESCRIPTION
             Get-TBToken return a token object with namespaceid and token id
         .EXAMPLE
-            Get-TBToken -ObjectId "group1" -NsName "security" -ProjectName "myproject"
+            Get-TBToken -ObjectId "group1" -ProjectName "myproject"
+            -- Deprecated -- Get-TBToken -ObjectId "group1" -NsName "security" -ProjectName "myproject"
     #>
 }
 function Add-TBConnection
@@ -1250,7 +1347,7 @@ function Set-TBDefaultProject
         $ProjectName
     )
 
-    $VSTBVersionTable.DefaultProject = $ProjectName
+    $Global:VSTBConn.DefaultProject = $ProjectName
     <#
         .SYNOPSIS
             Set-TBDefaultProject will add the project name to the $VSTBVersionTable Object.
