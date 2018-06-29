@@ -4,10 +4,8 @@ $SuppressImportModule = $false
 
 #region Global Test Variables
 # Put Variables here that you want all tests to use.  Can also have env variables used in build/test process of CI.
-$CollectionName = "MyDefaulCollection"
-$ServerURL = "https://mydemo-tfsserver"
-$ProjectName = "MyTestProject"
-Add-TBConnection -CollectionName $Collectionname -ServerURL $ServerURL
+. $PSScriptRoot\GlobalVars.ps1
+Add-TBConnection -CollectionName $CollectionName -ServerURL $ServerURL
 #endregion
 
 Describe 'Module Manifest Tests' {
@@ -68,7 +66,6 @@ Describe 'Remove-TBSecurityGroupMember' {
         True | Should Be True
     }
 }
-
 Describe 'Team Area' {
     $TeamName = "MyTestTeam"
     $AreaPath = "MTT"
@@ -111,14 +108,14 @@ Describe 'TFS Permissions' {
     $TeamCode = "MTT"
     It 'Sets TFS Permission on Git Repo - Set-TBPermission' {
         $gitRepo = Get-VSTeamGitRepository -ProjectName $ProjectName -Name "$ProjectName"
-        $token = Get-TBToken -ObjectId $gitRepo.Id -ProjectName $ProjectName
+        $token = Get-TBToken -ObjectId $gitRepo.Id -NsName "Git Repositories" -ProjectName $ProjectName
         $result = Set-TBPermission -TokenObject $token -GroupName "$TeamCode-Contributors" -AllowValue 118 -ProjectName $ProjectName
         $result.count -gt 0 | Should Be True
     }
 
     It 'Sets TFS Permission on Team Iteration - Set-TBPermission' {
         $iteration = Get-TFSIteration -Iteration "$Teamcode" -ProjectName $ProjectName -Collection $CollectionName
-        $token = Get-TBToken -ObjectId $iteration.Id -ProjectName $ProjectName
+        $token = Get-TBToken -ObjectId $iteration.Id -NSName "Iteration" -ProjectName $ProjectName
         $result = Set-TBPermission -TokenObject $token -GroupName "$TeamCode-Contributors" -AllowValue 7 -ProjectName $ProjectName
         $result.count -gt 0 | Should Be True
     }
@@ -132,29 +129,31 @@ Describe 'TFS Token and Namespace' {
 
     It 'Get Token Collection - Get-TBTokenCollection' {
         $namespaces = Get-TBNamespaceCollection
-        $tokens = Get-TBTokenCollection -NamespaceId $($namespaces[0].id)
+        $tokens = Get-TBTokenCollection -NamespaceId "2e9eb7ed-3c0a-47d4-87c1-0ffdd275fd87"
         $tokens.length -gt 0 | Should Be True
     }
 
     It 'Get Token - Get-TBToken' {
+        $object = Get-TfsGitRepository -Name "$ProjectName" -Project $ProjectName -Collection "$ServerURL/$CollectionName"
+        $objectId = $object.Id
         $token = Get-TBToken -ObjectId $objectId -NsName "Git Repositories" -ProjectName $ProjectName
         $token.token -ne $null | Should Be True
     }
 }
 Describe 'TBConnection' {
-
-
     It 'Connects to TFS Server - Add-TBConnection' {
         Add-TBConnection -CollectionName $Collectionname -ServerURL $ServerURL | Should Be True
     }
 
-    It 'Disconnects TFS Server - Remove-TBConnection' {
-        Remove-TBConnection -AllVariables | Should Be True
-    }
-
     It 'Sets Default Project' {
         Set-TBDefaultProject -ProjectName $ProjectName
-        $Global:VSTBConn.DefaultProject | Should Be $ProjectName
+        $Global:VSTBConn.DefaultProjectName | Should Be $ProjectName
+    }
+
+    It 'Disconnects TFS Server - Remove-TBConnection' {
+        $result = Remove-TBConnection -AllVariables
+        $result | Should Be True
     }
 }
+
 

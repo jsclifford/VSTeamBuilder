@@ -89,7 +89,8 @@ FunctionsToExport = @(
     'Get-TBTokenCollection',
     'Get-TBNamespaceCollection',
     'Get-TBToken',
-    'Use-TBConnection',
+    'Add-TBConnection',
+    'Remove-TBConnection',
     'Set-TBDefaultProject'
 )
 

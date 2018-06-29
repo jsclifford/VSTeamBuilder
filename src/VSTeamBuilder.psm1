@@ -274,7 +274,7 @@ function New-TBTeam
                     continue
                 }
 
-                $repoToken = Get-TBToken -ObjectId $repo.id -ProjectName $projectNameLocal
+                $repoToken = Get-TBToken -ObjectId $repo.id -NsName "Git Repositories" -ProjectName $projectNameLocal
                 try{
                     $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-Contributors" -AllowValue 118 -ProjectName $projectNameLocal
                     $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-Readers" -AllowValue 2 -ProjectName $projectNameLocal
@@ -291,7 +291,7 @@ function New-TBTeam
             $iterationDefault = Get-TFSIteration -Iteration "$teamIterationRootPath" -Project $projectNameLocal -Collection $($VSTBConn.CollectionName)
             $iterationId = ($iterationDefault.Uri -split "Node/")[1]
 
-            $iterationToken = Get-TBToken -ObjectId $iterationId -ProjectName $projectNameLocal
+            $iterationToken = Get-TBToken -ObjectId $iterationId -NsName "Iteration" -ProjectName $projectNameLocal
             try{
                 $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-Contributors" -AllowValue 7 -ProjectName $projectNameLocal
                 $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-Readers" -AllowValue 1 -ProjectName $projectNameLocal
@@ -308,7 +308,7 @@ function New-TBTeam
             $areaDefault = Get-TFSArea -Area "$TeamPath\$Teamcode" -Project $projectNameLocal -Collection $($VSTBConn.CollectionName)
             $areaId = ($areaDefault.Uri -split "Node/")[1]
 
-            $areaToken = Get-TBToken -ObjectId $areaId -ProjectName $projectNameLocal
+            $areaToken = Get-TBToken -ObjectId $areaId -NsName "CSS" -ProjectName $projectNameLocal
             try{
                 $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-Contributors" -AllowValue 49 -ProjectName $projectNameLocal
                 $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-Readers" -AllowValue 17 -ProjectName $projectNameLocal
@@ -1376,20 +1376,25 @@ function Get-TBTokenCollection
     #endregion
 
     $TokenCollection = $null
-    if($null -eq $Global:TFSTokenCollection)
+    if($null -eq $Global:VSTBTokencollection)
     {
-        $Global:TFSTokenCollection = @{}
-        $TokenCollection = $Global:TFSTokenCollection
+        $Global:VSTBTokencollection = @{}
+        $TokenCollection = $Global:VSTBTokencollection
     }else{
-        $TokenCollection = $Global:TFSTokenCollection
+        $TokenCollection = $Global:VSTBTokencollection
     }
 
     if($null -eq $TokenCollection[$NamespaceId] -or $ForceRefresh){
-        $acls = Invoke-VSTeamRequest -area "accesscontrollists" -resource $NamespaceId -method Get -version 1.0
-        $TokenCollection.Remove($NamespaceId)
-        $TokenCollection.Add("$NamespaceId",$($acls.value))
+        try{
+            $acls = Invoke-VSTeamRequest -area "accesscontrollists" -resource $NamespaceId -method Get -version 1.0
+            $TokenCollection.Remove($NamespaceId)
+            $TokenCollection.Add("$NamespaceId",$($acls.value))
+        }catch{
+            Write-Verbose "There was an error processing this request. $_"
+        }
+
     }
-    $Global:TFSTokenCollection = $TokenCollection
+    $Global:VSTBTokencollection = $TokenCollection
     $namespaceTokens = $TokenCollection[$NamespaceId]
 
     return $namespaceTokens
@@ -1401,7 +1406,7 @@ function Get-TBTokenCollection
             Get-TBTokenCollection retrieves all the tokens for a specific namespace and project.
         .EXAMPLE
             Get-TBTokenCollection -NamespaceId "000"
-            Outputs TFS Token Collection and sets global variable TFSTokenCollection
+            Outputs TFS Token Collection and sets global variable VSTBTokencollection
     #>
 }
 function Get-TBNamespaceCollection
@@ -1422,12 +1427,12 @@ function Get-TBNamespaceCollection
     }
     #endregion
 
-    if($null -eq $Global:TFSnamespaceCollection -or $ForceRefresh){
-        $namespaces = Invoke-VSTeamRequest -area "securitynamespaces" -resource "00000000-0000-0000-000000000000" -method -Get -version 1.0
-        $Global:TFSnamespaceCollection = $namespaces.value
+    if($null -eq $Global:VSTBNamespaceCollection -or $ForceRefresh){
+        $namespaces = Invoke-VSTeamRequest -area "securitynamespaces" -resource "00000000-0000-0000-0000-000000000000" -method Get -version 1.0
+        $Global:VSTBNamespaceCollection = $namespaces.value
         return $namespaces.value
     }else{
-        return $Global:TFSnamespaceCollection
+        return $Global:VSTBNamespaceCollection
     }
     <#
         .SYNOPSIS
@@ -1453,10 +1458,10 @@ function Get-TBToken
         [string]
         $ObjectId,
 
-        # NamespaceName
-        # [Parameter(Mandatory = $false)]
-        # [string]
-        # $NsName,
+        #NamespaceName
+        [Parameter(Mandatory = $false)]
+        [string]
+        $NsName,
 
         # Team Project to search from
         [Parameter(Mandatory = $false)]
@@ -1485,18 +1490,18 @@ function Get-TBToken
 
     #region Get Namespaceid from name
 
-    # if($null -eq $Global:VSTBNamespaceCollection){
-    #     $holder = Get-TBNamespaceCollection
-    # }
+    if($null -eq $Global:VSTBNamespaceCollection){
+        $holder = Get-TBNamespaceCollection
+    }
 
-    # $nameSpaceId = ($Global:VSTBNamespaceCollection | Where-Object -Property name -eq $NsName).Namespaceid
+    $nameSpaceId = ($Global:VSTBNamespaceCollection | Where-Object -Property name -eq $NsName).Namespaceid
 
-    # if($null -eq $nameSpaceId){
-    #     Write-Verbose "Could not find namespace id. Exiting."
-    #     return
-    # }else{
-    #     Write-Verbose "Found Namespace Id: $nameSpaceId"
-    # }
+    if($null -eq $nameSpaceId){
+        Write-Verbose "Could not find namespace id. Exiting."
+        return
+    }else{
+        Write-Verbose "Found Namespace Id: $nameSpaceId"
+    }
     #endregion
 
     #region Get VSTB Token Collection
@@ -1594,7 +1599,7 @@ function Add-TBConnection
     }
 
     if($null -eq $env:TEAM_ACCT){
-        Add-VSTeamAccount -Account $CollectionUrl -UseWindowsAuthentication
+        $holder = Add-VSTeamAccount -Account $CollectionUrl -UseWindowsAuthentication
         $VSTBConn.VSTeamAccount = $true
         Write-Verbose "Successfully connected TFS VSTeam to: $CollectionName"
     }else{
@@ -1637,11 +1642,16 @@ function Remove-TBConnection
         }
     }
     if($null -ne $env:TEAM_ACCT){
-        Remove-VSTeamAccount
+        $holder = Remove-VSTeamAccount
     }
     $Global:VSTBNamespaceCollection = $null
     $Global:VSTBTokencollection = $null
 
+    if($Success){
+        Write-Verbose "Successfully Disconnected"
+    }else{
+        Write-Verbose "There was an error disconnecting."
+    }
 
     return $Success
     <#
@@ -1691,7 +1701,7 @@ function Set-TBDefaultProject
         $ProjectName
     )
 
-    $Global:VSTBConn.DefaultProject = $ProjectName
+    $Global:VSTBConn.DefaultProjectName = $ProjectName
     <#
         .SYNOPSIS
             Set-TBDefaultProject will add the project name to the $VSTBVersionTable Object.
