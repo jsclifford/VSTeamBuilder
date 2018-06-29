@@ -36,7 +36,7 @@ Because I will not be over your shoulder you could write the tests and even the 
 
 ### Update VSTeamBuilder.psd1
 
-Make sure casing of all the files you add match. This module runs on Mac, PC and Linux and casing is very important.
+Make sure casing of all the files you add match.
 
 ### Update README.md
 

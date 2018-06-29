@@ -12,7 +12,7 @@
 RootModule = 'VSTeamBuilder.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.1.0'
+ModuleVersion = '0.1.1'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -24,13 +24,13 @@ GUID = '698282cf-f034-4476-a875-8f6591ed45d2'
 Author = 'JS Clifford'
 
 # Company or vendor of this module
-CompanyName = 'Envision Technology Solutions'
+CompanyName = ''
 
 # Copyright statement for this module
 Copyright = '(c) 2018 JS Clifford. All rights reserved.'
 
 # Description of the functionality provided by this module
-Description = 'Powershell Module that automates VSTS/TFS project creation and configuration for large project configurations.'
+Description = 'Powershell Module that automates VSTS/TFS project creation and configuration for large project setups.'
 
 # Minimum version of the Windows PowerShell engine required by this module
 # PowerShellVersion = ''
@@ -51,13 +51,13 @@ Description = 'Powershell Module that automates VSTS/TFS project creation and co
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-# RequiredModules = @()
+RequiredModules = @('VSTeam','TFSCmdlets')
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
 
 # Script files (.ps1) that are run in the caller's environment prior to importing this module.
-# ScriptsToProcess = @()
+ScriptsToProcess = @('Startup.ps1')
 
 # Type files (.ps1xml) to be loaded when importing this module
 # TypesToProcess = @()
@@ -69,7 +69,30 @@ Description = 'Powershell Module that automates VSTS/TFS project creation and co
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = 'New-TBOrg'
+FunctionsToExport = @(
+    'New-TBOrg',
+    'Remove-TBOrg',
+    'New-TBTeam',
+    'Remove-TBTeam',
+    'New-TBSecurityGroup',
+    'Get-TBSecurityGroup',
+    'Remove-TBSecurityGroup',
+    'Add-TBSecurityGroupMember',
+    'Remove-TBSecurityGroupMember',
+    'Set-TBTeamAreaSetting',
+    'Get-TBTeamAreaSetting',
+    'Set-TBTeamIterationSetting',
+    'Get-TBTeamIterationSetting',
+    'Add-TBTeamIteration',
+    'Get-TBTeamIteration',
+    'Set-TBPermission',
+    'Get-TBTokenCollection',
+    'Get-TBNamespaceCollection',
+    'Get-TBToken',
+    'Add-TBConnection',
+    'Remove-TBConnection',
+    'Set-TBDefaultProject'
+)
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
@@ -95,19 +118,25 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        # Tags = @()
+        Tags = @('VSTeamBuilder','VSTS', 'TFS', 'DevOps', 'Visual Studio', 'TeamServices', 'Team')
 
         # A URL to the license for this module.
-        # LicenseUri = ''
+        LicenseUri = 'https://github.com/jsclifford/VSTeamBuilder/blob/master/LICENSE'
 
         # A URL to the main website for this project.
-        # ProjectUri = ''
+        ProjectUri = 'https://github.com/jsclifford/VSTeamBuilder'
 
         # A URL to an icon representing this module.
         # IconUri = ''
 
         # ReleaseNotes of this module
-        # ReleaseNotes = ''
+        ReleaseNotes = 'https://github.com/jsclifford/VSTeamBuilder/blob/master/ReleaseNotes.md'
+
+        # TFS Client Version
+        TfsClientVersion = '${TfsOmNugetVersion}'
+
+        #External dependent modules of this module
+        ExternalModuleDependencies = 'VSTeam,TFSCmdlets'
 
     } # End of PSData hashtable
 
