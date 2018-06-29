@@ -81,6 +81,7 @@ function Remove-TBOrg
 function New-TBTeam
 {
     [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
+    [OutputType([boolean])]
     Param(
 
         # TFS Team Name
@@ -113,6 +114,11 @@ function New-TBTeam
         [string[]]
         $IterationList = @('{TeamCode}'),
 
+        # TFS Team Security Groups - List of Application Security Groups to create.  Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers"
+        [Parameter(Mandatory = $false)]
+        [string[]]
+        $TeamGroups = @("Contributors","CodeReviewers","Readers"),
+
         # TFS TeamCode - Used for Repo, Area, and Iteration Names
         [Parameter(Mandatory = $false)]
         [string]
@@ -141,24 +147,42 @@ function New-TBTeam
         $projectNameLocal = $ProjectName
     }
 
+    $ErrorState = $false
     $result = $null
     #endregion
 
     #region Create Team Area
-    if($PSCmdlet.ShouldProcess("Processing section 1.")){
-        #Process something here.
+    if($PSCmdlet.ShouldProcess("Create Team Area.")){
+        $areaExists = Get-TFSArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.CollectionName)
+        if($null -eq $areaExists){
+            $holder = New-TfsArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.CollectionName)
+            Write-Verbose "Created Area: $TeamPath\$TeamCode"
+        }else{
+            Write-Verbose "Area already exists: $TeamPath\$TeamCode"
+        }
     }
     #endregion
 
     #region Create Team Application Security Groups
-    if($PSCmdlet.ShouldProcess("Processing section 1.")){
-        #Process something here.
+    if($PSCmdlet.ShouldProcess("Create Team Application Security Groups.")){
+        foreach($group in $TeamGroups){
+            $holder = New-TBSecurityGroup -Name "$TeamCode-$group" -Description "$TeamCode-$group" -ProjectName $projectNameLocal
+            Write-Verbose "Created TFS Application Security Group: $TeamCode-$group"
+        }
     }
     #endregion
 
     #region Create Team and set default area.
-    if($PSCmdlet.ShouldProcess("Processing section 1.")){
-        #Process something here.
+    if($PSCmdlet.ShouldProcess("Create Team and set default area.")){
+        $teamExists = Get-TfsTeam -Team $Name -Project $projectNameLocal -Collection $($VSTBConn.CollectionName)
+        if($null -ne $teamExists){
+            $holder = New-TfsTeam -Team $Name -Description $Description -Project $projectNameLocal -Collection $($VSTBConn.CollectionName)
+            Write-Verbose "Created Team: $Name"
+        }
+
+        #Setting Default Area.
+        $holder = Set-TBTeamAreaSetting -TeamName $Name -AreaPath "$TeamPath\$TeamCode" -ProjectName $projectNameLocal
+        Write-Verbose "Set team Area $TeamPath\$TeamCode to team $Name"
     }
     #endregion
 
@@ -170,14 +194,56 @@ function New-TBTeam
     #endregion
 
     #region Create Version Control Repos
-    if($PSCmdlet.ShouldProcess("Processing section 1.")){
-        #Process something here.
+    if($IsCoded){
+        if($PSCmdlet.ShouldProcess("Create Version Control Repos")){
+            foreach($repoName in $RepoList){
+                $FullReponame = "$TeamCode-$repoName"
+                if($repoName -eq '{TeamCode}'){
+                    $FullReponame = "$TeamCode"
+                }
+                $repoExists = Get-TFSGitRepository -Name "$FullRepoName" -Project $projectNameLocal -Collection $($VSTBConn.CollectionName)
+                if($null -eq $repoExists){
+                    #Creating Repo
+                    $holder = New-TFSGitRepository -Name "$FullRepoName" -Project $projectNameLocal -Collection $($VSTBConn.CollectionName)
+                    Write-Verbose "$FullReponame Repo Created."
+                }else{
+                    Write-Verbose "$FullReponame Repo already exists.  "
+                }
+                $repoExists = $null
+            }
+        }
+    }else{
+        Write-Verbose "This team is Non-Coded.  No Version Control Repos will be created."
     }
     #endregion
 
-    #region Create Team Iterations and set default iteration for the team
-    if($PSCmdlet.ShouldProcess("Processing section 1.")){
-        #Process something here.
+    #region Create Team Iterations and set default iteration for the team.
+    $teamIterationRootPath = "$TeamPath\$TeamCode"
+    if($PSCmdlet.ShouldProcess("Create Team Iterations and set default iteration for the team.")){
+        foreach($iteration in $IterationList){
+            if($iteration -eq '{TeamCode}'){
+               $iteration = $teamIterationRootPath
+            }else{
+                $iteration = "$teamIterationRootPath\$iteration"
+            }
+            $iterationExists = Get-TFSIteration -Iteration "$iteration" -Project $projectNameLocal -Collection $($VSTBConn.CollectionName)
+            if($null -eq $iterationExists){
+                #Creating Repo
+                $holder = New-TFSIteration -Iteration "$iteration" -Project $projectNameLocal -Collection $($VSTBConn.CollectionName)
+                Write-Verbose "$iteration Iteration Created."
+
+                if($iteration -eq $teamIterationRootPath){
+                    $holder = Set-TBTeamIterationSetting -IterationName $iteration -TeamName $Name -ProjectName $projectNameLocal
+                    Write-Verbose "Set Default Backlog Iteration to Team: $Name. Iteration Set: $iteration"
+                }else{
+                    $holder = Add-TBTeamIteration -IterationName $iteration -TeamName $Name -ProjectName $projectNameLocal
+                    Write-Verbose "Added iteration $iteration to Team: $Name"
+                }
+            }else{
+                Write-Verbose "$teamIterationRootPath\$iteration Iteration already exists.  "
+            }
+            $repoExists = $null
+        }
     }
     #endregion
 
@@ -195,19 +261,95 @@ function New-TBTeam
     }
     #endregion
 
-    #region Assign TFS Application Groups permissions to objects
-    if($PSCmdlet.ShouldProcess("Processing section 1.")){
-        #Process something here.
-    }
+    #region Assign TFS Application Groups permissions to objects.
+        #region Permissions for VersionControl Repos
+        if($PSCmdlet.ShouldProcess("Assign Version Control Permissions.")){
+            foreach($repoName in $RepoList){
+                $FullReponame = "$TeamCode-$repoName"
+                if($repoName -eq '{TeamCode}'){
+                    $FullReponame = "$TeamCode"
+                }
+                $repo = Get-TfsGitRepository -Name $FullReponame -Project $projectNameLocal -Collection $($VSTBConn.CollectionName)
+                if($null -eq $repo){
+                    continue
+                }
+
+                $repoToken = Get-TBToken -ObjectId $repo.id -ProjectName $projectNameLocal
+                try{
+                    $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-Contributors" -AllowValue 118 -ProjectName $projectNameLocal
+                    $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-Readers" -AllowValue 2 -ProjectName $projectNameLocal
+                }catch{
+                    Write-Verbose "There was an error in setting permissions.  $_"
+                    $ErrorState = $true
+                }
+            }
+        }
+        #endregion
+
+        #region Permissions for Iterations
+        if($PSCmdlet.ShouldProcess("Assign Iteration Permissions.")){
+            $iterationDefault = Get-TFSIteration -Iteration "$teamIterationRootPath" -Project $projectNameLocal -Collection $($VSTBConn.CollectionName)
+            $iterationId = ($iterationDefault.Uri -split "Node/")[1]
+
+            $iterationToken = Get-TBToken -ObjectId $iterationId -ProjectName $projectNameLocal
+            try{
+                $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-Contributors" -AllowValue 7 -ProjectName $projectNameLocal
+                $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-Readers" -AllowValue 1 -ProjectName $projectNameLocal
+            }catch{
+                Write-Verbose "There was an error in setting permissions.  $_"
+                $ErrorState = $true
+            }
+
+        }
+        #endregion
+
+        #region Permissions for Areas
+        if($PSCmdlet.ShouldProcess("Assign Area Permissions.")){
+            $areaDefault = Get-TFSArea -Area "$TeamPath\$Teamcode" -Project $projectNameLocal -Collection $($VSTBConn.CollectionName)
+            $areaId = ($areaDefault.Uri -split "Node/")[1]
+
+            $areaToken = Get-TBToken -ObjectId $areaId -ProjectName $projectNameLocal
+            try{
+                $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-Contributors" -AllowValue 49 -ProjectName $projectNameLocal
+                $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-Readers" -AllowValue 17 -ProjectName $projectNameLocal
+            }catch{
+                Write-Verbose "There was an error in setting permissions.  $_"
+                $ErrorState = $true
+            }
+
+        }
+        #endregion
+
+        #region Permissions for Project
+        if($PSCmdlet.ShouldProcess("Assign Project Permissions.")){
+            $namespaceId = (Get-TBNamespaceCollection | Where-Object -Property name -eq "Project").namespaceId
+            $projectObject = Get-TFSTeamProject -Project $projectNameLocal -Collection $($VSTBConn.CollectionName)
+            $projectToken = "`$PROJECT:$($projectObject.Uri)"
+            $props = @{
+                "namespaceId" = $namespaceId
+                "token" = $projectToken
+            }
+            $projectTokenObject = New-Object -TypeName PSObject -Property $props
+            try{
+                $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-Contributors" -AllowValue 513 -ProjectName $projectNameLocal
+                $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-Readers" -AllowValue 513 -ProjectName $projectNameLocal
+            }catch{
+                Write-Verbose "There was an error in setting permissions.  $_"
+                $ErrorState = $true
+            }
+
+        }
+        #endregion
     #endregion
 
     #region Add Team to TFS application security group
-    if($PSCmdlet.ShouldProcess("Processing section 1.")){
-        #Process something here.
+    if($PSCmdlet.ShouldProcess("Add Team to contributors group.")){
+        $holder = Add-TBSecurityGroupMember -MemberName "$Name" -GroupName "$TeamCode-Contributors" -ProjectName $projectNameLocal
+        Write-Verbose "Added Team: $Name to group $TeamCode-Contributors"
     }
     #endregion
 
-    return $result
+    return $ErrorState
 
     <#
         .SYNOPSIS
