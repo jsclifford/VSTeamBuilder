@@ -100,9 +100,9 @@ function New-TBTeam
         $TeamCode,
 
         # TFS Team Iteration/Area Root Path - Nested paths must not have leading back slash. Required back slash as a seperator.
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [string]
-        $TeamPath,
+        $TeamPath = "",
 
         # TFS RepoList - List of repo names to generate.  Default is the TeamCode
         [Parameter(Mandatory = $false)]
@@ -174,9 +174,11 @@ function New-TBTeam
 
     #region Create Team and set default area.
     if($PSCmdlet.ShouldProcess("Create Team and set default area.")){
-        $teamExists = Get-TfsTeam -Team $Name -Project $projectNameLocal -Collection $($VSTBConn.CollectionName)
+        $teamExists = Get-VSTeam -Team $Name -Project $projectNameLocal
+        #$teamExists = Get-TfsTeam -Team $Name -Project $projectNameLocal -Collection $($VSTBConn.CollectionName)
         if($null -ne $teamExists){
-            $holder = New-TfsTeam -Team $Name -Description $Description -Project $projectNameLocal -Collection $($VSTBConn.CollectionName)
+            $holder = Add-TfsTeam -Team $Name -Description $Description -Project $projectNameLocal
+            #$holder = New-TfsTeam -Team $Name -Description $Description -Project $projectNameLocal -Collection $($VSTBConn.CollectionName)
             Write-Verbose "Created Team: $Name"
         }
 
@@ -201,10 +203,11 @@ function New-TBTeam
                 if($repoName -eq '{TeamCode}'){
                     $FullReponame = "$TeamCode"
                 }
-                $repoExists = Get-TFSGitRepository -Name "$FullRepoName" -Project $projectNameLocal -Collection $($VSTBConn.CollectionName)
+                $repoExists = Get-VSTeamGitRepository -ProjectName $ProjectName -Name "$FullRepoName"
                 if($null -eq $repoExists){
                     #Creating Repo
-                    $holder = New-TFSGitRepository -Name "$FullRepoName" -Project $projectNameLocal -Collection $($VSTBConn.CollectionName)
+                    $holder = Add-VSTeamGitRepository -Name "$FullRepoName" -ProjectName $projectNameLocal
+                    #$holder = New-TFSGitRepository -Name "$FullRepoName" -Project $projectNameLocal -Collection $($VSTBConn.CollectionName)
                     Write-Verbose "$FullReponame Repo Created."
                 }else{
                     Write-Verbose "$FullReponame Repo already exists.  "
@@ -641,15 +644,18 @@ function Get-TBSecurityGroup
 
     $tfsSecGroup = ""
 
-    $idService = $tExConn.GetService("Microsoft.TeamFoundation.Framework.Client.IIdentitymanagementService")
-    $groupArr = $idService.ReadIdentities(
-                    [Microsoft.TeamFoundation.Framework.Common.IdentitySearchFactor]::AcccountName,
-                    "[$projectNameLocal]\$Name",
-                    [Microsoft.TeamFoundation.Framework.Common.MembershipQuery]::Expanded,
-                    [Microsoft.TeamFoundation.Framework.Common.ReadIdentityOptions]::TrueSid
-                )
+    $idService = $tExConn.GetService("Microsoft.TeamFoundation.Framework.Client.IIdentityManagementService")
+    $groupArr = $null
+    try{
+        $groupArr = $idService.ReadIdentities([Microsoft.TeamFoundation.Framework.Common.IdentitySearchFactor]::AccountName,
+            "[$projectNameLocal]\$Name",
+            [Microsoft.TeamFoundation.Framework.Common.MembershipQuery]::Expanded,
+            [Microsoft.TeamFoundation.Framework.Common.ReadIdentityOptions]::TrueSid)
 
-    $tfsSecGroup = $groupArr[0][0]
+        $tfsSecGroup = $groupArr[0][0]
+    }catch{
+        Write-Verbose "There was an error with the query. Error: $_"
+    }
 
     Write-Verbose "Security Group Found.  Name: $Name"
 
@@ -1579,6 +1585,7 @@ function Add-TBConnection
             "TeamExplorerConnection" = $null
             "DefaultProjectName" = $null
             "VSTeamAccount" = $false
+            "TFSCmdletsConnection" = $false
         }
 
         $VSTBConn = New-Object -TypeName psobject -Property $props
@@ -1587,7 +1594,7 @@ function Add-TBConnection
         try{
             #$TFSCmdletsModuleBase = (Get-Module -ListAvailable TfsCmdlets).ModuleBase
 
-            $tfs = [Microsoft.TeamFoundation.Client.TfsTeamProjectCollectionFactory]::GetTeamProjectcollection($CollectionUrl)
+            $tfs = [Microsoft.TeamFoundation.Client.TfsTeamProjectCollectionFactory]::GetTeamProjectCollection($CollectionUrl)
             $VSTBconn.TeamExplorerConnection = $tfs
             Write-Verbose "Successfully conected TFS client DLL to: $CollectionName"
         }catch{
@@ -1604,6 +1611,17 @@ function Add-TBConnection
         Write-Verbose "Successfully connected TFS VSTeam to: $CollectionName"
     }else{
         Write-Verbose "Already Connected to VSTeam"
+    }
+
+    if ($null -eq $Global:TfsTpcConnection)
+    {
+        Connect-TfsTeamProjectCollection -Collection $CollectionName -Server $ServerURL
+        $VSTBConn.VSTeamAccount = $true
+        Write-Verbose "TfsCmdlets Successfully Connected to: $CollectionName"
+    }
+    else
+    {
+        Write-Verbose "TfsCmdlets Already Connected to Project Collection: $CollectionName"
     }
 
     $Global:VSTBConn = $VSTBConn
@@ -1644,6 +1662,18 @@ function Remove-TBConnection
     if($null -ne $env:TEAM_ACCT){
         $holder = Remove-VSTeamAccount
     }
+
+    if($null -ne $Global:TfsTpcConnection){
+        try{
+            $holder = Disconnect-TfsTeamProjectCollection -Collection $VSTBConn.CollectionName -Server $VSTBConn.ServerURL
+            Write-Verbose "TFSCmdlets Disconnected to TFS Collection"
+            $Global:TFSConnectionProps = $null
+        }catch{
+            Write-Verbose "There was an error $_"
+        }
+
+    }
+
     $Global:VSTBNamespaceCollection = $null
     $Global:VSTBTokencollection = $null
 
