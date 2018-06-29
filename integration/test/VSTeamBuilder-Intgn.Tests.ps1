@@ -5,8 +5,10 @@ $SuppressImportModule = $false
 #region Global Test Variables
 # Put Variables here that you want all tests to use.  Can also have env variables used in build/test process of CI.
 . $PSScriptRoot\GlobalVars.ps1
-Add-TBConnection -CollectionName $CollectionName -ServerURL $ServerURL
+$holder = Add-TBConnection -CollectionName $CollectionName -ServerURL $ServerURL
 #endregion
+
+$VerbosePreference = "Continue"
 
 Describe 'Module Manifest Tests' {
     It 'Passes Test-ModuleManifest' {
@@ -28,8 +30,12 @@ Describe 'Remove-TBOrg' {
     }
 }
 Describe 'New-TBTeam' {
-    It 'Passes New-TBTeam' {
-        New-TBTeam -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+    $TeamName = "MyTestTeam"
+    $TeamCode = "MTT"
+    $TeamDescription = "The best Test of a new team"
+    $TeamRootPath = ""
+    It 'Creates a new Team - New-TBTeam' {
+        New-TBTeam -Name $TeamName -Description $TeamDescription -TeamCode $TeamCode -TeamPath $TeamRootPath -isCoded -ProjectName $ProjectName
         True | Should Be True
     }
 }
@@ -43,6 +49,7 @@ Describe 'TFS Security Group' {
     $TeamName = "MyTestTeam2"
     $TeamCode = "MTT2"
     $TeamDescription = "The best Test of a new team"
+
     It 'Creates new TFS Security Group - New-TBSecurityGroup' {
         $createIt = New-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $ProjectName -Description $TeamDescription
         $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $ProjectName
@@ -108,7 +115,7 @@ Describe 'TFS Permissions' {
     $TeamCode = "MTT"
     It 'Sets TFS Permission on Git Repo - Set-TBPermission' {
         $gitRepo = Get-VSTeamGitRepository -ProjectName $ProjectName -Name "$ProjectName"
-        $token = Get-TBToken -ObjectId $gitRepo.Id -NsName "Git Repositories" -ProjectName $ProjectName
+        $token = Get-TBToken -ObjectId $gitRepo.id -NsName "Git Repositories" -ProjectName $ProjectName
         $result = Set-TBPermission -TokenObject $token -GroupName "$TeamCode-Contributors" -AllowValue 118 -ProjectName $ProjectName
         $result.count -gt 0 | Should Be True
     }
@@ -134,8 +141,8 @@ Describe 'TFS Token and Namespace' {
     }
 
     It 'Get Token - Get-TBToken' {
-        $object = Get-TfsGitRepository -Name "$ProjectName" -Project $ProjectName -Collection "$ServerURL/$CollectionName"
-        $objectId = $object.Id
+        $object = Get-VSTeamGitRepository -ProjectName $ProjectName -Name "$ProjectName"
+        $objectId = $object.id
         $token = Get-TBToken -ObjectId $objectId -NsName "Git Repositories" -ProjectName $ProjectName
         $token.token -ne $null | Should Be True
     }
