@@ -1,4 +1,4 @@
-#Requiresz -Modules psake
+#1234Requiresz -Modulesz psake
 
 ##############################################################################
 # DO NOT MODIFY THIS FILE!  Modify build.settings.ps1 instead.
