@@ -131,7 +131,7 @@ function New-TBTeam
 
     #region global connection Variables
     $projectNameLocal = $null
-    $VSTBConn = $Global:VSTBConn
+    $VSTBConn = $env:VSTBConn
     if(! (_testConnection)){
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
@@ -423,7 +423,7 @@ function New-TBSecurityGroup
 
     #region global connection Variables
     $projectNameLocal = $null
-    $VSTBConn = $Global:VSTBConn
+    $VSTBConn = $env:VSTBConn
     if(! (_testConnection)){
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
@@ -516,7 +516,7 @@ function Remove-TBSecurityGroup
 
     #region global connection Variables
     $projectNameLocal = $null
-    $VSTBConn = $Global:VSTBConn
+    $VSTBConn = $env:VSTBConn
     if(! (_testConnection)){
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
@@ -610,7 +610,7 @@ function Get-TBSecurityGroup
 
     #region global connection Variables
     $projectNameLocal = $null
-    $VSTBConn = $Global:VSTBConn
+    $VSTBConn = $env:VSTBConn
     if(! (_testConnection)){
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
@@ -693,7 +693,7 @@ function Add-TBSecurityGroupMember
 
     #region global connection Variables
     $projectNameLocal = $null
-    $VSTBConn = $Global:VSTBConn
+    $VSTBConn = $env:VSTBConn
     if(! (_testConnection)){
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
@@ -779,7 +779,7 @@ function Remove-TBSecurityGroupMember
     )
      #region global connection Variables
     $projectNameLocal = $null
-    $VSTBConn = $Global:VSTBConn
+    $VSTBConn = $env:VSTBConn
     if(! (_testConnection)){
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
@@ -866,7 +866,7 @@ function Set-TBTeamAreaSetting
 
     #region global connection Variables
     $projectNameLocal = $null
-    $VSTBConn = $Global:VSTBConn
+    $VSTBConn = $env:VSTBConn
     if(! (_testConnection)){
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
@@ -940,7 +940,7 @@ function Get-TBTeamAreaSetting
 
     #region global connection Variables
     $projectNameLocal = $null
-    $VSTBConn = $Global:VSTBConn
+    $VSTBConn = $env:VSTBConn
     if(! (_testConnection)){
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
@@ -1001,7 +1001,7 @@ function Set-TBTeamIterationSetting
 
     #region global connection Variables
     $projectNameLocal = $null
-    $VSTBConn = $Global:VSTBConn
+    $VSTBConn = $env:VSTBConn
     if(! (_testConnection)){
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
@@ -1081,7 +1081,7 @@ function Get-TBTeamIterationSetting
 
     #region global connection Variables
     $projectNameLocal = $null
-    $VSTBConn = $Global:VSTBConn
+    $VSTBConn = $env:VSTBConn
     if(! (_testConnection)){
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
@@ -1142,7 +1142,7 @@ function Add-TBTeamIteration
 
     #region global connection Variables
     $projectNameLocal = $null
-    $VSTBConn = $Global:VSTBConn
+    $VSTBConn = $env:VSTBConn
     if(! (_testConnection)){
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
@@ -1213,7 +1213,7 @@ function Get-TBTeamIteration
 
     #region global connection Variables
     $projectNameLocal = $null
-    $VSTBConn = $Global:VSTBConn
+    $VSTBConn = $env:VSTBConn
     if(! (_testConnection)){
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
@@ -1293,7 +1293,7 @@ function Set-TBPermission
 
     #region global connection Variables
     $projectNameLocal = $null
-    $VSTBConn = $Global:VSTBConn
+    $VSTBConn = $env:VSTBConn
     if(! (_testConnection)){
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
@@ -1374,7 +1374,7 @@ function Get-TBTokenCollection
         $ForceRefresh
     )
     #region global connection Variables
-    $VSTBConn = $Global:VSTBConn
+    $VSTBConn = $env:VSTBConn
     if(! (_testConnection)){
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
@@ -1382,12 +1382,12 @@ function Get-TBTokenCollection
     #endregion
 
     $TokenCollection = $null
-    if($null -eq $Global:VSTBTokencollection)
+    if($null -eq $env:VSTBTokencollection)
     {
-        $Global:VSTBTokencollection = @{}
-        $TokenCollection = $Global:VSTBTokencollection
+        $env:VSTBTokencollection = @{}
+        $TokenCollection = $env:VSTBTokencollection
     }else{
-        $TokenCollection = $Global:VSTBTokencollection
+        $TokenCollection = $env:VSTBTokencollection
     }
 
     if($null -eq $TokenCollection[$NamespaceId] -or $ForceRefresh){
@@ -1400,7 +1400,7 @@ function Get-TBTokenCollection
         }
 
     }
-    $Global:VSTBTokencollection = $TokenCollection
+    $env:VSTBTokencollection = $TokenCollection
     $namespaceTokens = $TokenCollection[$NamespaceId]
 
     return $namespaceTokens
@@ -1426,31 +1426,31 @@ function Get-TBNamespaceCollection
     )
 
     #region global connection Variables
-    $VSTBConn = $Global:VSTBConn
+    $VSTBConn = $env:VSTBConn
     if(! (_testConnection)){
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
     }
     #endregion
 
-    if($null -eq $Global:VSTBNamespaceCollection -or $ForceRefresh){
+    if($null -eq $env:VSTBNamespaceCollection -or $ForceRefresh){
         $namespaces = Invoke-VSTeamRequest -area "securitynamespaces" -resource "00000000-0000-0000-0000-000000000000" -method Get -version 1.0
-        $Global:VSTBNamespaceCollection = $namespaces.value
+        $env:VSTBNamespaceCollection = $namespaces.value
         return $namespaces.value
     }else{
-        return $Global:VSTBNamespaceCollection
+        return $env:VSTBNamespaceCollection
     }
     <#
         .SYNOPSIS
             Get-TBNamespaceCollection pulls all namespaces from TFS for permission identification.
         .DESCRIPTION
             Get-TBNamespaceCollection pulls all namespaces from TFS for permission identification.  This is primarily used in Set-TBPermission.  This functions
-            sets the variable $Global:VSTBNamespaceCollection.
+            sets the variable $env:VSTBNamespaceCollection.
         .EXAMPLE
             Get-TBNamespaceCollection
         .EXAMPLE
             Get-TBNamespaceCollection -ForceRefresh
-            This refreshes the Global variable $Global:VSTBNamespaceCollection
+            This refreshes the Global variable $env:VSTBNamespaceCollection
     #>
 }
 function Get-TBToken
@@ -1477,7 +1477,7 @@ function Get-TBToken
     #region global connection Variables
     $projectNameLocal = $null
     $tokenCollection = $null
-    $VSTBConn = $Global:VSTBConn
+    $VSTBConn = $env:VSTBConn
     if(! (_testConnection)){
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
@@ -1496,11 +1496,11 @@ function Get-TBToken
 
     #region Get Namespaceid from name
 
-    if($null -eq $Global:VSTBNamespaceCollection){
+    if($null -eq $env:VSTBNamespaceCollection){
         $holder = Get-TBNamespaceCollection
     }
 
-    $nameSpaceId = ($Global:VSTBNamespaceCollection | Where-Object -Property name -eq $NsName).Namespaceid
+    $nameSpaceId = ($env:VSTBNamespaceCollection | Where-Object -Property name -eq $NsName).Namespaceid
 
     if($null -eq $nameSpaceId){
         Write-Verbose "Could not find namespace id. Exiting."
@@ -1512,11 +1512,11 @@ function Get-TBToken
 
     #region Get VSTB Token Collection
     $tokenCollection = $null
-    if($null -eq $Global:VSTBTokencollection){
+    if($null -eq $env:VSTBTokencollection){
         $tokenCollection = Get-TBTokenCollection -NamespaceId $nameSpaceId -Project $projectNameLocal
     }else{
-        if($Global:VSTBTokencollection.ContainsKey($nameSpaceId)){
-            $tokenCollection = $Global:VSTBTokencollection[$nameSpaceId]
+        if($env:VSTBTokencollection.ContainsKey($nameSpaceId)){
+            $tokenCollection = $env:VSTBTokencollection[$nameSpaceId]
         }else{
             $tokenCollection = Get-TBTokenCollection -NamespaceId $nameSpaceId -Project $projectNameLocal
         }
@@ -1554,25 +1554,28 @@ function Add-TBConnection
     [cmdletbinding()]
     Param(
 
-        # TFS/VSTS Collection Name
+        # TFS/VSTS AccountUrl -  For TFS this is the TFS Server url + the collectionname.
         [Parameter(Mandatory = $true)]
         [string]
-        $CollectionName,
-
-        # TFS/VSTS Server URL or domain
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ServerURL,
+        $AcctUrl,
 
         # PAT Token
         [Parameter(Mandatory = $false)]
         [string]
-        $PAT
+        $PAT,
+
+        # API Version
+        [Parameter(Mandatory = $false)]
+        [string]
+        $API,
+
+        # Use Windows Authentication
+        [switch]
+        $UseWindowsAuth
     )
 
     $Success = $true
-    $CollectionUrl = "$ServerUrl/$CollectionName"
-    $VSTBConn = $Global:VSTBConn
+    $VSTBConn = $env:VSTBConn
 
     if($null -eq $VSTBConn){
         # if($ServerURL -eq $null -or $ServerURL -eq ''){
@@ -1590,13 +1593,27 @@ function Add-TBConnection
 
         $VSTBConn = New-Object -TypeName psobject -Property $props
     }
+
+    #region Team Explorer Object Model connection.
+    #Looking to deprecate DLL requirement by querying RESTAPI for TFS Security groups.
     if($null -eq $($VSTBConn.TeamExplorerConnection)){
         try{
-            #$TFSCmdletsModuleBase = (Get-Module -ListAvailable TfsCmdlets).ModuleBase
+            if($UseWindowsAuth){
+                $tfs = [Microsoft.TeamFoundation.Client.TfsTeamProjectCollectionFactory]::GetTeamProjectCollection($AcctUrl)
+                $VSTBconn.TeamExplorerConnection = $tfs
+                Write-Verbose "Successfully conected TFS client DLL to: $CollectionName"
+            }elseif($null -ne $PAT){
+                $netCred = New-Object 'System.Net.NetworkCredential' -ArgumentList 'dummy-pat-user', $PAT
+                $fedCred = New-Object 'Microsoft.TeamFoundation.Client.BasicAuthCredential' -ArgumentList $netCred
+                #$winCred = New-Object 'Microsoft.TeamFoundation.Client.WindowsCredential' -ArgumentList $netCred
 
-            $tfs = [Microsoft.TeamFoundation.Client.TfsTeamProjectCollectionFactory]::GetTeamProjectCollection($CollectionUrl)
-            $VSTBconn.TeamExplorerConnection = $tfs
-            Write-Verbose "Successfully conected TFS client DLL to: $CollectionName"
+                $tfs = [Microsoft.TeamFoundation.Client.TfsTeamProjectCollectionFactory]::GetTeamProjectCollection($AcctUrl,$fedCred)
+                $VSTBconn.TeamExplorerConnection = $tfs
+                Write-Verbose "Successfully conected TFS client DLL to: $CollectionName"
+            }else{
+                Write-Verbose "No valid credentials passed.  Please set UseWindowsAuth or provide PAT token."
+                $Success = $false
+            }
         }catch{
             Write-Verbose "There was an error $_"
             $Success = $false
@@ -1604,27 +1621,52 @@ function Add-TBConnection
     }else{
         Write-Verbose "Already Connected to TFOM."
     }
+    #endregion
 
+    #region VSTeam Module connection
     if($null -eq $env:TEAM_ACCT){
-        $holder = Add-VSTeamAccount -Account $CollectionUrl -UseWindowsAuthentication
-        $VSTBConn.VSTeamAccount = $true
-        Write-Verbose "Successfully connected TFS VSTeam to: $CollectionName"
+        if($UseWindowsAuth){
+            $holder = Add-VSTeamAccount -Account $AcctUrl -UseWindowsAuthentication
+            $VSTBConn.VSTeamAccount = $true
+            Write-Verbose "Successfully connected TFS VSTeam to: $CollectionName"
+        }elseif($null -ne $PAT){
+            Add-VSTeamProfile -Account $AcctUrl -PersonalAccessToken $PAT -Version $API -Name patConn
+            Add-VSTeamAccount -Profile patConn -Drive int
+            $VSTBConn.VSTeamAccount = $true
+            Write-Verbose "Successfully connected TFS VSTeam to: $AcctUrl"
+        }else{
+            Write-Verbose "No valid credentials passed.  Please set UseWindowsAuth or provide PAT token."
+            $Success = $false
+        }
     }else{
         Write-Verbose "Already Connected to VSTeam"
     }
+    #endregion
 
-    if ($null -eq $Global:TfsTpcConnection)
+    #region TFSCmdlets Module connection
+    if ($null -eq $env:TfsTpcConnection)
     {
-        Connect-TfsTeamProjectCollection -Collection $CollectionName -Server $ServerURL
-        $VSTBConn.VSTeamAccount = $true
-        Write-Verbose "TfsCmdlets Successfully Connected to: $CollectionName"
+        if($UseWindowsAuth){
+            Connect-TfsTeamProjectCollection -Collection $AcctUrl
+            $VSTBConn.VSTeamAccount = $true
+            Write-Verbose "TfsCmdlets Successfully Connected to: $CollectionName"
+        }elseif($null -ne $PAT){
+            $patCred = Get-TfsCredential -PersonalAccessToken $PAT
+            Connect-TfsTeamProjectCollection -Collection $AcctUrl -Credential $patCred
+            $VSTBConn.VSTeamAccount = $true
+            Write-Verbose "TfsCmdlets Successfully Connected to: $AcctUrl"
+        }else{
+            Write-Verbose "No valid credentials passed.  Please set UseWindowsAuth or provide PAT token."
+            $Success = $false
+        }
     }
     else
     {
         Write-Verbose "TfsCmdlets Already Connected to Project Collection: $CollectionName"
     }
+    #endregion
 
-    $Global:VSTBConn = $VSTBConn
+    $env:VSTBConn = $VSTBConn
 
     return $Success
 
@@ -1632,7 +1674,8 @@ function Add-TBConnection
         .SYNOPSIS
             Add-TBConnection will add TB Connection to current session.
         .DESCRIPTION
-            Add-TBConnection will add TB Connection to current session.
+            Add-TBConnection will add TB Connection to current session.  This only supports windows credentials
+            and Personal Access Tokens for connection credentials at this time.
         .EXAMPLE
             Add-TBConnection -CollectionName "test" -ServerUrl "http://mywebsite.com/tfs"
     #>
@@ -1649,11 +1692,11 @@ function Remove-TBConnection
     )
 
     $Success = $true
-    $VSTBConn = $Global:VSTBConn
+    $VSTBConn = $env:VSTBConn
 
     if($null -ne $VSTBConn){
         try{
-            $Global:VSTBConn = $null
+            $env:VSTBConn = $null
         }catch{
             Write-Verbose "There was an error $_"
             $Success = $false
@@ -1663,19 +1706,19 @@ function Remove-TBConnection
         $holder = Remove-VSTeamAccount
     }
 
-    if($null -ne $Global:TfsTpcConnection){
+    if($null -ne $env:TfsTpcConnection){
         try{
             $holder = Disconnect-TfsTeamProjectCollection -Collection $VSTBConn.CollectionName -Server $VSTBConn.ServerURL
             Write-Verbose "TFSCmdlets Disconnected to TFS Collection"
-            $Global:TFSConnectionProps = $null
+            $env:TFSConnectionProps = $null
         }catch{
             Write-Verbose "There was an error $_"
         }
 
     }
 
-    $Global:VSTBNamespaceCollection = $null
-    $Global:VSTBTokencollection = $null
+    $env:VSTBNamespaceCollection = $null
+    $env:VSTBTokencollection = $null
 
     if($Success){
         Write-Verbose "Successfully Disconnected"
@@ -1704,7 +1747,7 @@ function _testConnection
         $TestAll
     )
 
-    $VSTBConn = $Global:VSTBConn
+    $VSTBConn = $env:VSTBConn
     if($null -eq $VSTBConn.ServerURL -and $null -eq $VSTBConn.CollectionName -and $null -eq $VSTBConn.TeamExplorerConnection){
         return $false
     }else{
@@ -1731,7 +1774,7 @@ function Set-TBDefaultProject
         $ProjectName
     )
 
-    $Global:VSTBConn.DefaultProjectName = $ProjectName
+    $env:VSTBConn.DefaultProjectName = $ProjectName
     <#
         .SYNOPSIS
             Set-TBDefaultProject will add the project name to the $VSTBVersionTable Object.
