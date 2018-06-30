@@ -147,7 +147,6 @@ function New-TBTeam
         $projectNameLocal = $ProjectName
     }
 
-    $ErrorState = $false
     $result = $null
     #endregion
 
@@ -175,10 +174,8 @@ function New-TBTeam
     #region Create Team and set default area.
     if($PSCmdlet.ShouldProcess("Create Team and set default area.")){
         $teamExists = Get-VSTeam -Team $Name -Project $projectNameLocal
-        #$teamExists = Get-TfsTeam -Team $Name -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
-        if($null -ne $teamExists){
-            $holder = Add-TfsTeam -Team $Name -Description $Description -Project $projectNameLocal
-            #$holder = New-TfsTeam -Team $Name -Description $Description -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
+        if($null -eq $teamExists){
+            $holder = Add-VSTeam -Team $Name -Description $Description -ProjectName $projectNameLocal
             Write-Verbose "Created Team: $Name"
         }
 
@@ -272,18 +269,19 @@ function New-TBTeam
                 if($repoName -eq '{TeamCode}'){
                     $FullReponame = "$TeamCode"
                 }
-                $repo = Get-TfsGitRepository -Name $FullReponame -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
+                $repo = Get-VSTeamGitRepository -Name $FullReponame -ProjectName $projectNameLocal
                 if($null -eq $repo){
                     continue
                 }
 
                 $repoToken = Get-TBToken -ObjectId $repo.id -NsName "Git Repositories" -ProjectName $projectNameLocal
                 try{
+                    #TODO Need to add foreach loop to process through TeamGroups Variable.
                     $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-Contributors" -AllowValue 118 -ProjectName $projectNameLocal
                     $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-Readers" -AllowValue 2 -ProjectName $projectNameLocal
                 }catch{
                     Write-Verbose "There was an error in setting permissions.  $_"
-                    $ErrorState = $true
+                    $result  = $false
                 }
             }
         }
@@ -296,11 +294,12 @@ function New-TBTeam
 
             $iterationToken = Get-TBToken -ObjectId $iterationId -NsName "Iteration" -ProjectName $projectNameLocal
             try{
+                #TODO Need to add foreach loop to process through TeamGroups Variable.
                 $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-Contributors" -AllowValue 7 -ProjectName $projectNameLocal
                 $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-Readers" -AllowValue 1 -ProjectName $projectNameLocal
             }catch{
                 Write-Verbose "There was an error in setting permissions.  $_"
-                $ErrorState = $true
+                $result = $false
             }
 
         }
@@ -313,11 +312,12 @@ function New-TBTeam
 
             $areaToken = Get-TBToken -ObjectId $areaId -NsName "CSS" -ProjectName $projectNameLocal
             try{
+                #TODO Need to add foreach loop to process through TeamGroups Variable.
                 $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-Contributors" -AllowValue 49 -ProjectName $projectNameLocal
                 $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-Readers" -AllowValue 17 -ProjectName $projectNameLocal
             }catch{
                 Write-Verbose "There was an error in setting permissions.  $_"
-                $ErrorState = $true
+                $result = $false
             }
 
         }
@@ -334,11 +334,12 @@ function New-TBTeam
             }
             $projectTokenObject = New-Object -TypeName PSObject -Property $props
             try{
+                #TODO Need to add foreach loop to process through TeamGroups Variable.
                 $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-Contributors" -AllowValue 513 -ProjectName $projectNameLocal
                 $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-Readers" -AllowValue 513 -ProjectName $projectNameLocal
             }catch{
                 Write-Verbose "There was an error in setting permissions.  $_"
-                $ErrorState = $true
+                $result = $false
             }
 
         }
@@ -352,7 +353,7 @@ function New-TBTeam
     }
     #endregion
 
-    return $ErrorState
+    return $result
 
     <#
         .SYNOPSIS
@@ -368,36 +369,152 @@ function Remove-TBTeam
     [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
-        # Parameter help description
+        # TFS Team Name
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName1,
+        $Name,
 
-        # Parameter help description
+        # TFS TeamCode - Used for Repo, Area, and Iteration Names
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName2,
+        $TeamCode,
 
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
+        # TFS Team Iteration/Area Root Path - Nested paths must not have leading back slash. Required back slash as a seperator.
+        [Parameter(Mandatory = $false)]
         [string]
-        $ParameterName3,
+        $TeamPath = "",
 
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
+        # TFS RepoList - List of repo names to remove.  Default is the TeamCode
+        [Parameter(Mandatory = $false)]
+        [string[]]
+        $RepoList = @('{TeamCode}'),
+
+        # TFS IterationList - List of iteration names to remove.  Default is the TeamCode
+        [Parameter(Mandatory = $false)]
+        [string[]]
+        $IterationList = @('{TeamCode}'),
+
+        # TFS Team Security Groups - List of Application Security Groups to remove.  Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers"
+        [Parameter(Mandatory = $false)]
+        [string[]]
+        $TeamGroups = @("Contributors","CodeReviewers","Readers"),
+
+        # TFS TeamCode - Used for Repo, Area, and Iteration Names
+        [Parameter(Mandatory = $false)]
         [string]
-        $ParameterName4
+        $ProjectName,
+
+        # isCoded switch will make Version Control Repos if set.
+        [switch]
+        $IsCoded
     )
-     if($PSCmdlet.ShouldProcess("Processing section 1.")){
-        #Process something here.
+
+    #region global connection Variables
+    $projectNameLocal = $null
+    $VSTBConn = $Global:VSTBConn
+    if(! (_testConnection)){
+        Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
+        return
     }
+    if($null -eq $ProjectName){
+        if($null -eq $VSTBConn.DefaultProjectName){
+            Write-Verbose "No ProjectName specified."
+            throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
+        }else{
+            $projectNameLocal = $VSTBConn.DefaultProjectName
+        }
+    }else{
+        $projectNameLocal = $ProjectName
+    }
+
+    $result = $null
+    #endregion
+
+    #region Remove Version Control Repos
+    if($IsCoded){
+        if($PSCmdlet.ShouldProcess("Remove Version Control Repos")){
+            foreach($repoName in $RepoList){
+                $FullReponame = "$TeamCode-$repoName"
+                if($repoName -eq '{TeamCode}'){
+                    $FullReponame = "$TeamCode"
+                }
+                $repoExists = Get-VSTeamGitRepository -ProjectName $ProjectName -Name "$FullRepoName"
+                if($null -ne $repoExists){
+                    #Creating Repo
+                    $holder = Remove-VSTeamGitRepository -Name "$FullRepoName" -ProjectName $projectNameLocal
+                    #$holder = New-TFSGitRepository -Name "$FullRepoName" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
+                    Write-Verbose "$FullReponame Repo removed."
+                }else{
+                    Write-Verbose "$FullReponame Repo already removed.  "
+                }
+                $repoExists = $null
+            }
+        }
+    }
+    #endregion
+
+    #region Remove Team Iterations.
+    $teamIterationRootPath = "$TeamPath\$TeamCode"
+
+    foreach($iteration in $IterationList){
+        if($iteration -eq '{TeamCode}'){
+            $iteration = $teamIterationRootPath
+        }else{
+            $iteration = "$teamIterationRootPath\$iteration"
+        }
+        $iterationExists = Get-TFSIteration -Iteration "$iteration" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
+        if($null -ne $iterationExists){
+            if($PSCmdlet.ShouldProcess("Remove Team Iteration. Iteration Name: $iteration")){
+                #Creating Repo
+                $holder = Remove-TFSIteration -Iteration "$iteration" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
+                Write-Verbose "$iteration Iteration Created."
+            }
+        }
+        }else{
+            Write-Verbose "$teamIterationRootPath\$iteration Iteration already removed.  "
+        }
+        $repoExists = $null
+    }
+
+    #endregion
+
+    #region Delete Team Area
+    if($PSCmdlet.ShouldProcess("Remove Team Area.")){
+        $areaExists = Get-TFSArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
+        if($null -ne $areaExists){
+            $holder = Remove-TfsArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
+            Write-Verbose "Removed Area: $TeamPath\$TeamCode"
+        }else{
+            Write-Verbose "Area already removed: $TeamPath\$TeamCode"
+        }
+    }
+    #endregion
+
+    #region Remove Team Application Security Groups
+    if($PSCmdlet.ShouldProcess("Remove Team Application Security Groups.")){
+        foreach($group in $TeamGroups){
+            $holder = Remove-TBSecurityGroup -Name "$TeamCode-$group" -ProjectName $projectNameLocal
+            Write-Verbose "Removed TFS Application Security Group: $TeamCode-$group"
+        }
+    }
+    #endregion
+
+    #region Remove Team
+    if($PSCmdlet.ShouldProcess("Remove Team.")){
+        $teamExists = Get-VSTeam -Team $Name -Project $projectNameLocal
+        if($null -ne $teamExists){
+            $holder = Remove-VSTeam -Team $Name -Project $projectNameLocal
+            Write-Verbose "Removed Team: $Name"
+        }
+    }
+    #endregion
     <#
         .SYNOPSIS
-            Remove-TBTeam will do something wonderful.
+            Remove-TBTeam will remove all team security groups,areas,inerations,VersionControl Repos.
         .DESCRIPTION
-            Remove-TBTeam will do something wonderful.
+            Remove-TBTeam will remove all team security groups,areas,inerations,VersionControl Repos
         .EXAMPLE
-            Remove-TBTeam -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+            Remove-TBTeam -Name "My Team" -Teamcode "My-Team" -TeamPath "ParentTeam\MY-TEAM" -ProjectName "MyProject" -IsCoded
     #>
 }
 function New-TBSecurityGroup
