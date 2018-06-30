@@ -12,10 +12,7 @@ Describe 'VSTeamBuilder Integration Test'{
         $pat = $env:PAT
         $api = $env:API_VERSION
         $searchGroup = $env:searchGroup
-
         $originalLocation = Get-Location
-
-
 
         if($usePAT){
             Add-TBConnection -AcctUrl $acctUrl -PAT $pat -api $api
@@ -23,7 +20,6 @@ Describe 'VSTeamBuilder Integration Test'{
             Add-TBConnection -AcctUrl $acctUrl -api $api
         }
         Set-TBDefaultProject -ProjectName $projectName
-
     }
 
     Context 'Module Manifest' {
@@ -31,7 +27,7 @@ Describe 'VSTeamBuilder Integration Test'{
             Test-ModuleManifest -Path $ModuleManifestPath
             $? | Should Be $true
         }
-     }
+    }
 
     Context 'Add/Remove TBOrg' {
         It 'Passes New-TBOrg' {
@@ -52,13 +48,19 @@ Describe 'VSTeamBuilder Integration Test'{
         $TeamRootPath = ""
 
         It 'Creates a new Team - New-TBTeam' {
-            New-TBTeam -Name $TeamName -Description $TeamDescription -TeamCode $TeamCode -TeamPath $TeamRootPath -isCoded -ProjectName $projectName
-            True | Should Be True
+            $result = New-TBTeam -Name $TeamName -Description $TeamDescription -TeamCode $TeamCode -TeamPath $TeamRootPath -isCoded -ProjectName $projectName
+            $result | Should Be True
         }
 
-        It 'Passes Remove-TBTeam' {
-            Remove-TBTeam -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
-            True | Should Be True
+        It 'Creates a new SubTeam - New-TBTeam' {
+            $result = New-TBTeam -Name "$TeamName-Sub" -Description $TeamDescription -TeamCode "$TeamCode-Sub" -TeamPath "MTT" -isCoded -ProjectName $projectName
+            $result | Should Be True
+        }
+
+        It 'Remove Teams - New-TBTeam' {
+            $result1 = Remove-TBTeam -Name $TeamName -TeamCode $TeamCode -TeamPath $TeamRootPath -isCoded -ProjectName $projectName
+            $result2 = Remove-TBTeam -Name "$TeamName-Sub" -TeamCode "$TeamCode-Sub" -TeamPath "MTT" -isCoded -ProjectName $projectName
+            $result1 -and $result2 | Should Be True
         }
     }
 
@@ -202,10 +204,7 @@ Describe "Standalone Integration Test - Temporary" {
         $pat = $env:PAT
         $api = $env:API_VERSION
         $searchGroup = $env:searchGroup
-
         $originalLocation = Get-Location
-
-
 
         if($usePAT){
             Add-TBConnection -AcctUrl $acctUrl -PAT $pat -api $api
@@ -213,9 +212,30 @@ Describe "Standalone Integration Test - Temporary" {
             Add-TBConnection -AcctUrl $acctUrl -api $api
         }
         Set-TBDefaultProject -ProjectName $projectName
-
     }
 
+    Context 'Add/Remove Team' {
+        $TeamName = "MyTestTeam"
+        $TeamCode = "MTT"
+        $TeamDescription = "The best Test of a new team"
+        $TeamRootPath = ""
+
+        It 'Creates a new Team - New-TBTeam' {
+            $result = New-TBTeam -Name $TeamName -Description $TeamDescription -TeamCode $TeamCode -TeamPath $TeamRootPath -isCoded -ProjectName $projectName
+            $result | Should Be True
+        }
+
+        It 'Creates a new SubTeam - New-TBTeam' {
+            $result = New-TBTeam -Name "$TeamName-Sub" -Description $TeamDescription -TeamCode "$TeamCode-Sub" -TeamPath "MTT" -isCoded -ProjectName $projectName
+            $result | Should Be True
+        }
+
+        It 'Remove Teams - New-TBTeam' {
+            $result1 = Remove-TBTeam -Name $TeamName -TeamCode $TeamCode -TeamPath $TeamRootPath -isCoded -ProjectName $projectName
+            $result2 = Remove-TBTeam -Name "$TeamName-Sub" -TeamCode "$TeamCode-Sub" -TeamPath "MTT" -isCoded -ProjectName $projectName
+            $result1 -and $result2 | Should Be True
+        }
+    }
 
     AfterAll {
         # Put everything back
