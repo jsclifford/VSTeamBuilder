@@ -207,20 +207,37 @@ Describe "Standalone Integration Test - Temporary" {
 
         $originalLocation = Get-Location
 
-        #Checking if PAT is powershell secure string.
-        # if($($pat) -eq "System.Security.SecureString"){
-        #     $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($pat)
-        #     $pat = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
-        # }
 
-        #$projectName = 'TeamModuleIntegration' + [guid]::NewGuid().toString().substring(0, 5)
-        #$newProjectName = $projectName + [guid]::NewGuid().toString().substring(0, 5) + '1'
-
-        #Add-VSTeamProfile -Account $acct -PersonalAccessToken $pat -Version $api -Name intTests
-        #Add-VSTeamAccount -Profile intTests -Drive int
         Add-TBConnection -AcctUrl $acctUrl -PAT $pat
         Set-TBDefaultProject -ProjectName $projectName
 
+    }
+
+    Context 'TFS Security Group' {
+        $TeamName = "MyTestTeam2"
+        $TeamCode = "MTT2"
+        $TeamDescription = "The best Test of a new team"
+
+        It 'Creates new TFS Security Group - New-TBSecurityGroup' {
+            $createIt = New-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName -Description $TeamDescription
+            $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
+            $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be True
+        }
+
+        It 'Gets TFS Security Group Get-TBSecurityGroup' {
+            $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
+            $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be True
+        }
+
+        It 'Passes Add-TBSecurityGroupMember' {
+            Add-TBSecurityGroupMember -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+            True | Should Be True
+        }
+
+        It 'Passes Remove-TBSecurityGroupMember' {
+            Remove-TBSecurityGroupMember -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+            True | Should Be True
+        }
     }
 
     AfterAll {

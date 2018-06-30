@@ -196,7 +196,7 @@ Task AfterStageFiles {
     Set-Content -Path $NugetSpecPath -Value $nuspec
 
     #Copying lib folder
-    Copy-Item -Path $SrcRootDir\lib -Destination $ModuleOutDir -Recurse -Exclude $Exclude -Verbose:$VerbosePreference -Force
+    # Copy-Item -Path $SrcRootDir\lib -Destination $ModuleOutDir -Recurse -Exclude $Exclude -Verbose:$VerbosePreference -Force
 }
 
 ###############################################################################
