@@ -728,7 +728,7 @@ function Add-TBSecurityGroupMember
     #endregion
 
     if($PSCmdlet.ShouldProcess("Add Member to Security Group")){
-        $idService = $tExConn.GetService("Microsoft.TeamFoundation.Framework.Client.IIdentitymanagementService")
+        $idService = $tExConn.GetService("Microsoft.TeamFoundation.Framework.Client.IIdentityManagementService")
         $group = Get-TBSecurityGroup -Name $GroupName -ProjectName $projectNameLocal
         $memberToAdd = Get-TBSecurityGroup -Name $MemberName -ProjectName $projectNameLocal
         if($null -ne $group.Descriptor -and $null -ne $memberToAdd.Descriptor){
@@ -814,14 +814,14 @@ function Remove-TBSecurityGroupMember
     #endregion
 
     if($PSCmdlet.ShouldProcess("Add Member to Security Group")){
-        $idService = $tExConn.GetService("Microsoft.TeamFoundation.Framework.Client.IIdentitymanagementService")
+        $idService = $tExConn.GetService("Microsoft.TeamFoundation.Framework.Client.IIdentityManagementService")
         $group = Get-TBSecurityGroup -Name $GroupName -ProjectName $projectNameLocal
-        $memberToAdd = Get-TBSecurityGroup -Name $MemberName -ProjectName $projectNameLocal
-        if($null -ne $group.Descriptor -and $null -ne $memberToAdd.Descriptor){
+        $memberToRemove = Get-TBSecurityGroup -Name $MemberName -ProjectName $projectNameLocal
+        if($null -ne $group.Descriptor -and $null -ne $memberToRemove.Descriptor){
             try{
-                $result = $idService.RemoveMemberToApplicationGroup(
+                $result = $idService.RemoveMemberFromApplicationGroup(
                     $($group.Descriptor),
-                    $($memberToAdd.Descriptor)
+                    $($memberToRemove.Descriptor)
                 )
                 Write-Verbose "Removed member: $MemberName to GroupName: $GroupName successfully."
                 Write-Verbose "Result output. $result"
