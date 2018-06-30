@@ -2,14 +2,8 @@
 $SuppressImportModule = $false
 . $PSScriptRoot\Shared.ps1
 
-#region Global Test Variables
-# Put Variables here that you want all tests to use.  Can also have env variables used in build/test process of CI.
-
-
-#
-#endregion
-
 $VerbosePreference = "Continue"
+
 Describe 'VSTeamBuilder Integration Test'{
     BeforeAll {
         $projectName = $env:projectName
@@ -22,9 +16,10 @@ Describe 'VSTeamBuilder Integration Test'{
         $originalLocation = Get-Location
 
         #Checking if PAT is powershell secure string.
-        if($($pat.ToString()) -eq "System.Security.SecureString"){
-            $pat = ConvertFrom-SecureString -SecureString $pat
-        }
+        # if($($pat.ToString()) -eq "System.Security.SecureString"){
+        #     $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($pat)
+        #     $pat = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+        # }
 
         #$projectName = 'TeamModuleIntegration' + [guid]::NewGuid().toString().substring(0, 5)
         #$newProjectName = $projectName + [guid]::NewGuid().toString().substring(0, 5) + '1'
@@ -186,7 +181,7 @@ Describe 'VSTeamBuilder Integration Test'{
 
         It 'Sets Default Project' {
             Set-TBDefaultProject -ProjectName $projectName
-            $env:VSTBConn.DefaultProjectName | Should Be $projectName
+            $Global:VSTBConn.DefaultProjectName | Should Be $projectName
         }
 
         It 'Disconnects TFS Server - Remove-TBConnection' {
@@ -208,33 +203,29 @@ Describe "Standalone Integration Test - Temporary" {
         $projectName = $env:projectName
         $acctUrl = $env:accturl
         $pat = $env:PAT
-        $usePAT = $env:usePAT
         $api = $env:API_VERSION
 
         $originalLocation = Get-Location
+
+        #Checking if PAT is powershell secure string.
+        # if($($pat) -eq "System.Security.SecureString"){
+        #     $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($pat)
+        #     $pat = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+        # }
 
         #$projectName = 'TeamModuleIntegration' + [guid]::NewGuid().toString().substring(0, 5)
         #$newProjectName = $projectName + [guid]::NewGuid().toString().substring(0, 5) + '1'
 
         #Add-VSTeamProfile -Account $acct -PersonalAccessToken $pat -Version $api -Name intTests
         #Add-VSTeamAccount -Profile intTests -Drive int
+        Add-TBConnection -AcctUrl $acctUrl -PAT $pat
         Set-TBDefaultProject -ProjectName $projectName
 
     }
 
-    Context 'TBConnection' {
-        It 'Connects to TFS Server - Add-TBConnection' {
-            Add-TBConnection -AcctUrl $acctUrl -PAT $pat | Should Be True
-        }
-
-        It 'Sets Default Project' {
-            Set-TBDefaultProject -ProjectName $projectName
-            $env:VSTBConn.DefaultProjectName | Should Be $projectName
-        }
-
-        It 'Disconnects TFS Server - Remove-TBConnection' {
-            $result = Remove-TBConnection -AllVariables
-            $result | Should Be True
-        }
-    }
+    AfterAll {
+        # Put everything back
+        Set-Location $originalLocation
+        Remove-TBConnection -AllVariables
+     }
 }
