@@ -10,14 +10,14 @@ Describe 'VSTeamBuilder Integration Test'{
         $collectionName = $env:collectionName
         $acctUrl = $env:accturl
         $pat = $env:PAT
-        $api = $env:API_VERSION
+        $api = $env:API
         $searchGroup = $env:searchGroup
         $originalLocation = Get-Location
 
         if($usePAT){
-            Add-TBConnection -AcctUrl $acctUrl -PAT $pat -api $api
+            Add-TBConnection -AcctUrl $acctUrl -PAT $pat -API $api
         }else{
-            Add-TBConnection -AcctUrl $acctUrl -api $api
+            Add-TBConnection -AcctUrl $acctUrl -API $api
         }
         Set-TBDefaultProject -ProjectName $projectName
     }
@@ -174,7 +174,7 @@ Describe 'VSTeamBuilder Integration Test'{
 
     Context 'TBConnection' {
         It 'Connects to TFS Server - Add-TBConnection' {
-            Add-TBConnection -CollectionName $collectionName -ServerURL $acctUrl | Should Be True
+            Add-TBConnection -AcctUrl $acctUrl -PAT $pat -API $api | Should Be True
         }
 
         It 'Sets Default Project' {
@@ -202,14 +202,14 @@ Describe "Standalone Integration Test - Temporary" {
         $collectionName = $env:collectionName
         $acctUrl = $env:accturl
         $pat = $env:PAT
-        $api = $env:API_VERSION
+        $api = $env:API
         $searchGroup = $env:searchGroup
         $originalLocation = Get-Location
 
         if($usePAT){
-            Add-TBConnection -AcctUrl $acctUrl -PAT $pat -api $api
+            Add-TBConnection -AcctUrl $acctUrl -PAT $pat -API $api
         }else{
-            Add-TBConnection -AcctUrl $acctUrl -api $api
+            Add-TBConnection -AcctUrl $acctUrl -API $api
         }
         Set-TBDefaultProject -ProjectName $projectName
     }

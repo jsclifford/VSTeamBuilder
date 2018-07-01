@@ -173,9 +173,14 @@ function New-TBTeam
 
     #region Create Team and set default area.
     if($PSCmdlet.ShouldProcess("Create Team and set default area.")){
-        $teamExists = Get-VSTeam -Team $Name -Project $projectNameLocal
+        $teamExists = $null
+        try{
+            $teamExists = Get-VSTeam -Name $Name -Project $projectNameLocal -ErrorAction SilentlyContinue
+        }catch{
+            $teamExists = $null
+        }
         if($null -eq $teamExists){
-            $holder = Add-VSTeam -Team $Name -Description $Description -ProjectName $projectNameLocal
+            $holder = Add-VSTeam -TeamName $Name -Description $Description -ProjectName $projectNameLocal
             Write-Verbose "Created Team: $Name"
         }
 
@@ -200,7 +205,14 @@ function New-TBTeam
                 if($repoName -eq '{TeamCode}'){
                     $FullReponame = "$TeamCode"
                 }
-                $repoExists = Get-VSTeamGitRepository -ProjectName $ProjectName -Name "$FullRepoName"
+                $repoExists = $null
+                try {
+                    $repoExists = Get-VSTeamGitRepository -ProjectName $ProjectName -Name "$FullRepoName"
+                }
+                catch {
+                    $repoExists = $null
+                }
+
                 if($null -eq $repoExists){
                     #Creating Repo
                     $holder = Add-VSTeamGitRepository -Name "$FullRepoName" -ProjectName $projectNameLocal
@@ -262,89 +274,95 @@ function New-TBTeam
     #endregion
 
     #region Assign TFS Application Groups permissions to objects.
-        #region Permissions for VersionControl Repos
-        if($PSCmdlet.ShouldProcess("Assign Version Control Permissions.")){
-            foreach($repoName in $RepoList){
-                $FullReponame = "$TeamCode-$repoName"
-                if($repoName -eq '{TeamCode}'){
-                    $FullReponame = "$TeamCode"
-                }
+    #region Permissions for VersionControl Repos
+    if($PSCmdlet.ShouldProcess("Assign Version Control Permissions.")){
+        foreach($repoName in $RepoList){
+            $FullReponame = "$TeamCode-$repoName"
+            if($repoName -eq '{TeamCode}'){
+                $FullReponame = "$TeamCode"
+            }
+            try{
                 $repo = Get-VSTeamGitRepository -Name $FullReponame -ProjectName $projectNameLocal
-                if($null -eq $repo){
-                    continue
-                }
-
-                $repoToken = Get-TBToken -ObjectId $repo.id -NsName "Git Repositories" -ProjectName $projectNameLocal
-                try{
-                    #TODO Need to add foreach loop to process through TeamGroups Variable.
-                    $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-Contributors" -AllowValue 118 -ProjectName $projectNameLocal
-                    $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-Readers" -AllowValue 2 -ProjectName $projectNameLocal
-                }catch{
-                    Write-Verbose "There was an error in setting permissions.  $_"
-                    $result  = $false
-                }
+            }catch{
+                $repo = $null
             }
-        }
-        #endregion
 
-        #region Permissions for Iterations
-        if($PSCmdlet.ShouldProcess("Assign Iteration Permissions.")){
-            $iterationDefault = Get-TFSIteration -Iteration "$teamIterationRootPath" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
-            $iterationId = ($iterationDefault.Uri -split "Node/")[1]
+            if($null -eq $repo){
+                continue
+            }
 
-            $iterationToken = Get-TBToken -ObjectId $iterationId -NsName "Iteration" -ProjectName $projectNameLocal
+            $repoToken = Get-TBToken -ObjectId $repo.id -NsName "Git Repositories" -ProjectName $projectNameLocal
             try{
                 #TODO Need to add foreach loop to process through TeamGroups Variable.
-                $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-Contributors" -AllowValue 7 -ProjectName $projectNameLocal
-                $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-Readers" -AllowValue 1 -ProjectName $projectNameLocal
+                $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-Contributors" -AllowValue 118 -ProjectName $projectNameLocal
+                $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-Readers" -AllowValue 2 -ProjectName $projectNameLocal
             }catch{
                 Write-Verbose "There was an error in setting permissions.  $_"
-                $result = $false
+                $result  = $false
             }
-
+            $repo = $null
         }
-        #endregion
-
-        #region Permissions for Areas
-        if($PSCmdlet.ShouldProcess("Assign Area Permissions.")){
-            $areaDefault = Get-TFSArea -Area "$TeamPath\$Teamcode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
-            $areaId = ($areaDefault.Uri -split "Node/")[1]
-
-            $areaToken = Get-TBToken -ObjectId $areaId -NsName "CSS" -ProjectName $projectNameLocal
-            try{
-                #TODO Need to add foreach loop to process through TeamGroups Variable.
-                $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-Contributors" -AllowValue 49 -ProjectName $projectNameLocal
-                $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-Readers" -AllowValue 17 -ProjectName $projectNameLocal
-            }catch{
-                Write-Verbose "There was an error in setting permissions.  $_"
-                $result = $false
-            }
-
-        }
-        #endregion
-
-        #region Permissions for Project
-        if($PSCmdlet.ShouldProcess("Assign Project Permissions.")){
-            $namespaceId = (Get-TBNamespaceCollection | Where-Object -Property name -eq "Project").namespaceId
-            $projectObject = Get-TFSTeamProject -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
-            $projectToken = "`$PROJECT:$($projectObject.Uri)"
-            $props = @{
-                "namespaceId" = $namespaceId
-                "token" = $projectToken
-            }
-            $projectTokenObject = New-Object -TypeName PSObject -Property $props
-            try{
-                #TODO Need to add foreach loop to process through TeamGroups Variable.
-                $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-Contributors" -AllowValue 513 -ProjectName $projectNameLocal
-                $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-Readers" -AllowValue 513 -ProjectName $projectNameLocal
-            }catch{
-                Write-Verbose "There was an error in setting permissions.  $_"
-                $result = $false
-            }
-
-        }
-        #endregion
+    }
     #endregion
+
+    #region Permissions for Iterations
+    if($PSCmdlet.ShouldProcess("Assign Iteration Permissions.")){
+        $iterationDefault = Get-TFSIteration -Iteration "$teamIterationRootPath" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
+        $iterationId = ($iterationDefault.Uri -split "Node/")[1]
+
+        $iterationToken = Get-TBToken -ObjectId $iterationId -NsName "Iteration" -ProjectName $projectNameLocal
+        try{
+            #TODO Need to add foreach loop to process through TeamGroups Variable.
+            $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-Contributors" -AllowValue 7 -ProjectName $projectNameLocal
+            $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-Readers" -AllowValue 1 -ProjectName $projectNameLocal
+        }catch{
+            Write-Verbose "There was an error in setting permissions.  $_"
+            $result = $false
+        }
+
+    }
+    #endregion Permissions for Iterations
+
+    #region Permissions for Areas
+    if($PSCmdlet.ShouldProcess("Assign Area Permissions.")){
+        $areaDefault = Get-TFSArea -Area "$TeamPath\$Teamcode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
+        $areaId = ($areaDefault.Uri -split "Node/")[1]
+
+        $areaToken = Get-TBToken -ObjectId $areaId -NsName "CSS" -ProjectName $projectNameLocal
+        try{
+            #TODO Need to add foreach loop to process through TeamGroups Variable.
+            $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-Contributors" -AllowValue 49 -ProjectName $projectNameLocal
+            $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-Readers" -AllowValue 17 -ProjectName $projectNameLocal
+        }catch{
+            Write-Verbose "There was an error in setting permissions.  $_"
+            $result = $false
+        }
+
+    }
+    #endregion Permissions for Areas
+
+    #region Permissions for Project
+    if($PSCmdlet.ShouldProcess("Assign Project Permissions.")){
+        $namespaceId = (Get-TBNamespaceCollection | Where-Object -Property name -eq "Project").namespaceId
+        $projectObject = Get-TFSTeamProject -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
+        $projectToken = "`$PROJECT:$($projectObject.Uri)"
+        $props = @{
+            "namespaceId" = $namespaceId
+            "token" = $projectToken
+        }
+        $projectTokenObject = New-Object -TypeName PSObject -Property $props
+        try{
+            #TODO Need to add foreach loop to process through TeamGroups Variable.
+            $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-Contributors" -AllowValue 513 -ProjectName $projectNameLocal
+            $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-Readers" -AllowValue 513 -ProjectName $projectNameLocal
+        }catch{
+            Write-Verbose "There was an error in setting permissions.  $_"
+            $result = $false
+        }
+
+    }
+    #endregion Permissions for Project
+    #endregion Assign TFS Application Groups permissions to objects.
 
     #region Add Team to TFS application security group
     if($PSCmdlet.ShouldProcess("Add Team to contributors group.")){
@@ -469,7 +487,6 @@ function Remove-TBTeam
                 $holder = Remove-TFSIteration -Iteration "$iteration" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
                 Write-Verbose "$iteration Iteration Created."
             }
-        }
         }else{
             Write-Verbose "$teamIterationRootPath\$iteration Iteration already removed.  "
         }
@@ -565,7 +582,7 @@ function New-TBSecurityGroup
 
     try{
         $tExConn = $VSTBConn.TeamExplorerConnection
-        $tExConn.EnsureAuthenticated()
+        #$tExConn.EnsureAuthenticated()
     }
     catch
     {
@@ -658,7 +675,7 @@ function Remove-TBSecurityGroup
 
     try{
         $tExConn = $VSTBConn.TeamExplorerConnection
-        $tExConn.EnsureAuthenticated()
+        #$tExConn.EnsureAuthenticated()
     }
     catch
     {
@@ -750,7 +767,7 @@ function Get-TBSecurityGroup
 
     try{
         $tExConn = $VSTBConn.TeamExplorerConnection
-        $tExConn.EnsureAuthenticated()
+        #$tExConn.EnsureAuthenticated()
     }
     catch
     {
@@ -835,7 +852,7 @@ function Add-TBSecurityGroupMember
 
     try{
         $tExConn = $VSTBConn.TeamExplorerConnection
-        $tExConn.EnsureAuthenticated()
+        #$tExConn.EnsureAuthenticated()
     }
     catch
     {
@@ -921,7 +938,7 @@ function Remove-TBSecurityGroupMember
 
     try{
         $tExConn = $VSTBConn.TeamExplorerConnection
-        $tExConn.EnsureAuthenticated()
+        #$tExConn.EnsureAuthenticated()
     }
     catch
     {
@@ -1374,7 +1391,7 @@ function Set-TBPermission
 
         # TFS Token Object
         [Parameter(Mandatory = $true)]
-        [string]
+        [Object]
         $TokenObject,
 
         # Group Name to assign permission to.
@@ -1398,7 +1415,6 @@ function Set-TBPermission
         $DenyValue = 0,
 
         # Will not merge settings and wipe permissions of token
-        [Parameter(Mandatory = $true)]
         [switch]
         $NoMerge,
 
@@ -1455,7 +1471,7 @@ function Set-TBPermission
         $JSON = Convertto-Json $JSONObject -Depth 20
         try{
             if($PSCmdlet.ShouldProcess("Setting permission on token $TFSToken for Group name $GroupName")){
-                $result = Invoke-VSTeamRequest -area "accesscontrolentries" -resource $($token.namespaceId) -method Post -body $JSON -ContentType "application/json" -version 1.0
+                $result = Invoke-VSTeamRequest -area "accesscontrolentries" -resource $($TokenObject.namespaceId) -method Post -body $JSON -ContentType "application/json" -version 1.0
             }
         }
         catch
@@ -1630,7 +1646,7 @@ function Get-TBToken
     #region Get VSTB Token Collection
     $tokenCollection = $null
     if($null -eq $Global:VSTBTokencollection){
-        $tokenCollection = Get-TBTokenCollection -NamespaceId $nameSpaceId -Project $projectNameLocal
+        $tokenCollection = Get-TBTokenCollection -NamespaceId $nameSpaceId
     }else{
         if($Global:VSTBTokencollection.ContainsKey($nameSpaceId)){
             $tokenCollection = $Global:VSTBTokencollection[$nameSpaceId]
@@ -1648,7 +1664,7 @@ function Get-TBToken
     }
 
     $props = @{
-        "namespaceId" = $token.namespaceid
+        "namespaceId" = $namespaceid
         "token" = $token.token
     }
     $returnObj = New-Object -TypeName PSObject -Property $props
@@ -1681,8 +1697,9 @@ function Add-TBConnection
         [string]
         $PAT,
 
-        # API Version
-        [Parameter(Mandatory = $false)]
+        # Server Type
+        [Parameter(Mandatory = $true)]
+        [ValidateSet('TFS2017', 'TFS2018', 'VSTS')]
         [string]
         $API,
 
@@ -1715,8 +1732,8 @@ function Add-TBConnection
             $VSTBConn.VSTeamAccount = $true
             Write-Verbose "Successfully connected TFS VSTeam to: $AcctUrl"
         }elseif($null -ne $PAT){
-            Add-VSTeamProfile -Account $AcctUrl -PersonalAccessToken $PAT -Version VSTS -Name patConn
-            Add-VSTeamAccount -Profile patConn -Drive int
+            Add-VSTeamProfile -Account $AcctUrl -PersonalAccessToken $PAT -Version "$API" -Name tb
+            Add-VSTeamAccount -Profile tb -Version $API
             $VSTBConn.VSTeamAccount = $true
             Write-Verbose "Successfully connected TFS VSTeam to: $AcctUrl"
         }else{
