@@ -201,6 +201,7 @@ Describe "Standalone Integration Test - Temporary" {
         $projectName = $env:projectName
         $collectionName = $env:collectionName
         $acctUrl = $env:accturl
+        #$acctUrl = "masterkey53"
         $pat = $env:PAT
         $api = $env:API
         $searchGroup = $env:searchGroup
@@ -220,15 +221,15 @@ Describe "Standalone Integration Test - Temporary" {
         $TeamDescription = "The best Test of a new team"
         $TeamRootPath = ""
 
-        It 'Creates a new Team - New-TBTeam' {
-            $result = New-TBTeam -Name $TeamName -Description $TeamDescription -TeamCode $TeamCode -TeamPath $TeamRootPath -isCoded -ProjectName $projectName
-            $result | Should Be True
-        }
+        # It 'Creates a new Team - New-TBTeam' {
+        #     $result = New-TBTeam -Name $TeamName -Description $TeamDescription -TeamCode $TeamCode -TeamPath $TeamRootPath -isCoded -ProjectName $projectName
+        #     $result | Should Be True
+        # }
 
-        It 'Creates a new SubTeam - New-TBTeam' {
-            $result = New-TBTeam -Name "$TeamName-Sub" -Description $TeamDescription -TeamCode "$TeamCode-Sub" -TeamPath "MTT" -isCoded -ProjectName $projectName
-            $result | Should Be True
-        }
+        # It 'Creates a new SubTeam - New-TBTeam' {
+        #     $result = New-TBTeam -Name "$TeamName-Sub" -Description $TeamDescription -TeamCode "$TeamCode-Sub" -TeamPath "MTT" -isCoded -ProjectName $projectName
+        #     $result | Should Be True
+        # }
 
         It 'Remove Teams - New-TBTeam' {
             $result1 = Remove-TBTeam -Name $TeamName -TeamCode $TeamCode -TeamPath $TeamRootPath -isCoded -ProjectName $projectName

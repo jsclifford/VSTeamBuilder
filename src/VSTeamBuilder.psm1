@@ -445,7 +445,7 @@ function Remove-TBTeam
         $projectNameLocal = $ProjectName
     }
 
-    $result = $null
+    $result = $true
     #endregion
 
     #region Remove Version Control Repos
@@ -456,10 +456,16 @@ function Remove-TBTeam
                 if($repoName -eq '{TeamCode}'){
                     $FullReponame = "$TeamCode"
                 }
-                $repoExists = Get-VSTeamGitRepository -ProjectName $ProjectName -Name "$FullRepoName"
-                if($null -ne $repoExists){
+                try {
+                    $repoToDelete = Get-VSTeamGitRepository -ProjectName $ProjectName -Name "$FullRepoName"
+                }
+                catch {
+                    $repoToDelete = $null
+                }
+
+                if($null -ne $repoToDelete){
                     #Creating Repo
-                    $holder = Remove-VSTeamGitRepository -Name "$FullRepoName" -ProjectName $projectNameLocal
+                    $holder = Remove-VSTeamGitRepository -Id "$($repoToDelete.id)" -Force
                     #$holder = New-TFSGitRepository -Name "$FullRepoName" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
                     Write-Verbose "$FullReponame Repo removed."
                 }else{
@@ -484,7 +490,7 @@ function Remove-TBTeam
         if($null -ne $iterationExists){
             if($PSCmdlet.ShouldProcess("Remove Team Iteration. Iteration Name: $iteration")){
                 #Creating Repo
-                $holder = Remove-TFSIteration -Iteration "$iteration" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
+                $holder = Remove-TFSIteration -Iteration "$iteration" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl) -Confirm
                 Write-Verbose "$iteration Iteration Created."
             }
         }else{
@@ -499,7 +505,7 @@ function Remove-TBTeam
     if($PSCmdlet.ShouldProcess("Remove Team Area.")){
         $areaExists = Get-TFSArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
         if($null -ne $areaExists){
-            $holder = Remove-TfsArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
+            $holder = Remove-TfsArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl) -Confirm
             Write-Verbose "Removed Area: $TeamPath\$TeamCode"
         }else{
             Write-Verbose "Area already removed: $TeamPath\$TeamCode"
@@ -518,9 +524,15 @@ function Remove-TBTeam
 
     #region Remove Team
     if($PSCmdlet.ShouldProcess("Remove Team.")){
-        $teamExists = Get-VSTeam -Team $Name -Project $projectNameLocal
+        try {
+            $teamExists = Get-VSTeam -Name $Name -Project $projectNameLocal
+        }
+        catch {
+            $teamExists = $null
+        }
+
         if($null -ne $teamExists){
-            $holder = Remove-VSTeam -Team $Name -Project $projectNameLocal
+            $holder = Remove-VSTeam -Team $Name -Project $projectNameLocal -Force
             Write-Verbose "Removed Team: $Name"
         }
     }
@@ -576,6 +588,7 @@ function New-TBSecurityGroup
     $result = $null
     #endregion
 
+    #TODO: RestAPI method https://docs.microsoft.com/en-us/rest/api/vsts/graph/groups/create?view=vsts-rest-4.1
     #region Connect to TFS/VSTS with TeamFoundation Client DLL class.
     #Team Explorer Connection
     $tExConn = $null
@@ -669,6 +682,7 @@ function Remove-TBSecurityGroup
     $result = $null
     #endregion
 
+    #TODO: restapi method https://docs.microsoft.com/en-us/rest/api/vsts/graph/groups/delete?view=vsts-rest-4.1
     #region Connect to TFS/VSTS with TeamFoundation Client DLL class.
     #Team Explorer Connection
     $tExConn = $null
@@ -761,6 +775,7 @@ function Get-TBSecurityGroup
     }
     #endregion
 
+    #TODO: Possible RestAPI to get group list. https://docs.microsoft.com/en-us/rest/api/vsts/graph/groups/list?view=vsts-rest-4.1
     #region Connect to TFS/VSTS with TeamFoundation Client DLL class.
     #Team Explorer Connection
     $tExConn = $null
@@ -1447,6 +1462,7 @@ function Set-TBPermission
 
     $SecurityGroup = Get-TBSecurityGroup -Name $GroupName -ProjectName $projectNameLocal
     if($null -ne $SecurityGroup){
+        #$holder = Set-VSTeamAPIVersion -Version $API
         $Descriptor = "$($SecurityGroup.Descriptor.IdentityType);$($SecurityGroup.Descriptor.Identifier)"
 
         $merge = $true
@@ -1471,7 +1487,7 @@ function Set-TBPermission
         $JSON = Convertto-Json $JSONObject -Depth 20
         try{
             if($PSCmdlet.ShouldProcess("Setting permission on token $TFSToken for Group name $GroupName")){
-                $result = Invoke-VSTeamRequest -area "accesscontrolentries" -resource $($TokenObject.namespaceId) -method Post -body $JSON -ContentType "application/json" -version 1.0
+                $result = Invoke-VSTeamRequest -area "accesscontrolentries" -id $($TokenObject.namespaceId) -method Post -body $JSON -ContentType "application/json" -version 4.1
             }
         }
         catch
@@ -1525,7 +1541,7 @@ function Get-TBTokenCollection
 
     if($null -eq $TokenCollection[$NamespaceId] -or $ForceRefresh){
         try{
-            $acls = Invoke-VSTeamRequest -area "accesscontrollists" -resource $NamespaceId -method Get -version 1.0
+            $acls = Invoke-VSTeamRequest -area "accesscontrollists" -id $NamespaceId -method Get -version 1.0
             $TokenCollection.Remove($NamespaceId)
             $TokenCollection.Add("$NamespaceId",$($acls.value))
         }catch{
@@ -1651,7 +1667,7 @@ function Get-TBToken
         if($Global:VSTBTokencollection.ContainsKey($nameSpaceId)){
             $tokenCollection = $Global:VSTBTokencollection[$nameSpaceId]
         }else{
-            $tokenCollection = Get-TBTokenCollection -NamespaceId $nameSpaceId -Project $projectNameLocal
+            $tokenCollection = Get-TBTokenCollection -NamespaceId $nameSpaceId
         }
     }
     #endregion
@@ -1659,7 +1675,7 @@ function Get-TBToken
     $token = $tokenCollection | Where-Object -Property Token -match "^.*$ObjectId$"
 
     if($null -eq $token){
-        $updateTokencollection = Get-TBTokenCollection -NamespaceId $nameSpaceId -Project $projectNameLocal -ForceRefresh
+        $updateTokencollection = Get-TBTokenCollection -NamespaceId $nameSpaceId -ForceRefresh
         $token = $updateTokencollection | Where-Object -Property Token -match "^.*$ObjectId$"
     }
 
@@ -1732,8 +1748,9 @@ function Add-TBConnection
             $VSTBConn.VSTeamAccount = $true
             Write-Verbose "Successfully connected TFS VSTeam to: $AcctUrl"
         }elseif($null -ne $PAT){
-            Add-VSTeamProfile -Account $AcctUrl -PersonalAccessToken $PAT -Version "$API" -Name tb
-            Add-VSTeamAccount -Profile tb -Version $API
+            #Add-VSTeamProfile -Account $AcctUrl -PersonalAccessToken $PAT -Version "$API" -Name tb
+            #Add-VSTeamAccount -Profile tb -Version $API
+            Add-VSTeamAccount -Account $AcctUrl -Version $API -PersonalAccessToken $PAT
             $VSTBConn.VSTeamAccount = $true
             Write-Verbose "Successfully connected TFS VSTeam to: $AcctUrl"
         }else{
@@ -1769,36 +1786,7 @@ function Add-TBConnection
     }
     #endregion
 
-    #region Team Explorer Object Model connection.
-    #Looking to deprecate DLL requirement by querying RESTAPI for TFS Security groups.
-    # if($null -eq $($VSTBConn.TeamExplorerConnection)){
-    #     try{
-    #         if($UseWindowsAuth){
-    #             $tfs = [Microsoft.TeamFoundation.Client.TfsTeamProjectCollectionFactory]::GetTeamProjectCollection($AcctUrl)
-    #             $VSTBconn.TeamExplorerConnection = $tfs
-    #             Write-Verbose "Successfully conected TFS client DLL to: $AcctUrl"
-    #         }elseif($null -ne $PAT){
-    #             $netCred = New-Object 'System.Net.NetworkCredential' -ArgumentList 'dummy-pat-user', $PAT
-    #             $fedCred = New-Object 'Microsoft.TeamFoundation.Client.BasicAuthCredential' -ArgumentList $netCred
-    #             #$winCred = New-Object 'Microsoft.TeamFoundation.Client.WindowsCredential' -ArgumentList $netCred
 
-    #             #$tfs = [Microsoft.TeamFoundation.Client.TfsTeamProjectCollectionFactory]::GetTeamProjectCollection($fedCred,[uri]$AcctUrl)
-
-    #             $tfs = New-Object 'Microsoft.TeamFoundation.Client.TfsTeamProjectCollection' -ArgumentList $AcctUrl, $fedCred
-    #             $VSTBconn.TeamExplorerConnection = $tfs
-    #             Write-Verbose "Successfully conected TFS client DLL to: $AcctUrl"
-    #         }else{
-    #             Write-Verbose "No valid credentials passed.  Please set UseWindowsAuth or provide PAT token."
-    #             $Success = $false
-    #         }
-    #     }catch{
-    #         Write-Verbose "There was an error $_"
-    #         $Success = $false
-    #     }
-    # }else{
-    #     Write-Verbose "Already Connected to TFOM."
-    # }
-    #endregion
 
     $Global:VSTBConn = $VSTBConn
 
