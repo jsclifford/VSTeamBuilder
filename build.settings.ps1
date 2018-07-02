@@ -207,32 +207,32 @@ Task AfterStageFiles {
 Task BeforeBuild {
     # Restore/install Nuget
 
-    Write-Verbose "Restoring Nuget client (if needed)"
+    # Write-Verbose "Restoring Nuget client (if needed)"
 
-    $PackagesDir = Join-Path $PSScriptRoot 'packages'
-    $NugetExePath = Join-Path $PSScriptRoot 'nuget.exe'
+    # $PackagesDir = Join-Path $PSScriptRoot 'packages'
+    # $NugetExePath = Join-Path $PSScriptRoot 'nuget.exe'
 
-    Write-Verbose "PackagesDir: $PackagesDir"
-    Write-Verbose "NugetExePath: $NugetExePath"
+    # Write-Verbose "PackagesDir: $PackagesDir"
+    # Write-Verbose "NugetExePath: $NugetExePath"
 
-    if (-not (Test-Path $PackagesDir -PathType Container))
-    {
-        Write-Verbose "Folder $PackagesDir not found. Creating folder."
-        md $PackagesDir -Force | Write-Verbose
-    }
+    # if (-not (Test-Path $PackagesDir -PathType Container))
+    # {
+    #     Write-Verbose "Folder $PackagesDir not found. Creating folder."
+    #     md $PackagesDir -Force | Write-Verbose
+    # }
 
-    if (-not (Test-Path $NugetExePath -PathType Leaf))
-    {
-        Write-Verbose "Nuget.exe not found. Downloading from https://dist.nuget.org"
-        Invoke-WebRequest -Uri https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -OutFile $NugetExePath | Write-Verbose
-    }
+    # if (-not (Test-Path $NugetExePath -PathType Leaf))
+    # {
+    #     Write-Verbose "Nuget.exe not found. Downloading from https://dist.nuget.org"
+    #     Invoke-WebRequest -Uri https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -OutFile $NugetExePath | Write-Verbose
+    # }
 }
 
 # Executes after the Build task.
 Task AfterBuild {
-    $TfsOmNugetVersion = (& $NugetExePath list -Source (Join-Path $NugetPackagesDir 'Microsoft.TeamFoundationServer.ExtendedClient'))
+    # $TfsOmNugetVersion = (& $NugetExePath list -Source (Join-Path $NugetPackagesDir 'Microsoft.TeamFoundationServer.ExtendedClient'))
 
-    (Get-Content "$OutDir\$ModuleName\$ModuleName.psd1").Replace('${TfsOmNugetVersion}',$TfsOmNugetVersion) | Set-content "$OutDir\$ModuleName\$ModuleName.psd1"
+    # (Get-Content "$OutDir\$ModuleName\$ModuleName.psd1").Replace('${TfsOmNugetVersion}',$TfsOmNugetVersion) | Set-content "$OutDir\$ModuleName\$ModuleName.psd1"
 }
 
 ###############################################################################
