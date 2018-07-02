@@ -8,29 +8,33 @@ schema: 2.0.0
 # Remove-TBOrg
 
 ## SYNOPSIS
-Remove-TBOrg will do something wonderful.
+Remove-TBOrg will remove TFS/VSTS Project structure define in associated template file.
 
 ## SYNTAX
 
 ```
-Remove-TBOrg [-ParameterName1] <String> [-ParameterName2] <String> [-ParameterName3] <String>
- [-ParameterName4] <String> [-WhatIf] [-Confirm] [<CommonParameters>]
+Remove-TBOrg [-ProjectName] <String> [-ImportFile] <String> [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
-Remove-TBOrg will do something wonderful.
+Remove-TBOrg will remove TFS/VSTS Project structure define in associated template file.
 
 ## EXAMPLES
 
 ### EXAMPLE 1
 ```
-Remove-TBOrg -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+Remove-TBOrg -ProjectName "MyTestProject" -ImportFile C:\MyTFSOrgImport.csv
+```
+
+### EXAMPLE 2
+```
+Remove-TBOrg -ProjectName "MyTestProject" -ImportFile C:\MyTFSOrgImport.xml
 ```
 
 ## PARAMETERS
 
-### -ParameterName1
-Parameter help description
+### -ProjectName
+Project Name
 
 ```yaml
 Type: String
@@ -44,8 +48,8 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -ParameterName2
-Parameter help description
+### -ImportFile
+Import File path.
 
 ```yaml
 Type: String
@@ -54,36 +58,6 @@ Aliases:
 
 Required: True
 Position: 2
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -ParameterName3
-Parameter help description
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: True
-Position: 3
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -ParameterName4
-Parameter help description
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: True
-Position: 4
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False

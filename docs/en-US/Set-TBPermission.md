@@ -13,7 +13,7 @@ Set-TBPermission sets a tfs permission for a tfs token object.
 ## SYNTAX
 
 ```
-Set-TBPermission [-TokenObject] <String> [-GroupName] <String> [[-AllowValue] <Int32>] [[-DenyValue] <Int32>]
+Set-TBPermission [-TokenObject] <Object> [-GroupName] <String> [[-AllowValue] <Int32>] [[-DenyValue] <Int32>]
  [-NoMerge] [[-ProjectName] <String>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
@@ -35,7 +35,7 @@ Set-TBPermission -TokenObject $gitRepoToken.token -GroupName "MyTFSSecurityGroup
 TFS Token Object
 
 ```yaml
-Type: String
+Type: Object
 Parameter Sets: (All)
 Aliases:
 
@@ -101,7 +101,7 @@ Type: SwitchParameter
 Parameter Sets: (All)
 Aliases:
 
-Required: True
+Required: False
 Position: Named
 Default value: False
 Accept pipeline input: False

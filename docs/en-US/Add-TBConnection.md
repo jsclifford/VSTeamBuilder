@@ -13,23 +13,25 @@ Add-TBConnection will add TB Connection to current session.
 ## SYNTAX
 
 ```
-Add-TBConnection [-CollectionName] <String> [-ServerURL] <String> [[-PAT] <String>] [<CommonParameters>]
+Add-TBConnection [-AcctUrl] <String> [[-PAT] <String>] [-API] <String> [-UseWindowsAuth] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
-Add-TBConnection will add TB Connection to current session.
+Add-TBConnection will add TB Connection to current session. 
+Windows Credentials and PAT tokens are only supported
+at this time.
 
 ## EXAMPLES
 
 ### EXAMPLE 1
 ```
-Add-TBConnection -CollectionName "test" -ServerUrl "http://mywebsite.com/tfs"
+Add-TBConnection -AcctUrl "http://mywebsite.com/tfs"
 ```
 
 ## PARAMETERS
 
-### -CollectionName
-TFS/VSTS Collection Name
+### -AcctUrl
+TFS/VSTS AccountUrl -  For TFS this is the TFS Server url + the collectionname.
 
 ```yaml
 Type: String
@@ -38,21 +40,6 @@ Aliases:
 
 Required: True
 Position: 1
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -ServerURL
-TFS/VSTS Server URL or domain
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: True
-Position: 2
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -67,8 +54,38 @@ Parameter Sets: (All)
 Aliases:
 
 Required: False
+Position: 2
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -API
+Server Type
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: True
 Position: 3
 Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -UseWindowsAuth
+Use Windows Authentication
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```

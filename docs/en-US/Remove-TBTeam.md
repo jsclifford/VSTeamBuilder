@@ -8,29 +8,122 @@ schema: 2.0.0
 # Remove-TBTeam
 
 ## SYNOPSIS
-Remove-TBTeam will do something wonderful.
+{{Fill in the Synopsis}}
 
 ## SYNTAX
 
 ```
-Remove-TBTeam [-ParameterName1] <String> [-ParameterName2] <String> [-ParameterName3] <String>
- [-ParameterName4] <String> [-WhatIf] [-Confirm] [<CommonParameters>]
+Remove-TBTeam [-Name] <String> [-TeamCode] <String> [[-TeamPath] <String>] [[-RepoList] <String[]>]
+ [[-IterationList] <String[]>] [[-TeamGroups] <String[]>] [[-ProjectName] <String>] [-IsCoded] [-WhatIf]
+ [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
-Remove-TBTeam will do something wonderful.
+{{Fill in the Description}}
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
+```powershell
+PS C:\> {{ Add example code here }}
 ```
-Remove-TBTeam -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
-```
+
+{{ Add example description here }}
 
 ## PARAMETERS
 
-### -ParameterName1
-Parameter help description
+### -Confirm
+Prompts you for confirmation before running the cmdlet.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases: cf
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -IsCoded
+{{Fill IsCoded Description}}
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -IterationList
+{{Fill IterationList Description}}
+
+```yaml
+Type: String[]
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 4
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Name
+{{Fill Name Description}}
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: True
+Position: 0
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -ProjectName
+{{Fill ProjectName Description}}
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 6
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -RepoList
+{{Fill RepoList Description}}
+
+```yaml
+Type: String[]
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 3
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -TeamCode
+{{Fill TeamCode Description}}
 
 ```yaml
 Type: String
@@ -44,46 +137,31 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -ParameterName2
-Parameter help description
+### -TeamGroups
+{{Fill TeamGroups Description}}
+
+```yaml
+Type: String[]
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 5
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -TeamPath
+{{Fill TeamPath Description}}
 
 ```yaml
 Type: String
 Parameter Sets: (All)
 Aliases:
 
-Required: True
+Required: False
 Position: 2
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -ParameterName3
-Parameter help description
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: True
-Position: 3
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -ParameterName4
-Parameter help description
-
-```yaml
-Type: String
-Parameter Sets: (All)
-Aliases:
-
-Required: True
-Position: 4
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -105,28 +183,18 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -Confirm
-Prompts you for confirmation before running the cmdlet.
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases: cf
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
 ### CommonParameters
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
 For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
+### None
+
+
 ## OUTPUTS
+
+### System.Object
 
 ## NOTES
 

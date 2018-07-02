@@ -8,29 +8,54 @@ schema: 2.0.0
 # New-TBOrg
 
 ## SYNOPSIS
-New-TBOrg will do something wonderful.
+New-TBOrg will create TFS/VSTS Project and Team structure from an associated CSV or XML file.
 
 ## SYNTAX
 
 ```
-New-TBOrg [-ParameterName1] <String> [-ParameterName2] <String> [-ParameterName3] <String>
- [-ParameterName4] <String> [-WhatIf] [-Confirm] [<CommonParameters>]
+New-TBOrg [-ProjectName] <String> [[-ProjectDescription] <String>] [-ImportFile] <String> [-NewProject]
+ [-GenerateImportFile] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
-New-TBOrg will do something wonderful.
+This function creates Teams with associated security groups, iterations, area, repos, and dashboards(future release). 
+By specifying
+a template file, TFS/VSTS admins can use automation to manage large projects. 
+This function can be run to also reset permissions and
+settins on current projects created by this tool.
+Define your template and never manually create a team again.
 
 ## EXAMPLES
 
 ### EXAMPLE 1
 ```
-New-TBOrg -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+New-TBOrg -ProjectName "MyTestProject" -ProjectDescription "The best project ever." -ImportFile C:\MyTFSOrgImport.csv -NewProject
 ```
+
+This command creates a new Project named MyTestProject and creates teams defined in the CSV file name MyTFSOrgImport.csv. 
+CSV File
+import will create groups based on TeamCode and no custom names.
+
+### EXAMPLE 2
+```
+New-TBOrg -ProjectName "MyTestProject" -ProjectDescription "The best project ever." -ImportFile C:\MyTFSOrgImport.xml -NewProject
+```
+
+This command creates a new Project named MyTestProject and creates teams defined in the xml file name MyTFSOrgImport.xml. 
+The xml file can
+define advanced settings for permissions and custom group names.
+
+### EXAMPLE 3
+```
+New-TBOrg -ProjectName "MyTestProject" -XMLAdvancedImportFile C:\MyTFSOrgImport.xml -GenerateImportFile
+```
+
+This command creates a new Project named MyTestProject and creates teams defined in the CSV file name MyTFSOrgImport.csv
 
 ## PARAMETERS
 
-### -ParameterName1
-Parameter help description
+### -ProjectName
+Project Name
 
 ```yaml
 Type: String
@@ -44,23 +69,23 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -ParameterName2
-Parameter help description
+### -ProjectDescription
+Project Description
 
 ```yaml
 Type: String
 Parameter Sets: (All)
 Aliases:
 
-Required: True
+Required: False
 Position: 2
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -ParameterName3
-Parameter help description
+### -ImportFile
+Import File path.
 
 ```yaml
 Type: String
@@ -74,17 +99,32 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -ParameterName4
-Parameter help description
+### -NewProject
+Create new project when set.
 
 ```yaml
-Type: String
+Type: SwitchParameter
 Parameter Sets: (All)
 Aliases:
 
-Required: True
-Position: 4
-Default value: None
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -GenerateImportFile
+Generates a template file at the path specified in the ImportFile paramater.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
@@ -127,6 +167,8 @@ For more information, see about_CommonParameters (http://go.microsoft.com/fwlink
 ## INPUTS
 
 ## OUTPUTS
+
+### System.Boolean
 
 ## NOTES
 
