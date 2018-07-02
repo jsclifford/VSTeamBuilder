@@ -1998,13 +1998,13 @@ function Add-TBConnection
     #region VSTeam Module connection
     if($null -eq $env:TEAM_ACCT){
         if($UseWindowsAuth){
-            Add-VSTeamAccount -Account $AcctUrl -UseWindowsAuthentication
+            Add-VSTeamAccount -Account $AcctUrl -UseWindowsAuthentication | Out-Null
             $VSTBConn.VSTeamAccount = $true
             Write-Verbose "Successfully connected TFS VSTeam to: $AcctUrl"
         }elseif($null -ne $PAT){
             #Add-VSTeamProfile -Account $AcctUrl -PersonalAccessToken $PAT -Version "$API" -Name tb
             #Add-VSTeamAccount -Profile tb -Version $API
-            Add-VSTeamAccount -Account $AcctUrl -Version $API -PersonalAccessToken $PAT
+            Add-VSTeamAccount -Account $AcctUrl -Version $API -PersonalAccessToken $PAT | Out-Null
             $VSTBConn.VSTeamAccount = $true
             Write-Verbose "Successfully connected TFS VSTeam to: $AcctUrl"
         }else{
@@ -2020,12 +2020,12 @@ function Add-TBConnection
     if ($null -eq $Global:TfsTpcConnection)
     {
         if($UseWindowsAuth){
-            Connect-TfsTeamProjectCollection -Collection $AcctUrl
+            Connect-TfsTeamProjectCollection -Collection $AcctUrl | Out-Null
             $VSTBConn."TFSCmdletsConnection" = $true
             Write-Verbose "TfsCmdlets Successfully Connected to: $AcctUrl"
         }elseif($null -ne $PAT){
             $patCred = Get-TfsCredential -PersonalAccessToken $PAT
-            Connect-TfsTeamProjectCollection -Collection $AcctUrl -Credential $patCred
+            Connect-TfsTeamProjectCollection -Collection $AcctUrl -Credential $patCred | Out-Null
             $VSTBConn."TFSCmdletsConnection" = $true
             Write-Verbose "TfsCmdlets Successfully Connected to: $AcctUrl"
         }else{
@@ -2079,13 +2079,13 @@ function Remove-TBConnection
         }
     }
     if($null -ne $env:TEAM_ACCT){
-        $holder = Remove-VSTeamAccount
-        $holder = Get-VSTeamProfile | Remove-VSTeamProfile -Force
+        Remove-VSTeamAccount | Out-Null
+        #$holder = Get-VSTeamProfile | Remove-VSTeamProfile -Force
     }
 
     if($null -ne $Global:TfsTpcConnection){
         try{
-            $holder = Disconnect-TfsTeamProjectCollection -Collection $VSTBConn.AccountUrl
+            Disconnect-TfsTeamProjectCollection -Collection $VSTBConn.AccountUrl | Out-Null
             Write-Verbose "TFSCmdlets Disconnected to TFS Collection"
             $Global:TFSConnectionProps = $null
         }catch{
