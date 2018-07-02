@@ -62,7 +62,7 @@ Describe 'VSTeamBuilder Integration Test'{
         }
     }
 
-    Context 'Add/Remove Team' {
+    Context 'Add/Remove and Test Team Settings CSV Basic Version' {
         $TeamName = "MyTestTeam"
         $TeamCode = "MTT"
         $TeamDescription = "The best Test of a new team"
@@ -76,6 +76,38 @@ Describe 'VSTeamBuilder Integration Test'{
         It 'Creates a new SubTeam - New-TBTeam' {
             $result = New-TBTeam -Name "$TeamName-Sub" -Description $TeamDescription -TeamCode "$TeamCode-Sub" -TeamPath "MTT" -isCoded -ProjectName $projectName
             $result | Should Be True
+        }
+
+        It 'Team Check - New-TBTeam' {
+            $team = Get-VSTeam -Name "$TeamName" -ProjectName $projectName
+            $team -ne $null | Should Be True
+        }
+
+        It 'Team Area Check - New-TBTeam' {
+            $area = Get-TfsArea -Area "$TeamCode" -ProjectName $projectName -Collection $acctUrl
+            $area -ne $null | Should Be True
+        }
+
+        It 'Team Security Group Check - New-TBTeam' {
+            $teamGroups = @("Contributors","CodeReviewers","Readers")
+            $exists = $false
+            foreach($group in $teamGroups){
+                $result = (Get-TBSecurityGroup -Name "$TeamCode-$group" -ProjectName $projectName).DisplayName
+                if($result -like "*$TeamCode-$group"){
+                    $exists = $true
+                }
+            }
+            $exists | Should Be True
+        }
+
+        It 'Team Repo Check - New-TBTeam' {
+            $repo = Get-VSTeamGitRepository -Name "$TeamCode" -ProjectName $projectName
+            $repo -ne $null | Should Be True
+        }
+
+        It 'Team Iteration Check - New-TBTeam' {
+            $iteration = Get-TfsIteration -Iteration "$TeamCode" -ProjectName $projectName -Collection $acctUrl
+            $iteration -ne $null | Should Be True
         }
 
         It 'Remove Teams - New-TBTeam' {
