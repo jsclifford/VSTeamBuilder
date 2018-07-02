@@ -1287,8 +1287,8 @@ function Set-TBTeamAreaSetting
     $result = $null
     #endregion
 
-    if($AreaPath -notlike "$Projectname*"){
-        $AreaPath = "$ProjectName\$AreaPath"
+    if($AreaPath -notlike "$projectNameLocal*"){
+        $AreaPath = "$projectNameLocal\$AreaPath"
     }
 
     $props = @{
@@ -1305,7 +1305,7 @@ function Set-TBTeamAreaSetting
 
     try{
         if($PSCmdlet.ShouldProcess("Adding IterationID: $iterationId to team: $TeamName")){
-            $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings/teamfieldvalues" -method Patch -body $JSON -ContentType "application/json" -version 2.0-preview.1
+            $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$TeamName" -resource "_apis/work/teamsettings/teamfieldvalues" -method Patch -body $JSON -ContentType "application/json" -version 2.0-preview.1
         }
     }
     catch

@@ -12,13 +12,48 @@ Describe "Manifest & xml validation" {
 }
 
 InModuleScope VSTeamBuilder {
+    Describe 'Team Area' {
+        BeforeAll {
+            $projectName = "VSTeamBuilderDemo"
+            $TeamName = "MyTestTeam"
+            $AreaPath = "MTT"
+        }
+
+        Mock Invoke-VSTeamRequest { return @{"defaultValue" = "$AreaPath"} }
+        Mock _testConnection { return $true }
+
+        Context 'Set-TBTeamAreaSetting' {
+            #Mock Invoke-VSTeamRequest { return @{"defaultValue" = "$AreaPath"} }
+            It 'Sets Team Area Default Setting - Set-TBTeamAreaSetting' {
+                $result = Set-TBTeamAreaSetting -AreaPath $AreaPath -TeamName $TeamName -ProjectName $projectName
+                $($result.defaultValue) -like "*$AreaPath" | Should Be True
+
+                # Make sure it was called with the correct values
+                Assert-MockCalled Invoke-VSTeamRequest -Exactly 1 -ParameterFilter {
+                    $ProjectName -eq $projectName -and $Area -eq $TeamName -and $Method -eq "Patch"
+                }
+            }
+        }
+
+        Context 'Get-TBTeamAreaSetting' {
+
+            It 'Gets Team Area Default Setting - Get-TBTeamAreaSetting' {
+                $result = Get-TBTeamAreaSetting -TeamName $TeamName -ProjectName $projectName
+                $($result.defaultValue) -like "*$AreaPath" | Should Be True
+
+                # Make sure it was called with the correct values
+                Assert-MockCalled Invoke-VSTeamRequest -Exactly 1 -ParameterFilter {
+                    $ProjectName -eq $projectName -and $Area -eq $TeamName -and $Method -eq "Get"
+                }
+            }
+        }
+    }
     Describe 'TBConnection'{
         BeforeAll {
             $projectName = "VSTeamBuilderDemo"
             $acctUrl = "https://masterkey53.visualstudio.com"
             $pat = "qqqqqqqqqqwwwwwwwwwweeeeeeeeeerrrrrrrrrrtttttttttt1234"
             $api = "VSTS"
-            $usePat = $true
         }
 
         Context 'Add-TBConnection' {
@@ -32,6 +67,10 @@ InModuleScope VSTeamBuilder {
                 Set-TBDefaultProject -ProjectName $projectName
                 $Global:VSTBConn.DefaultProjectName | Should Be $projectName
             }
+
+            It '_testConnection' {
+                _testConnection | Should Be True
+            }
         }
 
         Context 'Remove-TBConnection' {
@@ -42,6 +81,10 @@ InModuleScope VSTeamBuilder {
                 $env:TEAM_ACCT = "TEAM1234"
                 $Global:TfsTpcConnection = @("test")
                 Remove-TBConnection -AllVariables | Should Be True
+            }
+
+            It '_testConnection' {
+                _testConnection | Should Be False
             }
         }
 
@@ -173,19 +216,7 @@ Describe "Not Complete Tests" {
         }
     }
 
-    Context 'Team Area' {
-        $TeamName = "MyTestTeam"
-        $AreaPath = "MTT"
-        It 'Sets Team Area Default Setting - Set-TBTeamAreaSetting' {
-            #$result = Set-TBTeamAreaSetting -AreaPath $AreaPath -TeamName $TeamName -ProjectName $projectName
-            $($result.defaultValue) -like "*$AreaPath" | Should Be True
-        }
 
-        It 'Gets Team Area Default Setting - Get-TBTeamAreaSetting' {
-            #$result = Get-TBTeamAreaSetting -TeamName $TeamName -ProjectName $projectName
-            $($result.defaultValue) -like "*$AreaPath" | Should Be True
-        }
-    }
 
     Context 'Team Iteration' {
         $TeamName = "MyTestTeam"
