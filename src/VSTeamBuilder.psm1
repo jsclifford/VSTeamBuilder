@@ -8,39 +8,173 @@
 
 function New-TBOrg
 {
+    [OutputType([boolean])]
     [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
-        # Parameter help description
+        # Project Name
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName1,
+        $ProjectName,
 
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
+        # Project Description
+        [Parameter(Mandatory = $false)]
         [string]
-        $ParameterName2,
+        $ProjectDescription,
 
-        # Parameter help description
+        # Import File path.
         [Parameter(Mandatory = $true)]
+        [ValidatePattern('(\.csv|\.xml)$')]
         [string]
-        $ParameterName3,
+        $ImportFile,
 
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName4
+        # Create new project when set.
+        [switch]
+        $NewProject,
+
+        # Generates a template file at the path specified in the ImportFile paramater.
+        [switch]
+        $GenerateImportFile
     )
-     if($PSCmdlet.ShouldProcess("Processing section 1.")){
-        #Process something here.
+
+    #region global connection Variables
+    $projectNameLocal = $null
+    $VSTBConn = $Global:VSTBConn
+    if(! (_testConnection)){
+        Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
+        return
     }
+    if($null -eq $ProjectName){
+        if($null -eq $VSTBConn.DefaultProjectName){
+            Write-Verbose "No ProjectName specified."
+            throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
+        }else{
+            $projectNameLocal = $VSTBConn.DefaultProjectName
+        }
+    }else{
+        $projectNameLocal = $ProjectName
+    }
+
+    $result = $true
+    #endregion
+
+    #region Import File Validation and Processing
+    $XMLAdvancedImport = $null
+    $CSVImport = $null
+    $isXML = $false
+
+    if(-not (Test-Path($ImportFile))){
+        if($GenerateImportFile){
+            _generateImportFile -ImportFile $ImportFile
+            return $true
+        }
+    }
+    if($ImportFile -like '*.csv'){
+        $CSVImport = Import-CSV $ImportFile
+        if($CSVImport.Count -lt 1){
+            Write-Verbose "Import File is empty.  Please run -GenerateTemplateFile switch to get started."
+            return $false
+        }
+
+        $validColumns = @(
+            "TeamName",
+            "TeamCode",
+            "TeamPath",
+            "TeamDescription",
+            "isCoded"
+        )
+
+        $validColumnNameCount = 0
+        $colNames = ($CSVImport[0].psobject.Properties).name
+        foreach($colName in $colNames){
+            if($validColumns.IndexOf($colName) -ne -1){
+                $validColumnNameCount ++
+            }
+        }
+
+        if($validColumnNameCount -gt ($colnames.Length)){
+            Write-Verbose "CSV File does not have required Columns for processing. Please run -GenerateTemplateFile switch to get started."
+            return $false
+        }
+    }else{
+        $XMLAdvancedImport = Import-Clixml -Path $ImportFile
+        $isXML = $true
+        Write-Verbose "This feature is not implemented at this time.  Please use CSV file."
+        return $true
+    }
+
+    #endregion
+
+    #region Creating New Team Project
+    if($PSCmdlet.ShouldProcess("Creating New Team Project.") -and $NewProject){
+        $processTemplate = "Agile"
+        $TFVC = $false
+
+        $projectExists = Get-VSTeamProject -ProjectName $projectNameLocal
+        if($null -eq $projectExists){
+            if($TFVC){
+                $holder = Add-VSTeamProject -ProjectName $projectNameLocal -Description $ProjectDescription -ProcessTemplate $processTemplate -TFVC
+            }else{
+                $holder = Add-VSTeamProject -ProjectName $projectNameLocal -Description $ProjectDescription -ProcessTemplate $processTemplate
+            }
+
+        }
+    }
+    #endregion
+
+    #region Creating Teams
+    if($isXML){
+        foreach($teamNode in $teams){
+            if($PSCmdlet.ShouldProcess("Creating Team: $($row.TeamName). Advanced Config")){
+                if($teamNode.iscoded -eq 'y'){
+                    $result = New-TBTeam -Name $($teamNode.TeamName) -Description $($teamNode.TeamDescription) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal -IsCoded
+                }else{
+                    $result = New-TBTeam -Name $($teamNode.TeamName) -Description $($teamNode.TeamDescription) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal
+                }
+                if($result){
+                    Write-Verbose "------------ Successfully Created Team $($teamNode.TeamName) ------------------"
+                }else{
+                    Write-Verbose "------------ Team $($teamNode.TeamName) Created but with errors ------------------"
+                }
+            }
+        }
+    }else{
+        foreach($row in $CSVImport){
+            if($PSCmdlet.ShouldProcess("Creating Team: $($row.TeamName). Basic Config")){
+                if($row.iscoded -eq 'y'){
+                    $result = New-TBTeam -Name $($row.TeamName) -Description $($row.TeamDescription) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal -IsCoded
+                }else{
+                    $result = New-TBTeam -Name $($row.TeamName) -Description $($row.TeamDescription) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal
+                }
+                if($result){
+                    Write-Verbose "------------ Successfully Created Team $($row.TeamName) ------------------"
+                }else{
+                    Write-Verbose "------------ Team $($row.TeamName) Created but with errors ------------------"
+                }
+            }
+        }
+    }
+    #endregion
+
+    return $result
     <#
         .SYNOPSIS
-            New-TBOrg will do something wonderful.
+            New-TBOrg will create TFS/VSTS Project and Team structure from an associated CSV or XML file.
         .DESCRIPTION
-            New-TBOrg will do something wonderful.
+            This function creates Teams with associated security groups, iterations, area, repos, and dashboards(future release).  By specifying
+            a template file, TFS/VSTS admins can use automation to manage large projects.  This function can be run to also reset permissions and
+            settins on current projects created by this tool. Define your template and never manually create a team again.
         .EXAMPLE
-            New-TBOrg -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+            New-TBOrg -ProjectName "MyTestProject" -ProjectDescription "The best project ever." -ImportFile C:\MyTFSOrgImport.csv -NewProject
+            This command creates a new Project named MyTestProject and creates teams defined in the CSV file name MyTFSOrgImport.csv.  CSV File
+            import will create groups based on TeamCode and no custom names.
+        .EXAMPLE
+            New-TBOrg -ProjectName "MyTestProject" -ProjectDescription "The best project ever." -ImportFile C:\MyTFSOrgImport.xml -NewProject
+            This command creates a new Project named MyTestProject and creates teams defined in the xml file name MyTFSOrgImport.xml.  The xml file can
+            define advanced settings for permissions and custom group names.
+        .EXAMPLE
+            New-TBOrg -ProjectName "MyTestProject" -XMLAdvancedImportFile C:\MyTFSOrgImport.xml -GenerateImportFile
+            This command creates a new Project named MyTestProject and creates teams defined in the CSV file name MyTFSOrgImport.csv
     #>
 }
 function Remove-TBOrg
@@ -48,36 +182,153 @@ function Remove-TBOrg
     [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
-        # Parameter help description
+         # Project Name
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName1,
+        $ProjectName,
 
-        # Parameter help description
+        # Import File path.
         [Parameter(Mandatory = $true)]
         [string]
-        $ParameterName2,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName3,
-
-        # Parameter help description
-        [Parameter(Mandatory = $true)]
-        [string]
-        $ParameterName4
+        $ImportFile
     )
-     if($PSCmdlet.ShouldProcess("Processing section 1.")){
+
+    #region global connection Variables
+    $projectNameLocal = $null
+    $VSTBConn = $Global:VSTBConn
+    if(! (_testConnection)){
+        Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
+        return
+    }
+    if($null -eq $ProjectName){
+        if($null -eq $VSTBConn.DefaultProjectName){
+            Write-Verbose "No ProjectName specified."
+            throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
+        }else{
+            $projectNameLocal = $VSTBConn.DefaultProjectName
+        }
+    }else{
+        $projectNameLocal = $ProjectName
+    }
+
+    $result = $true
+    #endregion
+
+    #region Import File Validation and Processing
+    $XMLAdvancedImport = $null
+    $CSVImport = $null
+    $isXML = $false
+
+    if(-not (Test-Path($ImportFile))){
+        if($GenerateImportFile){
+            _generateImportFile -ImportFile $ImportFile
+            return $true
+        }
+    }
+    if($ImportFile -like '*.csv'){
+        $CSVImport = Import-CSV $ImportFile
+        if($CSVImport.Count -lt 1){
+            Write-Verbose "Import File is empty.  Please run -GenerateTemplateFile switch to get started."
+            return $false
+        }
+
+        $validColumns = @(
+            "TeamName",
+            "TeamCode",
+            "TeamPath",
+            "TeamDescription",
+            "isCoded"
+        )
+
+        $validColumnNameCount = 0
+        $colNames = ($CSVImport[0].psobject.Properties).name
+        foreach($colName in $colNames){
+            if($validColumns.IndexOf($colName) -ne -1){
+                $validColumnNameCount ++
+            }
+        }
+
+        if($validColumnNameCount -gt ($colnames.Length)){
+            Write-Verbose "CSV File does not have required Columns for processing. Please run -GenerateTemplateFile switch to get started."
+            return $false
+        }
+    }else{
+        $XMLAdvancedImport = Import-Clixml -Path $ImportFile
+        $isXML = $true
+        Write-Verbose "This feature is not implemented at this time.  Please use CSV file."
+        return $true
+    }
+
+    #endregion
+
+    #region Removing Teams Basic config
+    if($isXML){
+        foreach($teamNode in $teams){
+            if($PSCmdlet.ShouldProcess("Removing Team: $($teamNode.TeamName). Advanced Config")){
+                if($teamNode.iscoded -eq 'y'){
+                    $result = Remove-TBTeam -Name $($teamNode.TeamName) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal -IsCoded
+                }else{
+                    $result = New-TBTeam -Name $($teamNode.TeamName) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal
+                }
+                if($result){
+                    Write-Verbose "------------ Successfully Created Team $($teamNode.TeamName) ------------------"
+                }else{
+                    Write-Verbose "------------ Team $($teamNode.TeamName) Created but with errors ------------------"
+                }
+            }
+        }
+    }else{
+        foreach($row in $CSVImport){
+            if($PSCmdlet.ShouldProcess("Removing Team: $($teamNode.TeamName). Basic Config")){
+                if($row.iscoded -eq 'y'){
+                    $result = Remove-TBTeam -Name $($row.TeamName) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal -IsCoded
+                }else{
+                    $result = Remove-TBTeam -Name $($row.TeamName) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal
+                }
+                if($result){
+                    Write-Verbose "------------ Successfully Removed Team $($row.TeamName) ------------------"
+                }else{
+                    Write-Verbose "------------ Team $($row.TeamName) Removed but with errors ------------------"
+                }
+            }
+        }
+    }
+    #endregion
+
+    <#
+        .SYNOPSIS
+            Remove-TBOrg will remove TFS/VSTS Project structure define in associated template file.
+        .DESCRIPTION
+            Remove-TBOrg will remove TFS/VSTS Project structure define in associated template file.
+        .EXAMPLE
+            Remove-TBOrg -ProjectName "MyTestProject" -ImportFile C:\MyTFSOrgImport.csv
+        .EXAMPLE
+            Remove-TBOrg -ProjectName "MyTestProject" -ImportFile C:\MyTFSOrgImport.xml
+    #>
+}
+
+function _generateImportFile{
+    [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
+    Param(
+
+         # Project Name
+        [Parameter(Mandatory = $true)]
+        [ValidateScript({-not (Test-Path -Path $_ -PathType Leaf)})]
+        [ValidatePattern('(\.csv|\.xml)$')]
+        [string]
+        $ImportFile
+    )
+
+    if($PSCmdlet.ShouldProcess("Processing section 1.")){
         #Process something here.
     }
     <#
         .SYNOPSIS
-            Remove-TBOrg will do something wonderful.
+            _generateImportFile creates a default csv or xml file for later import.
         .DESCRIPTION
-            Remove-TBOrg will do something wonderful.
+            _generateImportFile creates a default csv or xml file for later import.
         .EXAMPLE
-            Remove-TBOrg -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
+            _generateImportFile -ImportFile C:\MyTFSOrgImport.csv
     #>
 }
 function New-TBTeam
