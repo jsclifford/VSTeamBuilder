@@ -30,14 +30,35 @@ Describe 'VSTeamBuilder Integration Test'{
     }
 
     Context 'Add/Remove TBOrg' {
-        It 'Passes New-TBOrg' {
-            #New-TBOrg -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
-            $True | Should Be True
+        It 'Creates new project and uses CSV as template - New-TBOrg' {
+            $result = New-TBOrg -ProjectName "$projectName-csv" -ProjectDescription "The Best Project Ever" -ImportFile "$PSScriptRoot\VSTBImportFile.csv" -NewProject
+            $result | Should Be True
         }
 
-        It 'Passes Remove-TBOrg' {
-            #Remove-TBOrg -Paramater1 "test" -Paramater2 "test2" -Paramater3 "test3" -Paramater4 "test4"
-            $True | Should Be True
+        It 'Removes team project structure from csv file - Remove-TBOrg' {
+            $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$PSScriptRoot\VSTBImportFile.csv"
+            $result | Should Be True
+        }
+
+        #Not implemented yet.
+        # It 'Creates new project from xml file - New-TBOrg' {
+        #     $result = New-TBOrg -ProjectName "$projectName-xml" -ProjectDescription "The Best Project Ever" -ImportFile "$PSScriptRoot\VSTBImportFile.xml" -NewProject
+        #     $result | Should Be True
+        # }
+
+        # It 'Removes team project structure from xml file - Remove-TBOrg' {
+        #     $result = Remove-TBOrg -ProjectName "$projectName-xml" -ImportFile "$PSScriptRoot\VSTBImportFile.xml"
+        #     $result | Should Be True
+        # }
+
+        It 'Creates csv Template File - New-TBOrg' {
+            $result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\VSTBImportTemplate.csv" -GenerateImportFile
+            $result | Should Be True
+        }
+
+        It 'Creates xml Template File - New-TBOrg' {
+            $result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\VSTBImportTemplate.xml" -GenerateImportFile
+            $result | Should Be True
         }
     }
 
