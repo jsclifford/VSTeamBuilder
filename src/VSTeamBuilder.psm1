@@ -1,3 +1,5 @@
+#Requires -Modules TfsCmdlets
+#Requires -Modules VSTeam
 <#          License
     GNU GENERAL PUBLIC LICENSE
      Version 3, 29 June 2007
@@ -1487,7 +1489,8 @@ function Set-TBPermission
         $JSON = Convertto-Json $JSONObject -Depth 99
         try{
             if($PSCmdlet.ShouldProcess("Setting permission on token $TFSToken for Group name $GroupName")){
-                $result = Invoke-VSTeamRequest -area "accesscontrolentries" -resource $($TokenObject.namespaceId) -method Post -body $JSON -ContentType "application/json" -version 1.0
+                $NamespaceId = $TokenObject.namespaceId
+                $result = Invoke-VSTeamRequest -area "accesscontrolentries" -resource $NamespaceId -method Post -body $JSON -ContentType "application/json" -version 1.0
             }
         }
         catch
@@ -1744,7 +1747,7 @@ function Add-TBConnection
     #region VSTeam Module connection
     if($null -eq $env:TEAM_ACCT){
         if($UseWindowsAuth){
-            $holder = Add-VSTeamAccount -Account $AcctUrl -UseWindowsAuthentication
+            Add-VSTeamAccount -Account $AcctUrl -UseWindowsAuthentication
             $VSTBConn.VSTeamAccount = $true
             Write-Verbose "Successfully connected TFS VSTeam to: $AcctUrl"
         }elseif($null -ne $PAT){
