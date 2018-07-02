@@ -210,7 +210,7 @@ Describe "Standalone Integration Test - Temporary" {
         if($usePAT){
             Add-TBConnection -AcctUrl $acctUrl -PAT $pat -API $api
         }else{
-            Add-TBConnection -AcctUrl $acctUrl -API $api
+            Add-TBConnection -AcctUrl $acctUrl -API $api -UseWindowsAuth
         }
         Set-TBDefaultProject -ProjectName $projectName
     }
@@ -221,15 +221,15 @@ Describe "Standalone Integration Test - Temporary" {
         $TeamDescription = "The best Test of a new team"
         $TeamRootPath = ""
 
-        # It 'Creates a new Team - New-TBTeam' {
-        #     $result = New-TBTeam -Name $TeamName -Description $TeamDescription -TeamCode $TeamCode -TeamPath $TeamRootPath -isCoded -ProjectName $projectName
-        #     $result | Should Be True
-        # }
+        It 'Creates a new Team - New-TBTeam' {
+            $result = New-TBTeam -Name $TeamName -Description $TeamDescription -TeamCode $TeamCode -TeamPath $TeamRootPath -isCoded -ProjectName $projectName
+            $result | Should Be True
+        }
 
-        # It 'Creates a new SubTeam - New-TBTeam' {
-        #     $result = New-TBTeam -Name "$TeamName-Sub" -Description $TeamDescription -TeamCode "$TeamCode-Sub" -TeamPath "MTT" -isCoded -ProjectName $projectName
-        #     $result | Should Be True
-        # }
+        It 'Creates a new SubTeam - New-TBTeam' {
+            $result = New-TBTeam -Name "$TeamName-Sub" -Description $TeamDescription -TeamCode "$TeamCode-Sub" -TeamPath "MTT" -isCoded -ProjectName $projectName
+            $result | Should Be True
+        }
 
         It 'Remove Teams - New-TBTeam' {
             $result1 = Remove-TBTeam -Name $TeamName -TeamCode $TeamCode -TeamPath $TeamRootPath -isCoded -ProjectName $projectName

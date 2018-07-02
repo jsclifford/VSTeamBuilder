@@ -1484,10 +1484,10 @@ function Set-TBPermission
         }
 
         $JSONObject = New-Object -TypeName PSObject -Property $props
-        $JSON = Convertto-Json $JSONObject -Depth 20
+        $JSON = Convertto-Json $JSONObject -Depth 99
         try{
             if($PSCmdlet.ShouldProcess("Setting permission on token $TFSToken for Group name $GroupName")){
-                $result = Invoke-VSTeamRequest -area "accesscontrolentries" -id $($TokenObject.namespaceId) -method Post -body $JSON -ContentType "application/json" -version 4.1
+                $result = Invoke-VSTeamRequest -area "accesscontrolentries" -resource $($TokenObject.namespaceId) -method Post -body $JSON -ContentType "application/json" -version 1.0
             }
         }
         catch
