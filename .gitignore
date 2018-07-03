@@ -12,3 +12,5 @@ src/lib/
 *.exe
 GlobalVars.ps1
 
+*TestResults*.xml
+

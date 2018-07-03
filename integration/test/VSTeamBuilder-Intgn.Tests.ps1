@@ -249,7 +249,6 @@ Describe 'VSTeamBuilder Integration Test'{
 }
 
 Describe "Standalone Integration Test - Temporary" {
-
     BeforeAll {
         $projectName = $env:projectName
         $collectionName = $env:collectionName
