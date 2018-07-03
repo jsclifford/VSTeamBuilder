@@ -17,7 +17,7 @@ Describe 'VSTeamBuilder Integration Test'{
         if($usePAT){
             Add-TBConnection -AcctUrl $acctUrl -PAT $pat -API $api
         }else{
-            Add-TBConnection -AcctUrl $acctUrl -API $api
+            Add-TBConnection -AcctUrl $acctUrl -API $api -UseWindowsAuth
         }
         Set-TBDefaultProject -ProjectName $projectName
     }
@@ -31,7 +31,7 @@ Describe 'VSTeamBuilder Integration Test'{
 
     Context 'Add/Remove TBOrg' {
         It 'Creates new project and uses CSV as template - New-TBOrg' {
-            $result = New-TBOrg -ProjectName "$projectName-csv" -ProjectDescription "The Best Project Ever" -ImportFile "$PSScriptRoot\VSTBImportFile.csv" -NewProject
+            $result = New-TBOrg -ProjectName "$projectName-CSV" -ProjectDescription "The Best Project Ever" -ImportFile "$PSScriptRoot\..\..\resources\VSTBImportFile.csv" -NewProject
             $result | Should Be True
         }
 
@@ -84,7 +84,7 @@ Describe 'VSTeamBuilder Integration Test'{
         }
 
         It 'Team Area Check - New-TBTeam' {
-            $area = Get-TfsArea -Area "$TeamCode" -ProjectName $projectName -Collection $acctUrl
+            $area = Get-TfsArea -Area "$TeamCode" -Project $projectName -Collection $acctUrl
             $area -ne $null | Should Be True
         }
 
@@ -106,7 +106,7 @@ Describe 'VSTeamBuilder Integration Test'{
         }
 
         It 'Team Iteration Check - New-TBTeam' {
-            $iteration = Get-TfsIteration -Iteration "$TeamCode" -ProjectName $projectName -Collection $acctUrl
+            $iteration = Get-TfsIteration -Iteration "$TeamCode" -Project $projectName -Collection $acctUrl
             $iteration -ne $null | Should Be True
         }
 

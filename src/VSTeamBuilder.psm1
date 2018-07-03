@@ -28,6 +28,11 @@ function New-TBOrg
         [string]
         $ImportFile,
 
+        # Project Description
+        [Parameter(Mandatory = $false)]
+        [string]
+        $ProcessTemplate = "Agile",
+
         # Create new project when set.
         [switch]
         $NewProject,
@@ -88,11 +93,13 @@ function New-TBOrg
         }
 
         $validColumns = @(
+            "TeamProjectName",
             "TeamName",
             "TeamCode",
             "TeamPath",
             "TeamDescription",
-            "isCoded"
+            "isCoded",
+            "ProcessOrder"
         )
 
         $validColumnNameCount = 0
@@ -124,19 +131,22 @@ function New-TBOrg
     #region Creating New Team Project
     if ($PSCmdlet.ShouldProcess("Creating New Team Project.") -and $NewProject)
     {
-        $processTemplate = "Agile"
         $TFVC = $false
+        try{
+            $projectExists = Get-VSTeamProject -Name $projectNameLocal
+        }catch{
+            $projectExists = $null
+        }
 
-        $projectExists = Get-VSTeamProject -ProjectName $projectNameLocal
         if ($null -eq $projectExists)
         {
             if ($TFVC)
             {
-                $holder = Add-VSTeamProject -ProjectName $projectNameLocal -Description $ProjectDescription -ProcessTemplate $processTemplate -TFVC
+                #$holder = Add-VSTeamProject -ProjectName $projectNameLocal -Description $ProjectDescription -ProcessTemplate $processTemplate -TFVC
             }
             else
             {
-                $holder = Add-VSTeamProject -ProjectName $projectNameLocal -Description $ProjectDescription -ProcessTemplate $processTemplate
+                $holder = Add-VSTeamProject -ProjectName $projectNameLocal -Description $ProjectDescription -ProcessTemplate $ProcessTemplate
             }
 
         }
@@ -171,7 +181,8 @@ function New-TBOrg
     }
     else
     {
-        foreach ($row in $CSVImport)
+        $CSVImportSorted = $CSVImport| Sort-Object -Property ProcessOrder
+        foreach ($row in $CSVImportSorted)
         {
             if ($PSCmdlet.ShouldProcess("Creating Team: $($row.TeamName). Basic Config"))
             {
@@ -648,7 +659,7 @@ function New-TBTeam
 
     #region Assign TFS Application Groups permissions to objects.
     #region Permissions for VersionControl Repos
-    if ($PSCmdlet.ShouldProcess("Assign Version Control Permissions."))
+    if ($PSCmdlet.ShouldProcess("Assign Version Control Permissions.") -and $IsCoded)
     {
         foreach ($repoName in $RepoList)
         {
@@ -736,25 +747,34 @@ function New-TBTeam
     if ($PSCmdlet.ShouldProcess("Assign Project Permissions."))
     {
         $namespaceId = (Get-TBNamespaceCollection | Where-Object -Property name -eq "Project").namespaceId
-        $projectObject = Get-TFSTeamProject -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
-        $projectToken = "`$PROJECT:$($projectObject.Uri)"
-        $props = @{
-            "namespaceId" = $namespaceId
-            "token"       = $projectToken
+        try {
+            $projectObject = Get-VSTeamProject -Name $projectNameLocal #Get-TFSTeamProject -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl) #FixNow
         }
-        $projectTokenObject = New-Object -TypeName PSObject -Property $props
-        try
-        {
-            #TODO Need to add foreach loop to process through TeamGroups Variable.
-            $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-Contributors" -AllowValue 513 -ProjectName $projectNameLocal
-            $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-Readers" -AllowValue 513 -ProjectName $projectNameLocal
+        catch {
+            $projectObject = $null
         }
-        catch
-        {
-            Write-Verbose "There was an error in setting permissions.  $_"
+        if($null -ne $projectObject){
+            $projectToken = "`$PROJECT:$($projectObject.Uri)"
+            $props = @{
+                "namespaceId" = $namespaceId
+                "token"       = $projectToken
+            }
+            $projectTokenObject = New-Object -TypeName PSObject -Property $props
+            try
+            {
+                #TODO Need to add foreach loop to process through TeamGroups Variable.
+                $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-Contributors" -AllowValue 513 -ProjectName $projectNameLocal
+                $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-Readers" -AllowValue 513 -ProjectName $projectNameLocal
+            }
+            catch
+            {
+                Write-Verbose "There was an error in setting permissions.  $_"
+                $result = $false
+            }
+        }else{
+            Write-Verbose "Project could not be found.  Exiting."
             $result = $false
         }
-
     }
     #endregion Permissions for Project
     #endregion Assign TFS Application Groups permissions to objects.
@@ -908,7 +928,7 @@ function Remove-TBTeam
             if ($PSCmdlet.ShouldProcess("Remove Team Iteration. Iteration Name: $iteration"))
             {
                 #Creating Repo
-                $holder = Remove-TFSIteration -Iteration "$iteration" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl) -Confirm
+                $holder = Remove-TFSIteration -Iteration "$iteration" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
                 Write-Verbose "$iteration Iteration Created."
             }
         }
@@ -927,7 +947,7 @@ function Remove-TBTeam
         $areaExists = Get-TFSArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
         if ($null -ne $areaExists)
         {
-            $holder = Remove-TfsArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl) -Confirm
+            $holder = Remove-TfsArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
             Write-Verbose "Removed Area: $TeamPath\$TeamCode"
         }
         else
