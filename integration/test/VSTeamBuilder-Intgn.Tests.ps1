@@ -62,6 +62,31 @@ Describe 'VSTeamBuilder Integration Test'{
         }
     }
 
+    AfterAll {
+        # Put everything back
+        Set-Location $originalLocation
+        Remove-TBConnection -AllVariables
+    }
+}
+
+Describe "Testing Team Creation and Settings" {
+    BeforeAll {
+        $projectName = $env:projectName
+        $collectionName = $env:collectionName
+        $acctUrl = $env:accturl
+        $pat = $env:PAT
+        $api = $env:API
+        $searchGroup = $env:searchGroup
+        $originalLocation = Get-Location
+
+        if($usePAT){
+            Add-TBConnection -AcctUrl $acctUrl -PAT $pat -API $api
+        }else{
+            Add-TBConnection -AcctUrl $acctUrl -API $api -UseWindowsAuth
+        }
+        Set-TBDefaultProject -ProjectName $projectName
+    }
+
     Context 'Add/Remove and Test Team Settings CSV Basic Version' {
         $TeamName = "MyTestTeam"
         $TeamCode = "MTT"
@@ -245,7 +270,7 @@ Describe 'VSTeamBuilder Integration Test'{
         # Put everything back
         Set-Location $originalLocation
         Remove-TBConnection -AllVariables
-     }
+    }
 }
 
 Describe "Standalone Integration Test - Temporary" {
