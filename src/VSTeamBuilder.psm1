@@ -40,18 +40,25 @@ function New-TBOrg
     #region global connection Variables
     $projectNameLocal = $null
     $VSTBConn = $Global:VSTBConn
-    if(! (_testConnection)){
+    if (! (_testConnection))
+    {
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
     }
-    if($null -eq $ProjectName){
-        if($null -eq $VSTBConn.DefaultProjectName){
+    if ($null -eq $ProjectName)
+    {
+        if ($null -eq $VSTBConn.DefaultProjectName)
+        {
             Write-Verbose "No ProjectName specified."
             throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
-        }else{
+        }
+        else
+        {
             $projectNameLocal = $VSTBConn.DefaultProjectName
         }
-    }else{
+    }
+    else
+    {
         $projectNameLocal = $ProjectName
     }
 
@@ -63,15 +70,19 @@ function New-TBOrg
     $CSVImport = $null
     $isXML = $false
 
-    if(-not (Test-Path($ImportFile))){
-        if($GenerateImportFile){
+    if (-not (Test-Path($ImportFile)))
+    {
+        if ($GenerateImportFile)
+        {
             _generateImportFile -ImportFile $ImportFile
             return $true
         }
     }
-    if($ImportFile -like '*.csv'){
+    if ($ImportFile -like '*.csv')
+    {
         $CSVImport = Import-CSV $ImportFile
-        if($CSVImport.Count -lt 1){
+        if ($CSVImport.Count -lt 1)
+        {
             Write-Verbose "Import File is empty.  Please run -GenerateTemplateFile switch to get started."
             return $false
         }
@@ -86,17 +97,22 @@ function New-TBOrg
 
         $validColumnNameCount = 0
         $colNames = ($CSVImport[0].psobject.Properties).name
-        foreach($colName in $colNames){
-            if($validColumns.IndexOf($colName) -ne -1){
+        foreach ($colName in $colNames)
+        {
+            if ($validColumns.IndexOf($colName) -ne -1)
+            {
                 $validColumnNameCount ++
             }
         }
 
-        if($validColumnNameCount -gt ($colnames.Length)){
+        if ($validColumnNameCount -gt ($colnames.Length))
+        {
             Write-Verbose "CSV File does not have required Columns for processing. Please run -GenerateTemplateFile switch to get started."
             return $false
         }
-    }else{
+    }
+    else
+    {
         $XMLAdvancedImport = Import-Clixml -Path $ImportFile
         $isXML = $true
         Write-Verbose "This feature is not implemented at this time.  Please use CSV file."
@@ -106,15 +122,20 @@ function New-TBOrg
     #endregion
 
     #region Creating New Team Project
-    if($PSCmdlet.ShouldProcess("Creating New Team Project.") -and $NewProject){
+    if ($PSCmdlet.ShouldProcess("Creating New Team Project.") -and $NewProject)
+    {
         $processTemplate = "Agile"
         $TFVC = $false
 
         $projectExists = Get-VSTeamProject -ProjectName $projectNameLocal
-        if($null -eq $projectExists){
-            if($TFVC){
+        if ($null -eq $projectExists)
+        {
+            if ($TFVC)
+            {
                 $holder = Add-VSTeamProject -ProjectName $projectNameLocal -Description $ProjectDescription -ProcessTemplate $processTemplate -TFVC
-            }else{
+            }
+            else
+            {
                 $holder = Add-VSTeamProject -ProjectName $projectNameLocal -Description $ProjectDescription -ProcessTemplate $processTemplate
             }
 
@@ -123,32 +144,51 @@ function New-TBOrg
     #endregion
 
     #region Creating Teams
-    if($isXML){
-        foreach($teamNode in $teams){
-            if($PSCmdlet.ShouldProcess("Creating Team: $($row.TeamName). Advanced Config")){
-                if($teamNode.iscoded -eq 'y'){
+    if ($isXML)
+    {
+        foreach ($teamNode in $teams)
+        {
+            if ($PSCmdlet.ShouldProcess("Creating Team: $($row.TeamName). Advanced Config"))
+            {
+                if ($teamNode.iscoded -eq 'y')
+                {
                     $result = New-TBTeam -Name $($teamNode.TeamName) -Description $($teamNode.TeamDescription) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal -IsCoded
-                }else{
+                }
+                else
+                {
                     $result = New-TBTeam -Name $($teamNode.TeamName) -Description $($teamNode.TeamDescription) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal
                 }
-                if($result){
+                if ($result)
+                {
                     Write-Verbose "------------ Successfully Created Team $($teamNode.TeamName) ------------------"
-                }else{
+                }
+                else
+                {
                     Write-Verbose "------------ Team $($teamNode.TeamName) Created but with errors ------------------"
                 }
             }
         }
-    }else{
-        foreach($row in $CSVImport){
-            if($PSCmdlet.ShouldProcess("Creating Team: $($row.TeamName). Basic Config")){
-                if($row.iscoded -eq 'y'){
+    }
+    else
+    {
+        foreach ($row in $CSVImport)
+        {
+            if ($PSCmdlet.ShouldProcess("Creating Team: $($row.TeamName). Basic Config"))
+            {
+                if ($row.iscoded -eq 'y')
+                {
                     $result = New-TBTeam -Name $($row.TeamName) -Description $($row.TeamDescription) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal -IsCoded
-                }else{
+                }
+                else
+                {
                     $result = New-TBTeam -Name $($row.TeamName) -Description $($row.TeamDescription) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal
                 }
-                if($result){
+                if ($result)
+                {
                     Write-Verbose "------------ Successfully Created Team $($row.TeamName) ------------------"
-                }else{
+                }
+                else
+                {
                     Write-Verbose "------------ Team $($row.TeamName) Created but with errors ------------------"
                 }
             }
@@ -182,7 +222,7 @@ function Remove-TBOrg
     [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
-         # Project Name
+        # Project Name
         [Parameter(Mandatory = $true)]
         [string]
         $ProjectName,
@@ -196,18 +236,25 @@ function Remove-TBOrg
     #region global connection Variables
     $projectNameLocal = $null
     $VSTBConn = $Global:VSTBConn
-    if(! (_testConnection)){
+    if (! (_testConnection))
+    {
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
     }
-    if($null -eq $ProjectName){
-        if($null -eq $VSTBConn.DefaultProjectName){
+    if ($null -eq $ProjectName)
+    {
+        if ($null -eq $VSTBConn.DefaultProjectName)
+        {
             Write-Verbose "No ProjectName specified."
             throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
-        }else{
+        }
+        else
+        {
             $projectNameLocal = $VSTBConn.DefaultProjectName
         }
-    }else{
+    }
+    else
+    {
         $projectNameLocal = $ProjectName
     }
 
@@ -219,15 +266,19 @@ function Remove-TBOrg
     $CSVImport = $null
     $isXML = $false
 
-    if(-not (Test-Path($ImportFile))){
-        if($GenerateImportFile){
+    if (-not (Test-Path($ImportFile)))
+    {
+        if ($GenerateImportFile)
+        {
             _generateImportFile -ImportFile $ImportFile
             return $true
         }
     }
-    if($ImportFile -like '*.csv'){
+    if ($ImportFile -like '*.csv')
+    {
         $CSVImport = Import-CSV $ImportFile
-        if($CSVImport.Count -lt 1){
+        if ($CSVImport.Count -lt 1)
+        {
             Write-Verbose "Import File is empty.  Please run -GenerateTemplateFile switch to get started."
             return $false
         }
@@ -242,17 +293,22 @@ function Remove-TBOrg
 
         $validColumnNameCount = 0
         $colNames = ($CSVImport[0].psobject.Properties).name
-        foreach($colName in $colNames){
-            if($validColumns.IndexOf($colName) -ne -1){
+        foreach ($colName in $colNames)
+        {
+            if ($validColumns.IndexOf($colName) -ne -1)
+            {
                 $validColumnNameCount ++
             }
         }
 
-        if($validColumnNameCount -gt ($colnames.Length)){
+        if ($validColumnNameCount -gt ($colnames.Length))
+        {
             Write-Verbose "CSV File does not have required Columns for processing. Please run -GenerateTemplateFile switch to get started."
             return $false
         }
-    }else{
+    }
+    else
+    {
         $XMLAdvancedImport = Import-Clixml -Path $ImportFile
         $isXML = $true
         Write-Verbose "This feature is not implemented at this time.  Please use CSV file."
@@ -262,32 +318,51 @@ function Remove-TBOrg
     #endregion
 
     #region Removing Teams Basic config
-    if($isXML){
-        foreach($teamNode in $teams){
-            if($PSCmdlet.ShouldProcess("Removing Team: $($teamNode.TeamName). Advanced Config")){
-                if($teamNode.iscoded -eq 'y'){
+    if ($isXML)
+    {
+        foreach ($teamNode in $teams)
+        {
+            if ($PSCmdlet.ShouldProcess("Removing Team: $($teamNode.TeamName). Advanced Config"))
+            {
+                if ($teamNode.iscoded -eq 'y')
+                {
                     $result = Remove-TBTeam -Name $($teamNode.TeamName) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal -IsCoded
-                }else{
+                }
+                else
+                {
                     $result = New-TBTeam -Name $($teamNode.TeamName) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal
                 }
-                if($result){
+                if ($result)
+                {
                     Write-Verbose "------------ Successfully Created Team $($teamNode.TeamName) ------------------"
-                }else{
+                }
+                else
+                {
                     Write-Verbose "------------ Team $($teamNode.TeamName) Created but with errors ------------------"
                 }
             }
         }
-    }else{
-        foreach($row in $CSVImport){
-            if($PSCmdlet.ShouldProcess("Removing Team: $($teamNode.TeamName). Basic Config")){
-                if($row.iscoded -eq 'y'){
+    }
+    else
+    {
+        foreach ($row in $CSVImport)
+        {
+            if ($PSCmdlet.ShouldProcess("Removing Team: $($teamNode.TeamName). Basic Config"))
+            {
+                if ($row.iscoded -eq 'y')
+                {
                     $result = Remove-TBTeam -Name $($row.TeamName) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal -IsCoded
-                }else{
+                }
+                else
+                {
                     $result = Remove-TBTeam -Name $($row.TeamName) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal
                 }
-                if($result){
+                if ($result)
+                {
                     Write-Verbose "------------ Successfully Removed Team $($row.TeamName) ------------------"
-                }else{
+                }
+                else
+                {
                     Write-Verbose "------------ Team $($row.TeamName) Removed but with errors ------------------"
                 }
             }
@@ -307,19 +382,21 @@ function Remove-TBOrg
     #>
 }
 
-function _generateImportFile{
+function _generateImportFile
+{
     [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
-         # Project Name
+        # Project Name
         [Parameter(Mandatory = $true)]
-        [ValidateScript({-not (Test-Path -Path $_ -PathType Leaf)})]
+        [ValidateScript( {-not (Test-Path -Path $_ -PathType Leaf)})]
         [ValidatePattern('(\.csv|\.xml)$')]
         [string]
         $ImportFile
     )
 
-    if($PSCmdlet.ShouldProcess("Processing section 1.")){
+    if ($PSCmdlet.ShouldProcess("Processing section 1."))
+    {
         #Process something here.
     }
     <#
@@ -370,7 +447,7 @@ function New-TBTeam
         # TFS Team Security Groups - List of Application Security Groups to create.  Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers"
         [Parameter(Mandatory = $false)]
         [string[]]
-        $TeamGroups = @("Contributors","CodeReviewers","Readers"),
+        $TeamGroups = @("Contributors", "CodeReviewers", "Readers"),
 
         # TFS TeamCode - Used for Repo, Area, and Iteration Names
         [Parameter(Mandatory = $false)]
@@ -385,18 +462,25 @@ function New-TBTeam
     #region global connection Variables
     $projectNameLocal = $null
     $VSTBConn = $Global:VSTBConn
-    if(! (_testConnection)){
+    if (! (_testConnection))
+    {
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
     }
-    if($null -eq $ProjectName){
-        if($null -eq $VSTBConn.DefaultProjectName){
+    if ($null -eq $ProjectName)
+    {
+        if ($null -eq $VSTBConn.DefaultProjectName)
+        {
             Write-Verbose "No ProjectName specified."
             throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
-        }else{
+        }
+        else
+        {
             $projectNameLocal = $VSTBConn.DefaultProjectName
         }
-    }else{
+    }
+    else
+    {
         $projectNameLocal = $ProjectName
     }
 
@@ -404,20 +488,26 @@ function New-TBTeam
     #endregion
 
     #region Create Team Area
-    if($PSCmdlet.ShouldProcess("Create Team Area.")){
+    if ($PSCmdlet.ShouldProcess("Create Team Area."))
+    {
         $areaExists = Get-TFSArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
-        if($null -eq $areaExists){
+        if ($null -eq $areaExists)
+        {
             $holder = New-TfsArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
             Write-Verbose "Created Area: $TeamPath\$TeamCode"
-        }else{
+        }
+        else
+        {
             Write-Verbose "Area already exists: $TeamPath\$TeamCode"
         }
     }
     #endregion
 
     #region Create Team Application Security Groups
-    if($PSCmdlet.ShouldProcess("Create Team Application Security Groups.")){
-        foreach($group in $TeamGroups){
+    if ($PSCmdlet.ShouldProcess("Create Team Application Security Groups."))
+    {
+        foreach ($group in $TeamGroups)
+        {
             $holder = New-TBSecurityGroup -Name "$TeamCode-$group" -Description "$TeamCode-$group" -ProjectName $projectNameLocal
             Write-Verbose "Created TFS Application Security Group: $TeamCode-$group"
         }
@@ -425,14 +515,19 @@ function New-TBTeam
     #endregion
 
     #region Create Team and set default area.
-    if($PSCmdlet.ShouldProcess("Create Team and set default area.")){
+    if ($PSCmdlet.ShouldProcess("Create Team and set default area."))
+    {
         $teamExists = $null
-        try{
+        try
+        {
             $teamExists = Get-VSTeam -Name $Name -Project $projectNameLocal -ErrorAction SilentlyContinue
-        }catch{
+        }
+        catch
+        {
             $teamExists = $null
         }
-        if($null -eq $teamExists){
+        if ($null -eq $teamExists)
+        {
             $holder = Add-VSTeam -TeamName $Name -Description $Description -ProjectName $projectNameLocal
             Write-Verbose "Created Team: $Name"
         }
@@ -445,66 +540,89 @@ function New-TBTeam
 
     #TODO
     #region Add Team Lead and team members
-    if($PSCmdlet.ShouldProcess("Processing section 1.")){
+    if ($PSCmdlet.ShouldProcess("Processing section 1."))
+    {
         #Process something here.
     }
     #endregion
 
     #region Create Version Control Repos
-    if($IsCoded){
-        if($PSCmdlet.ShouldProcess("Create Version Control Repos")){
-            foreach($repoName in $RepoList){
+    if ($IsCoded)
+    {
+        if ($PSCmdlet.ShouldProcess("Create Version Control Repos"))
+        {
+            foreach ($repoName in $RepoList)
+            {
                 $FullReponame = "$TeamCode-$repoName"
-                if($repoName -eq '{TeamCode}'){
+                if ($repoName -eq '{TeamCode}')
+                {
                     $FullReponame = "$TeamCode"
                 }
                 $repoExists = $null
-                try {
+                try
+                {
                     $repoExists = Get-VSTeamGitRepository -ProjectName $ProjectName -Name "$FullRepoName"
                 }
-                catch {
+                catch
+                {
                     $repoExists = $null
                 }
 
-                if($null -eq $repoExists){
+                if ($null -eq $repoExists)
+                {
                     #Creating Repo
                     $holder = Add-VSTeamGitRepository -Name "$FullRepoName" -ProjectName $projectNameLocal
                     #$holder = New-TFSGitRepository -Name "$FullRepoName" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
                     Write-Verbose "$FullReponame Repo Created."
-                }else{
+                }
+                else
+                {
                     Write-Verbose "$FullReponame Repo already exists.  "
                 }
                 $repoExists = $null
             }
         }
-    }else{
+    }
+    else
+    {
         Write-Verbose "This team is Non-Coded.  No Version Control Repos will be created."
     }
     #endregion
 
     #region Create Team Iterations and set default iteration for the team.
     $teamIterationRootPath = "$TeamPath\$TeamCode"
-    if($PSCmdlet.ShouldProcess("Create Team Iterations and set default iteration for the team.")){
-        foreach($iteration in $IterationList){
-            if($iteration -eq '{TeamCode}'){
-               $iteration = $teamIterationRootPath
-            }else{
+    if ($PSCmdlet.ShouldProcess("Create Team Iterations and set default iteration for the team."))
+    {
+        foreach ($iteration in $IterationList)
+        {
+            if ($iteration -eq '{TeamCode}')
+            {
+                $iteration = $teamIterationRootPath
+            }
+            else
+            {
                 $iteration = "$teamIterationRootPath\$iteration"
             }
             $iterationExists = Get-TFSIteration -Iteration "$iteration" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
-            if($null -eq $iterationExists){
+            if ($null -eq $iterationExists)
+            {
                 #Creating Repo
                 $holder = New-TFSIteration -Iteration "$iteration" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
                 Write-Verbose "$iteration Iteration Created."
 
-                if($iteration -eq $teamIterationRootPath){
+                if ($iteration -eq $teamIterationRootPath)
+                {
                     $holder = Set-TBTeamIterationSetting -IterationName $iteration -TeamName $Name -ProjectName $projectNameLocal
                     Write-Verbose "Set Default Backlog Iteration to Team: $Name. Iteration Set: $iteration"
-                }else{
+                }
+                else
+                {
                     $holder = Add-TBTeamIteration -IterationName $iteration -TeamName $Name -ProjectName $projectNameLocal
                     Write-Verbose "Added iteration $iteration to Team: $Name"
                 }
-            }else{
+            }
+            else
+            {
                 Write-Verbose "$teamIterationRootPath\$iteration Iteration already exists.  "
             }
             $repoExists = $null
@@ -514,44 +632,56 @@ function New-TBTeam
 
     #TODO
     #region Create Team Work Item Query Folder and Work Item Query
-    if($PSCmdlet.ShouldProcess("Processing section 1.")){
+    if ($PSCmdlet.ShouldProcess("Processing section 1."))
+    {
         #Process something here.
     }
     #endregion
 
     #TODO
     #region Create Build Folder and default build definition
-    if($PSCmdlet.ShouldProcess("Processing section 1.")){
+    if ($PSCmdlet.ShouldProcess("Processing section 1."))
+    {
         #Process something here.
     }
     #endregion
 
     #region Assign TFS Application Groups permissions to objects.
     #region Permissions for VersionControl Repos
-    if($PSCmdlet.ShouldProcess("Assign Version Control Permissions.")){
-        foreach($repoName in $RepoList){
+    if ($PSCmdlet.ShouldProcess("Assign Version Control Permissions."))
+    {
+        foreach ($repoName in $RepoList)
+        {
             $FullReponame = "$TeamCode-$repoName"
-            if($repoName -eq '{TeamCode}'){
+            if ($repoName -eq '{TeamCode}')
+            {
                 $FullReponame = "$TeamCode"
             }
-            try{
+            try
+            {
                 $repo = Get-VSTeamGitRepository -Name $FullReponame -ProjectName $projectNameLocal
-            }catch{
+            }
+            catch
+            {
                 $repo = $null
             }
 
-            if($null -eq $repo){
+            if ($null -eq $repo)
+            {
                 continue
             }
 
             $repoToken = Get-TBToken -ObjectId $repo.id -NsName "Git Repositories" -ProjectName $projectNameLocal
-            try{
+            try
+            {
                 #TODO Need to add foreach loop to process through TeamGroups Variable.
                 $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-Contributors" -AllowValue 118 -ProjectName $projectNameLocal
                 $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-Readers" -AllowValue 2 -ProjectName $projectNameLocal
-            }catch{
+            }
+            catch
+            {
                 Write-Verbose "There was an error in setting permissions.  $_"
-                $result  = $false
+                $result = $false
             }
             $repo = $null
         }
@@ -559,16 +689,20 @@ function New-TBTeam
     #endregion
 
     #region Permissions for Iterations
-    if($PSCmdlet.ShouldProcess("Assign Iteration Permissions.")){
+    if ($PSCmdlet.ShouldProcess("Assign Iteration Permissions."))
+    {
         $iterationDefault = Get-TFSIteration -Iteration "$teamIterationRootPath" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
         $iterationId = ($iterationDefault.Uri -split "Node/")[1]
 
         $iterationToken = Get-TBToken -ObjectId $iterationId -NsName "Iteration" -ProjectName $projectNameLocal
-        try{
+        try
+        {
             #TODO Need to add foreach loop to process through TeamGroups Variable.
             $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-Contributors" -AllowValue 7 -ProjectName $projectNameLocal
             $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-Readers" -AllowValue 1 -ProjectName $projectNameLocal
-        }catch{
+        }
+        catch
+        {
             Write-Verbose "There was an error in setting permissions.  $_"
             $result = $false
         }
@@ -577,16 +711,20 @@ function New-TBTeam
     #endregion Permissions for Iterations
 
     #region Permissions for Areas
-    if($PSCmdlet.ShouldProcess("Assign Area Permissions.")){
+    if ($PSCmdlet.ShouldProcess("Assign Area Permissions."))
+    {
         $areaDefault = Get-TFSArea -Area "$TeamPath\$Teamcode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
         $areaId = ($areaDefault.Uri -split "Node/")[1]
 
         $areaToken = Get-TBToken -ObjectId $areaId -NsName "CSS" -ProjectName $projectNameLocal
-        try{
+        try
+        {
             #TODO Need to add foreach loop to process through TeamGroups Variable.
             $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-Contributors" -AllowValue 49 -ProjectName $projectNameLocal
             $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-Readers" -AllowValue 17 -ProjectName $projectNameLocal
-        }catch{
+        }
+        catch
+        {
             Write-Verbose "There was an error in setting permissions.  $_"
             $result = $false
         }
@@ -595,20 +733,24 @@ function New-TBTeam
     #endregion Permissions for Areas
 
     #region Permissions for Project
-    if($PSCmdlet.ShouldProcess("Assign Project Permissions.")){
+    if ($PSCmdlet.ShouldProcess("Assign Project Permissions."))
+    {
         $namespaceId = (Get-TBNamespaceCollection | Where-Object -Property name -eq "Project").namespaceId
         $projectObject = Get-TFSTeamProject -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
         $projectToken = "`$PROJECT:$($projectObject.Uri)"
         $props = @{
             "namespaceId" = $namespaceId
-            "token" = $projectToken
+            "token"       = $projectToken
         }
         $projectTokenObject = New-Object -TypeName PSObject -Property $props
-        try{
+        try
+        {
             #TODO Need to add foreach loop to process through TeamGroups Variable.
             $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-Contributors" -AllowValue 513 -ProjectName $projectNameLocal
             $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-Readers" -AllowValue 513 -ProjectName $projectNameLocal
-        }catch{
+        }
+        catch
+        {
             Write-Verbose "There was an error in setting permissions.  $_"
             $result = $false
         }
@@ -618,7 +760,8 @@ function New-TBTeam
     #endregion Assign TFS Application Groups permissions to objects.
 
     #region Add Team to TFS application security group
-    if($PSCmdlet.ShouldProcess("Add Team to contributors group.")){
+    if ($PSCmdlet.ShouldProcess("Add Team to contributors group."))
+    {
         $holder = Add-TBSecurityGroupMember -MemberName "$Name" -GroupName "$TeamCode-Contributors" -ProjectName $projectNameLocal
         Write-Verbose "Added Team: $Name to group $TeamCode-Contributors"
     }
@@ -668,7 +811,7 @@ function Remove-TBTeam
         # TFS Team Security Groups - List of Application Security Groups to remove.  Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers"
         [Parameter(Mandatory = $false)]
         [string[]]
-        $TeamGroups = @("Contributors","CodeReviewers","Readers"),
+        $TeamGroups = @("Contributors", "CodeReviewers", "Readers"),
 
         # TFS TeamCode - Used for Repo, Area, and Iteration Names
         [Parameter(Mandatory = $false)]
@@ -683,18 +826,25 @@ function Remove-TBTeam
     #region global connection Variables
     $projectNameLocal = $null
     $VSTBConn = $Global:VSTBConn
-    if(! (_testConnection)){
+    if (! (_testConnection))
+    {
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
     }
-    if($null -eq $ProjectName){
-        if($null -eq $VSTBConn.DefaultProjectName){
+    if ($null -eq $ProjectName)
+    {
+        if ($null -eq $VSTBConn.DefaultProjectName)
+        {
             Write-Verbose "No ProjectName specified."
             throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
-        }else{
+        }
+        else
+        {
             $projectNameLocal = $VSTBConn.DefaultProjectName
         }
-    }else{
+    }
+    else
+    {
         $projectNameLocal = $ProjectName
     }
 
@@ -702,26 +852,35 @@ function Remove-TBTeam
     #endregion
 
     #region Remove Version Control Repos
-    if($IsCoded){
-        if($PSCmdlet.ShouldProcess("Remove Version Control Repos")){
-            foreach($repoName in $RepoList){
+    if ($IsCoded)
+    {
+        if ($PSCmdlet.ShouldProcess("Remove Version Control Repos"))
+        {
+            foreach ($repoName in $RepoList)
+            {
                 $FullReponame = "$TeamCode-$repoName"
-                if($repoName -eq '{TeamCode}'){
+                if ($repoName -eq '{TeamCode}')
+                {
                     $FullReponame = "$TeamCode"
                 }
-                try {
+                try
+                {
                     $repoToDelete = Get-VSTeamGitRepository -ProjectName $ProjectName -Name "$FullRepoName"
                 }
-                catch {
+                catch
+                {
                     $repoToDelete = $null
                 }
 
-                if($null -ne $repoToDelete){
+                if ($null -ne $repoToDelete)
+                {
                     #Creating Repo
                     $holder = Remove-VSTeamGitRepository -Id "$($repoToDelete.id)" -Force
                     #$holder = New-TFSGitRepository -Name "$FullRepoName" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
                     Write-Verbose "$FullReponame Repo removed."
-                }else{
+                }
+                else
+                {
                     Write-Verbose "$FullReponame Repo already removed.  "
                 }
                 $repoExists = $null
@@ -733,20 +892,28 @@ function Remove-TBTeam
     #region Remove Team Iterations.
     $teamIterationRootPath = "$TeamPath\$TeamCode"
 
-    foreach($iteration in $IterationList){
-        if($iteration -eq '{TeamCode}'){
+    foreach ($iteration in $IterationList)
+    {
+        if ($iteration -eq '{TeamCode}')
+        {
             $iteration = $teamIterationRootPath
-        }else{
+        }
+        else
+        {
             $iteration = "$teamIterationRootPath\$iteration"
         }
         $iterationExists = Get-TFSIteration -Iteration "$iteration" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
-        if($null -ne $iterationExists){
-            if($PSCmdlet.ShouldProcess("Remove Team Iteration. Iteration Name: $iteration")){
+        if ($null -ne $iterationExists)
+        {
+            if ($PSCmdlet.ShouldProcess("Remove Team Iteration. Iteration Name: $iteration"))
+            {
                 #Creating Repo
                 $holder = Remove-TFSIteration -Iteration "$iteration" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl) -Confirm
                 Write-Verbose "$iteration Iteration Created."
             }
-        }else{
+        }
+        else
+        {
             Write-Verbose "$teamIterationRootPath\$iteration Iteration already removed.  "
         }
         $repoExists = $null
@@ -755,20 +922,26 @@ function Remove-TBTeam
     #endregion
 
     #region Delete Team Area
-    if($PSCmdlet.ShouldProcess("Remove Team Area.")){
+    if ($PSCmdlet.ShouldProcess("Remove Team Area."))
+    {
         $areaExists = Get-TFSArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
-        if($null -ne $areaExists){
+        if ($null -ne $areaExists)
+        {
             $holder = Remove-TfsArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl) -Confirm
             Write-Verbose "Removed Area: $TeamPath\$TeamCode"
-        }else{
+        }
+        else
+        {
             Write-Verbose "Area already removed: $TeamPath\$TeamCode"
         }
     }
     #endregion
 
     #region Remove Team Application Security Groups
-    if($PSCmdlet.ShouldProcess("Remove Team Application Security Groups.")){
-        foreach($group in $TeamGroups){
+    if ($PSCmdlet.ShouldProcess("Remove Team Application Security Groups."))
+    {
+        foreach ($group in $TeamGroups)
+        {
             $holder = Remove-TBSecurityGroup -Name "$TeamCode-$group" -ProjectName $projectNameLocal
             Write-Verbose "Removed TFS Application Security Group: $TeamCode-$group"
         }
@@ -776,15 +949,19 @@ function Remove-TBTeam
     #endregion
 
     #region Remove Team
-    if($PSCmdlet.ShouldProcess("Remove Team.")){
-        try {
+    if ($PSCmdlet.ShouldProcess("Remove Team."))
+    {
+        try
+        {
             $teamExists = Get-VSTeam -Name $Name -Project $projectNameLocal
         }
-        catch {
+        catch
+        {
             $teamExists = $null
         }
 
-        if($null -ne $teamExists){
+        if ($null -ne $teamExists)
+        {
             $holder = Remove-VSTeam -Team $Name -Project $projectNameLocal -Force
             Write-Verbose "Removed Team: $Name"
         }
@@ -804,37 +981,44 @@ function New-TBSecurityGroup
     [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
-       # Security Group Name
-       [Parameter(Mandatory = $true)]
-       [string]
-       $Name,
+        # Security Group Name
+        [Parameter(Mandatory = $true)]
+        [string]
+        $Name,
 
-       # Security group description
-       [Parameter(Mandatory = $false)]
-       [string]
-       $Description,
+        # Security group description
+        [Parameter(Mandatory = $false)]
+        [string]
+        $Description,
 
-       # Parameter help description
-       [Parameter(Mandatory = $false)]
-       [string]
-       $ProjectName
+        # Parameter help description
+        [Parameter(Mandatory = $false)]
+        [string]
+        $ProjectName
     )
 
     #region global connection Variables
     $projectNameLocal = $null
     $VSTBConn = $Global:VSTBConn
-    if(! (_testConnection)){
+    if (! (_testConnection))
+    {
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
     }
-    if($null -eq $ProjectName){
-        if($null -eq $VSTBConn.DefaultProjectName){
+    if ($null -eq $ProjectName)
+    {
+        if ($null -eq $VSTBConn.DefaultProjectName)
+        {
             Write-Verbose "No ProjectName specified."
             throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
-        }else{
+        }
+        else
+        {
             $projectNameLocal = $VSTBConn.DefaultProjectName
         }
-    }else{
+    }
+    else
+    {
         $projectNameLocal = $ProjectName
     }
 
@@ -846,7 +1030,8 @@ function New-TBSecurityGroup
     #Team Explorer Connection
     $tExConn = $null
 
-    try{
+    try
+    {
         $tExConn = $VSTBConn.TeamExplorerConnection
         #$tExConn.EnsureAuthenticated()
     }
@@ -861,25 +1046,32 @@ function New-TBSecurityGroup
     $cssService = $tExConn.GetService("Microsoft.TeamFoundation.Server.ICommonStructureService3")
     $project = $cssService.GetProjectFromName($projectNameLocal)
     $projectId = ($project.Uri -split "TeamProject/")[1]
-    if($null -eq $projectId){
+    if ($null -eq $projectId)
+    {
         Write-Verbose "Could not find project $projectNameLocal in Collection.  Exiting Function."
         return
-    }else{
+    }
+    else
+    {
         Write-Verbose "Found project id: $projectNameLocal : $projectId"
     }
     #endregion
 
-    if($PSCmdlet.ShouldProcess("Creating New team Security Group.  TeamName: $Name")){
+    if ($PSCmdlet.ShouldProcess("Creating New team Security Group.  TeamName: $Name"))
+    {
         $idService = $tExConn.GetService("Microsoft.TeamFoundation.Framework.Client.IIdentitymanagementService")
         $group = Get-TBSecurityGroup -Name $Name -ProjectName $projectNameLocal
 
-        if($null -eq $group.DisplayName){
-            try {
+        if ($null -eq $group.DisplayName)
+        {
+            try
+            {
                 $result = $idService.CreateApplicationGroup($projectId, $Name, $Description)
                 Write-Verbose "Creating new security group. Name: $Name"
                 Write-Verbose "Security Group Creation Output.  $result"
             }
-            catch {
+            catch
+            {
                 Write-Verbose "Group already exists or there was an error creating the group. Error: $_"
             }
         }
@@ -903,32 +1095,39 @@ function Remove-TBSecurityGroup
     [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
-       # Security Group Name
-       [Parameter(Mandatory = $true)]
-       [string]
-       $Name,
+        # Security Group Name
+        [Parameter(Mandatory = $true)]
+        [string]
+        $Name,
 
-       # Parameter help description
-       [Parameter(Mandatory = $false)]
-       [string]
-       $ProjectName
+        # Parameter help description
+        [Parameter(Mandatory = $false)]
+        [string]
+        $ProjectName
     )
 
     #region global connection Variables
     $projectNameLocal = $null
     $VSTBConn = $Global:VSTBConn
-    if(! (_testConnection)){
+    if (! (_testConnection))
+    {
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
     }
-    if($null -eq $ProjectName){
-        if($null -eq $VSTBConn.DefaultProjectName){
+    if ($null -eq $ProjectName)
+    {
+        if ($null -eq $VSTBConn.DefaultProjectName)
+        {
             Write-Verbose "No ProjectName specified."
             throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
-        }else{
+        }
+        else
+        {
             $projectNameLocal = $VSTBConn.DefaultProjectName
         }
-    }else{
+    }
+    else
+    {
         $projectNameLocal = $ProjectName
     }
 
@@ -940,7 +1139,8 @@ function Remove-TBSecurityGroup
     #Team Explorer Connection
     $tExConn = $null
 
-    try{
+    try
+    {
         $tExConn = $VSTBConn.TeamExplorerConnection
         #$tExConn.EnsureAuthenticated()
     }
@@ -963,18 +1163,22 @@ function Remove-TBSecurityGroup
     # }
     #endregion
 
-    if($PSCmdlet.ShouldProcess("Remove team Security Group.  GroupName: $Name")){
+    if ($PSCmdlet.ShouldProcess("Remove team Security Group.  GroupName: $Name"))
+    {
         $idService = $tExConn.GetService("Microsoft.TeamFoundation.Framework.Client.IIdentitymanagementService")
         $group = Get-TBSecurityGroup -Name $Name -ProjectName $projectNameLocal
 
-        if($group.DisplayName -like "*$Name"){
-            try {
+        if ($group.DisplayName -like "*$Name")
+        {
+            try
+            {
                 $groupSID = $group.Descriptor
                 $result = $idService.DeleteApplicationGroup($groupSID)
                 Write-Verbose "Removing security group. Name: $Name"
                 Write-Verbose "Security Group Removal Output.  $result"
             }
-            catch {
+            catch
+            {
                 Write-Verbose "Group doesn't exists or there was an error removing the group. error: $_"
             }
         }
@@ -1012,18 +1216,25 @@ function Get-TBSecurityGroup
     #region global connection Variables
     $projectNameLocal = $null
     $VSTBConn = $Global:VSTBConn
-    if(! (_testConnection)){
+    if (! (_testConnection))
+    {
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
     }
-    if($null -eq $ProjectName){
-        if($null -eq $VSTBConn.DefaultProjectName){
+    if ($null -eq $ProjectName)
+    {
+        if ($null -eq $VSTBConn.DefaultProjectName)
+        {
             Write-Verbose "No ProjectName specified."
             throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
-        }else{
+        }
+        else
+        {
             $projectNameLocal = $VSTBConn.DefaultProjectName
         }
-    }else{
+    }
+    else
+    {
         $projectNameLocal = $ProjectName
     }
     #endregion
@@ -1033,7 +1244,8 @@ function Get-TBSecurityGroup
     #Team Explorer Connection
     $tExConn = $null
 
-    try{
+    try
+    {
         $tExConn = $VSTBConn.TeamExplorerConnection
         #$tExConn.EnsureAuthenticated()
     }
@@ -1048,14 +1260,17 @@ function Get-TBSecurityGroup
 
     $idService = $tExConn.GetService("Microsoft.TeamFoundation.Framework.Client.IIdentityManagementService")
     $groupArr = $null
-    try{
+    try
+    {
         $groupArr = $idService.ReadIdentities([Microsoft.TeamFoundation.Framework.Common.IdentitySearchFactor]::AccountName,
             "[$projectNameLocal]\$Name",
             [Microsoft.TeamFoundation.Framework.Common.MembershipQuery]::Expanded,
             [Microsoft.TeamFoundation.Framework.Common.ReadIdentityOptions]::TrueSid)
 
         $tfsSecGroup = $groupArr[0][0]
-    }catch{
+    }
+    catch
+    {
         Write-Verbose "There was an error with the query. Error: $_"
     }
 
@@ -1096,18 +1311,25 @@ function Add-TBSecurityGroupMember
     #region global connection Variables
     $projectNameLocal = $null
     $VSTBConn = $Global:VSTBConn
-    if(! (_testConnection)){
+    if (! (_testConnection))
+    {
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
     }
-    if($null -eq $ProjectName){
-        if($null -eq $VSTBConn.DefaultProjectName){
+    if ($null -eq $ProjectName)
+    {
+        if ($null -eq $VSTBConn.DefaultProjectName)
+        {
             Write-Verbose "No ProjectName specified."
             throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
-        }else{
+        }
+        else
+        {
             $projectNameLocal = $VSTBConn.DefaultProjectName
         }
-    }else{
+    }
+    else
+    {
         $projectNameLocal = $ProjectName
     }
 
@@ -1118,7 +1340,8 @@ function Add-TBSecurityGroupMember
     #Team Explorer Connection
     $tExConn = $null
 
-    try{
+    try
+    {
         $tExConn = $VSTBConn.TeamExplorerConnection
         #$tExConn.EnsureAuthenticated()
     }
@@ -1129,12 +1352,15 @@ function Add-TBSecurityGroupMember
     }
     #endregion
 
-    if($PSCmdlet.ShouldProcess("Add Member to Security Group")){
+    if ($PSCmdlet.ShouldProcess("Add Member to Security Group"))
+    {
         $idService = $tExConn.GetService("Microsoft.TeamFoundation.Framework.Client.IIdentityManagementService")
         $group = Get-TBSecurityGroup -Name $GroupName -ProjectName $projectNameLocal
         $memberToAdd = Get-TBSecurityGroup -Name $MemberName -ProjectName $projectNameLocal
-        if($null -ne $group.Descriptor -and $null -ne $memberToAdd.Descriptor){
-            try{
+        if ($null -ne $group.Descriptor -and $null -ne $memberToAdd.Descriptor)
+        {
+            try
+            {
                 $result = $idService.AddMemberToApplicationGroup(
                     $($group.Descriptor),
                     $($memberToAdd.Descriptor)
@@ -1164,36 +1390,43 @@ function Remove-TBSecurityGroupMember
     [cmdletbinding(SupportsShouldProcess = $true, ConfirmImpact = "Medium")]
     Param(
 
-         # TFS Member Name
-         [Parameter(Mandatory = $true)]
-         [string]
-         $MemberName,
+        # TFS Member Name
+        [Parameter(Mandatory = $true)]
+        [string]
+        $MemberName,
 
-         # GroupName to apply member to.
-         [Parameter(Mandatory = $true)]
-         [string]
-         $GroupName,
+        # GroupName to apply member to.
+        [Parameter(Mandatory = $true)]
+        [string]
+        $GroupName,
 
-         # Project Name.
-         [Parameter(Mandatory = $false)]
-         [string]
-         $ProjectName
+        # Project Name.
+        [Parameter(Mandatory = $false)]
+        [string]
+        $ProjectName
     )
-     #region global connection Variables
+    #region global connection Variables
     $projectNameLocal = $null
     $VSTBConn = $Global:VSTBConn
-    if(! (_testConnection)){
+    if (! (_testConnection))
+    {
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
     }
-    if($null -eq $ProjectName){
-        if($null -eq $VSTBConn.DefaultProjectName){
+    if ($null -eq $ProjectName)
+    {
+        if ($null -eq $VSTBConn.DefaultProjectName)
+        {
             Write-Verbose "No ProjectName specified."
             throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
-        }else{
+        }
+        else
+        {
             $projectNameLocal = $VSTBConn.DefaultProjectName
         }
-    }else{
+    }
+    else
+    {
         $projectNameLocal = $ProjectName
     }
 
@@ -1204,7 +1437,8 @@ function Remove-TBSecurityGroupMember
     #Team Explorer Connection
     $tExConn = $null
 
-    try{
+    try
+    {
         $tExConn = $VSTBConn.TeamExplorerConnection
         #$tExConn.EnsureAuthenticated()
     }
@@ -1215,12 +1449,15 @@ function Remove-TBSecurityGroupMember
     }
     #endregion
 
-    if($PSCmdlet.ShouldProcess("Add Member to Security Group")){
+    if ($PSCmdlet.ShouldProcess("Add Member to Security Group"))
+    {
         $idService = $tExConn.GetService("Microsoft.TeamFoundation.Framework.Client.IIdentityManagementService")
         $group = Get-TBSecurityGroup -Name $GroupName -ProjectName $projectNameLocal
         $memberToRemove = Get-TBSecurityGroup -Name $MemberName -ProjectName $projectNameLocal
-        if($null -ne $group.Descriptor -and $null -ne $memberToRemove.Descriptor){
-            try{
+        if ($null -ne $group.Descriptor -and $null -ne $memberToRemove.Descriptor)
+        {
+            try
+            {
                 $result = $idService.RemoveMemberFromApplicationGroup(
                     $($group.Descriptor),
                     $($memberToRemove.Descriptor)
@@ -1269,42 +1506,52 @@ function Set-TBTeamAreaSetting
     #region global connection Variables
     $projectNameLocal = $null
     $VSTBConn = $Global:VSTBConn
-    if(! (_testConnection)){
+    if (! (_testConnection))
+    {
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
     }
-    if($null -eq $ProjectName){
-        if($null -eq $VSTBConn.DefaultProjectName){
+    if ($null -eq $ProjectName)
+    {
+        if ($null -eq $VSTBConn.DefaultProjectName)
+        {
             Write-Verbose "No ProjectName specified."
             throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
-        }else{
+        }
+        else
+        {
             $projectNameLocal = $VSTBConn.DefaultProjectName
         }
-    }else{
+    }
+    else
+    {
         $projectNameLocal = $ProjectName
     }
 
     $result = $null
     #endregion
 
-    if($AreaPath -notlike "$projectNameLocal*"){
+    if ($AreaPath -notlike "$projectNameLocal*")
+    {
         $AreaPath = "$projectNameLocal\$AreaPath"
     }
 
     $props = @{
-        "defaultValue"  =   "$AreaPath";
-        "values"        =   @(
+        "defaultValue" = "$AreaPath";
+        "values"       = @(
             @{
-                "value"             =   "$AreaPath";
-                "includeChildren"   =   $true;
+                "value"           = "$AreaPath";
+                "includeChildren" = $true;
             }
         )
     }
     $JSONObject = New-Object -TypeName PSObject -Property $props
     $JSON = ConvertTo-Json $JSONObject
 
-    try{
-        if($PSCmdlet.ShouldProcess("Adding IterationID: $iterationId to team: $TeamName")){
+    try
+    {
+        if ($PSCmdlet.ShouldProcess("Adding IterationID: $iterationId to team: $TeamName"))
+        {
             $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$TeamName" -resource "_apis/work/teamsettings/teamfieldvalues" -method Patch -body $JSON -ContentType "application/json" -version 2.0-preview.1
         }
     }
@@ -1329,39 +1576,47 @@ function Get-TBTeamAreaSetting
     [cmdletbinding()]
     Param(
 
-         # TFS Team Name
-         [Parameter(Mandatory = $true)]
-         [string]
-         $TeamName,
+        # TFS Team Name
+        [Parameter(Mandatory = $true)]
+        [string]
+        $TeamName,
 
-         # TFS Project Name
-         [Parameter(Mandatory = $false)]
-         [string]
-         $ProjectName
+        # TFS Project Name
+        [Parameter(Mandatory = $false)]
+        [string]
+        $ProjectName
     )
 
     #region global connection Variables
     $projectNameLocal = $null
     $VSTBConn = $Global:VSTBConn
-    if(! (_testConnection)){
+    if (! (_testConnection))
+    {
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
     }
-    if($null -eq $ProjectName){
-        if($null -eq $VSTBConn.DefaultProjectName){
+    if ($null -eq $ProjectName)
+    {
+        if ($null -eq $VSTBConn.DefaultProjectName)
+        {
             Write-Verbose "No ProjectName specified."
             throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
-        }else{
+        }
+        else
+        {
             $projectNameLocal = $VSTBConn.DefaultProjectName
         }
-    }else{
+    }
+    else
+    {
         $projectNameLocal = $ProjectName
     }
 
     $result = $null
     #endregion
 
-    try{
+    try
+    {
         $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings/teamfieldvalues" -method Get -version 2.0-preview.1
     }
     catch
@@ -1404,18 +1659,25 @@ function Set-TBTeamIterationSetting
     #region global connection Variables
     $projectNameLocal = $null
     $VSTBConn = $Global:VSTBConn
-    if(! (_testConnection)){
+    if (! (_testConnection))
+    {
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
     }
-    if($null -eq $ProjectName){
-        if($null -eq $VSTBConn.DefaultProjectName){
+    if ($null -eq $ProjectName)
+    {
+        if ($null -eq $VSTBConn.DefaultProjectName)
+        {
             Write-Verbose "No ProjectName specified."
             throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
-        }else{
+        }
+        else
+        {
             $projectNameLocal = $VSTBConn.DefaultProjectName
         }
-    }else{
+    }
+    else
+    {
         $projectNameLocal = $ProjectName
     }
 
@@ -1430,22 +1692,24 @@ function Set-TBTeamIterationSetting
     #endregion
 
     $props = @{
-        "bugsBehavior"      =   "AsTasks";
-        "workingDays"       =   @(
+        "bugsBehavior"     = "AsTasks";
+        "workingDays"      = @(
             "monday",
             "tuesday",
             "wednesday",
             "thursday",
             "friday"
         );
-        "defaultIteration"  =   "$iterationId"
-        "backlogIteration"  =   "$iterationId"
+        "defaultIteration" = "$iterationId"
+        "backlogIteration" = "$iterationId"
     }
     $JSONObject = New-Object -TypeName PSObject -Property $props
     $JSON = ConvertTo-Json $JSONObject
 
-    try{
-        if($PSCmdlet.ShouldProcess("Adding IterationID: $iterationId to team: $TeamName")){
+    try
+    {
+        if ($PSCmdlet.ShouldProcess("Adding IterationID: $iterationId to team: $TeamName"))
+        {
             $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings" -method Patch -body $JSON -ContentType "application/json" -version 2.0-preview.1
         }
     }
@@ -1484,25 +1748,33 @@ function Get-TBTeamIterationSetting
     #region global connection Variables
     $projectNameLocal = $null
     $VSTBConn = $Global:VSTBConn
-    if(! (_testConnection)){
+    if (! (_testConnection))
+    {
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
     }
-    if($null -eq $ProjectName){
-        if($null -eq $VSTBConn.DefaultProjectName){
+    if ($null -eq $ProjectName)
+    {
+        if ($null -eq $VSTBConn.DefaultProjectName)
+        {
             Write-Verbose "No ProjectName specified."
             throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
-        }else{
+        }
+        else
+        {
             $projectNameLocal = $VSTBConn.DefaultProjectName
         }
-    }else{
+    }
+    else
+    {
         $projectNameLocal = $ProjectName
     }
 
     $result = $null
     #endregion
 
-    try{
+    try
+    {
         $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings" -method Get -version 2.0-preview.1
     }
     catch
@@ -1545,18 +1817,25 @@ function Add-TBTeamIteration
     #region global connection Variables
     $projectNameLocal = $null
     $VSTBConn = $Global:VSTBConn
-    if(! (_testConnection)){
+    if (! (_testConnection))
+    {
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
     }
-    if($null -eq $ProjectName){
-        if($null -eq $VSTBConn.DefaultProjectName){
+    if ($null -eq $ProjectName)
+    {
+        if ($null -eq $VSTBConn.DefaultProjectName)
+        {
             Write-Verbose "No ProjectName specified."
             throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
-        }else{
+        }
+        else
+        {
             $projectNameLocal = $VSTBConn.DefaultProjectName
         }
-    }else{
+    }
+    else
+    {
         $projectNameLocal = $ProjectName
     }
 
@@ -1576,8 +1855,10 @@ function Add-TBTeamIteration
     $JSONObject = New-Object -TypeName PSObject -Property $props
     $JSON = ConvertTo-Json $JSONObject
 
-    try{
-        if($PSCmdlet.ShouldProcess("Adding IterationID: $iterationId to team: $TeamName")){
+    try
+    {
+        if ($PSCmdlet.ShouldProcess("Adding IterationID: $iterationId to team: $TeamName"))
+        {
             $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings/iterations" -method Post -body $JSON -ContentType "application/json" -version 2.0-preview.1
         }
     }
@@ -1616,25 +1897,33 @@ function Get-TBTeamIteration
     #region global connection Variables
     $projectNameLocal = $null
     $VSTBConn = $Global:VSTBConn
-    if(! (_testConnection)){
+    if (! (_testConnection))
+    {
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
     }
-    if($null -eq $ProjectName){
-        if($null -eq $VSTBConn.DefaultProjectName){
+    if ($null -eq $ProjectName)
+    {
+        if ($null -eq $VSTBConn.DefaultProjectName)
+        {
             Write-Verbose "No ProjectName specified."
             throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
-        }else{
+        }
+        else
+        {
             $projectNameLocal = $VSTBConn.DefaultProjectName
         }
-    }else{
+    }
+    else
+    {
         $projectNameLocal = $ProjectName
     }
 
     $result = $null
     #endregion
 
-    try{
+    try
+    {
         $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings/iterations" -method Get -version 2.0-preview.1
     }
     catch
@@ -1695,18 +1984,25 @@ function Set-TBPermission
     #region global connection Variables
     $projectNameLocal = $null
     $VSTBConn = $Global:VSTBConn
-    if(! (_testConnection)){
+    if (! (_testConnection))
+    {
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
     }
-    if($null -eq $ProjectName){
-        if($null -eq $VSTBConn.DefaultProjectName){
+    if ($null -eq $ProjectName)
+    {
+        if ($null -eq $VSTBConn.DefaultProjectName)
+        {
             Write-Verbose "No ProjectName specified."
             throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
-        }else{
+        }
+        else
+        {
             $projectNameLocal = $VSTBConn.DefaultProjectName
         }
-    }else{
+    }
+    else
+    {
         $projectNameLocal = $ProjectName
     }
 
@@ -1714,34 +2010,37 @@ function Set-TBPermission
     #endregion
 
     $SecurityGroup = Get-TBSecurityGroup -Name $GroupName -ProjectName $projectNameLocal
-    if($null -ne $SecurityGroup){
+    if ($null -ne $SecurityGroup)
+    {
         #$holder = Set-VSTeamAPIVersion -Version $API
         $Descriptor = "$($SecurityGroup.Descriptor.IdentityType);$($SecurityGroup.Descriptor.Identifier)"
 
         $merge = $true
-        if($NoMerge){
+        if ($NoMerge)
+        {
             $merge = $false
         }
 
         $props = @{
-            "token"                 =   "$($TokenObject.token)";
-            "merge"                 =   $merge;
-            "accessControllEntries" =   @(
+            "token"                = "$($TokenObject.token)";
+            "merge"                = $merge;
+            "accessControlEntries" = @(
                 @{
-                    "descriptor"    =   "$Descriptor";
-                    "allow"         =   $AllowValue;
-                    "deny"          =   $DenyValue;
-                    "extendedinfo"  =   @{}
+                    "descriptor"   = "$Descriptor";
+                    "allow"        = $AllowValue;
+                    "deny"         = $DenyValue;
+                    "extendedinfo" = @{}
                 }
             )
         }
 
         $JSONObject = New-Object -TypeName PSObject -Property $props
         $JSON = Convertto-Json $JSONObject -Depth 99
-        try{
-            if($PSCmdlet.ShouldProcess("Setting permission on token $TFSToken for Group name $GroupName")){
-                $NamespaceId = $TokenObject.namespaceId
-                $result = Invoke-VSTeamRequest -area "accesscontrolentries" -resource $NamespaceId -method Post -body $JSON -ContentType "application/json" -version 1.0
+        try
+        {
+            if ($PSCmdlet.ShouldProcess("Setting permission on token $TFSToken for Group name $GroupName"))
+            {
+                $result = Invoke-VSTeamRequest -area "accesscontrolentries" -resource "$($TokenObject.namespaceId)" -method Post -body $JSON -ContentType "application/json" -version 1.0
             }
         }
         catch
@@ -1778,27 +2077,34 @@ function Get-TBTokenCollection
     )
     #region global connection Variables
     $VSTBConn = $Global:VSTBConn
-    if(! (_testConnection)){
+    if (! (_testConnection))
+    {
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
     }
     #endregion
 
     $TokenCollection = $null
-    if($null -eq $Global:VSTBTokencollection)
+    if ($null -eq $Global:VSTBTokencollection)
     {
         $Global:VSTBTokencollection = @{}
         $TokenCollection = $Global:VSTBTokencollection
-    }else{
+    }
+    else
+    {
         $TokenCollection = $Global:VSTBTokencollection
     }
 
-    if($null -eq $TokenCollection[$NamespaceId] -or $ForceRefresh){
-        try{
-            $acls = Invoke-VSTeamRequest -area "accesscontrollists" -id $NamespaceId -method Get -version 1.0
+    if ($null -eq $TokenCollection[$NamespaceId] -or $ForceRefresh)
+    {
+        try
+        {
+            $acls = Invoke-VSTeamRequest -area "accesscontrollists" -resource $NamespaceId -method Get -version 1.0
             $TokenCollection.Remove($NamespaceId)
-            $TokenCollection.Add("$NamespaceId",$($acls.value))
-        }catch{
+            $TokenCollection.Add("$NamespaceId", $($acls.value))
+        }
+        catch
+        {
             Write-Verbose "There was an error processing this request. $_"
         }
 
@@ -1830,17 +2136,21 @@ function Get-TBNamespaceCollection
 
     #region global connection Variables
     $VSTBConn = $Global:VSTBConn
-    if(! (_testConnection)){
+    if (! (_testConnection))
+    {
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
     }
     #endregion
 
-    if($null -eq $Global:VSTBNamespaceCollection -or $ForceRefresh){
+    if ($null -eq $Global:VSTBNamespaceCollection -or $ForceRefresh)
+    {
         $namespaces = Invoke-VSTeamRequest -area "securitynamespaces" -resource "00000000-0000-0000-0000-000000000000" -method Get -version 1.0
         $Global:VSTBNamespaceCollection = $namespaces.value
         return $namespaces.value
-    }else{
+    }
+    else
+    {
         return $Global:VSTBNamespaceCollection
     }
     <#
@@ -1881,46 +2191,63 @@ function Get-TBToken
     $projectNameLocal = $null
     $tokenCollection = $null
     $VSTBConn = $Global:VSTBConn
-    if(! (_testConnection)){
+    if (! (_testConnection))
+    {
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
         return
     }
-    if($null -eq $ProjectName){
-        if($null -eq $VSTBConn.DefaultProjectName){
+    if ($null -eq $ProjectName)
+    {
+        if ($null -eq $VSTBConn.DefaultProjectName)
+        {
             Write-Verbose "No ProjectName specified."
             throw "No Default ProjectName or ProjectName Variable specified.  Set the default project or pass the project name."
-        }else{
+        }
+        else
+        {
             $projectNameLocal = $VSTBConn.DefaultProjectName
         }
-    }else{
+    }
+    else
+    {
         $projectNameLocal = $ProjectName
     }
     #endregion
 
     #region Get Namespaceid from name
 
-    if($null -eq $Global:VSTBNamespaceCollection){
+    if ($null -eq $Global:VSTBNamespaceCollection)
+    {
         $holder = Get-TBNamespaceCollection
     }
 
     $nameSpaceId = ($Global:VSTBNamespaceCollection | Where-Object -Property name -eq $NsName).Namespaceid
 
-    if($null -eq $nameSpaceId){
+    if ($null -eq $nameSpaceId)
+    {
         Write-Verbose "Could not find namespace id. Exiting."
         return
-    }else{
+    }
+    else
+    {
         Write-Verbose "Found Namespace Id: $nameSpaceId"
     }
     #endregion
 
     #region Get VSTB Token Collection
     $tokenCollection = $null
-    if($null -eq $Global:VSTBTokencollection){
+    if ($null -eq $Global:VSTBTokencollection)
+    {
         $tokenCollection = Get-TBTokenCollection -NamespaceId $nameSpaceId
-    }else{
-        if($Global:VSTBTokencollection.ContainsKey($nameSpaceId)){
+    }
+    else
+    {
+        if ($Global:VSTBTokencollection.ContainsKey($nameSpaceId))
+        {
             $tokenCollection = $Global:VSTBTokencollection[$nameSpaceId]
-        }else{
+        }
+        else
+        {
             $tokenCollection = Get-TBTokenCollection -NamespaceId $nameSpaceId
         }
     }
@@ -1928,14 +2255,15 @@ function Get-TBToken
 
     $token = $tokenCollection | Where-Object -Property Token -match "^.*$ObjectId$"
 
-    if($null -eq $token){
+    if ($null -eq $token)
+    {
         $updateTokencollection = Get-TBTokenCollection -NamespaceId $nameSpaceId -ForceRefresh
         $token = $updateTokencollection | Where-Object -Property Token -match "^.*$ObjectId$"
     }
 
     $props = @{
         "namespaceId" = $namespaceid
-        "token" = $token.token
+        "token"       = $token.token
     }
     $returnObj = New-Object -TypeName PSObject -Property $props
 
@@ -1981,54 +2309,41 @@ function Add-TBConnection
     $Success = $true
     $VSTBConn = $Global:VSTBConn
 
-    if($null -eq $VSTBConn){
+    if ($null -eq $VSTBConn)
+    {
         $props = @{
-            "AccountUrl" = $AcctUrl
+            "AccountUrl"             = $AcctUrl
             "TeamExplorerConnection" = $null
-            "DefaultProjectName" = $null
-            "VSTeamAccount" = $false
-            "TFSCmdletsConnection" = $false
+            "DefaultProjectName"     = $null
+            "VSTeamAccount"          = $false
+            "TFSCmdletsConnection"   = $false
         }
 
         $VSTBConn = New-Object -TypeName psobject -Property $props
-    }else{
+    }
+    else
+    {
         $VSTBConn.AccountUrl = $AcctUrl
     }
-
-    #region VSTeam Module connection
-    if($null -eq $env:TEAM_ACCT){
-        if($UseWindowsAuth){
-            Add-VSTeamAccount -Account $AcctUrl -UseWindowsAuthentication | Out-Null
-            $VSTBConn.VSTeamAccount = $true
-            Write-Verbose "Successfully connected TFS VSTeam to: $AcctUrl"
-        }elseif($null -ne $PAT){
-            #Add-VSTeamProfile -Account $AcctUrl -PersonalAccessToken $PAT -Version "$API" -Name tb
-            #Add-VSTeamAccount -Profile tb -Version $API
-            Add-VSTeamAccount -Account $AcctUrl -Version $API -PersonalAccessToken $PAT | Out-Null
-            $VSTBConn.VSTeamAccount = $true
-            Write-Verbose "Successfully connected TFS VSTeam to: $AcctUrl"
-        }else{
-            Write-Verbose "No valid credentials passed.  Please set UseWindowsAuth or provide PAT token."
-            $Success = $false
-        }
-    }else{
-        Write-Verbose "Already Connected to VSTeam"
-    }
-    #endregion
 
     #region TFSCmdlets Module connection
     if ($null -eq $Global:TfsTpcConnection)
     {
-        if($UseWindowsAuth){
+        if ($UseWindowsAuth)
+        {
             Connect-TfsTeamProjectCollection -Collection $AcctUrl | Out-Null
             $VSTBConn."TFSCmdletsConnection" = $true
             Write-Verbose "TfsCmdlets Successfully Connected to: $AcctUrl"
-        }elseif($null -ne $PAT){
+        }
+        elseif ($null -ne $PAT)
+        {
             $patCred = Get-TfsCredential -PersonalAccessToken $PAT
             Connect-TfsTeamProjectCollection -Collection $AcctUrl -Credential $patCred | Out-Null
             $VSTBConn."TFSCmdletsConnection" = $true
             Write-Verbose "TfsCmdlets Successfully Connected to: $AcctUrl"
-        }else{
+        }
+        else
+        {
             Write-Verbose "No valid credentials passed.  Please set UseWindowsAuth or provide PAT token."
             $Success = $false
         }
@@ -2040,6 +2355,34 @@ function Add-TBConnection
     }
     #endregion
 
+    #region VSTeam Module connection
+    if ($null -eq $env:TEAM_ACCT)
+    {
+        if ($UseWindowsAuth)
+        {
+            Add-VSTeamAccount -Account $AcctUrl -UseWindowsAuthentication | Out-Null
+            $VSTBConn.VSTeamAccount = $true
+            Write-Verbose "Successfully connected TFS VSTeam to: $AcctUrl"
+        }
+        elseif ($null -ne $PAT)
+        {
+            #Add-VSTeamProfile -Account $AcctUrl -PersonalAccessToken $PAT -Version "$API" -Name tb
+            #Add-VSTeamAccount -Profile tb -Version $API
+            Add-VSTeamAccount -Account $AcctUrl -Version $API -PersonalAccessToken $PAT | Out-Null
+            $VSTBConn.VSTeamAccount = $true
+            Write-Verbose "Successfully connected TFS VSTeam to: $AcctUrl"
+        }
+        else
+        {
+            Write-Verbose "No valid credentials passed.  Please set UseWindowsAuth or provide PAT token."
+            $Success = $false
+        }
+    }
+    else
+    {
+        Write-Verbose "Already Connected to VSTeam"
+    }
+    #endregion
 
 
     $Global:VSTBConn = $VSTBConn
@@ -2070,25 +2413,34 @@ function Remove-TBConnection
     $Success = $true
     $VSTBConn = $Global:VSTBConn
 
-    if($null -ne $VSTBConn){
-        try{
+    if ($null -ne $VSTBConn)
+    {
+        try
+        {
             $Global:VSTBConn = $null
-        }catch{
+        }
+        catch
+        {
             Write-Verbose "There was an error $_"
             $Success = $false
         }
     }
-    if($null -ne $env:TEAM_ACCT){
+    if ($null -ne $env:TEAM_ACCT)
+    {
         Remove-VSTeamAccount | Out-Null
         #$holder = Get-VSTeamProfile | Remove-VSTeamProfile -Force
     }
 
-    if($null -ne $Global:TfsTpcConnection){
-        try{
+    if ($null -ne $Global:TfsTpcConnection)
+    {
+        try
+        {
             Disconnect-TfsTeamProjectCollection -Collection $VSTBConn.AccountUrl | Out-Null
             Write-Verbose "TFSCmdlets Disconnected to TFS Collection"
             $Global:TFSConnectionProps = $null
-        }catch{
+        }
+        catch
+        {
             Write-Verbose "There was an error $_"
         }
 
@@ -2097,9 +2449,12 @@ function Remove-TBConnection
     $Global:VSTBNamespaceCollection = $null
     $Global:VSTBTokencollection = $null
 
-    if($Success){
+    if ($Success)
+    {
         Write-Verbose "Successfully Disconnected"
-    }else{
+    }
+    else
+    {
         Write-Verbose "There was an error disconnecting."
     }
 
@@ -2125,9 +2480,12 @@ function _testConnection
     )
 
     $VSTBConn = $Global:VSTBConn
-    if($null -eq $VSTBConn.AccountUrl -and $null -eq $VSTBConn.TeamExplorerConnection){
+    if ($null -eq $VSTBConn.AccountUrl -and $null -eq $VSTBConn.TeamExplorerConnection)
+    {
         return $false
-    }else{
+    }
+    else
+    {
         return $true
     }
     <#
@@ -2151,18 +2509,21 @@ function Set-TBDefaultProject
         $ProjectName
     )
     $VSTBConn = $null
-    if($null -eq $Global:VSTBConn){
+    if ($null -eq $Global:VSTBConn)
+    {
         $props = @{
-            "AccountUrl" = $null
+            "AccountUrl"             = $null
             "TeamExplorerConnection" = $null
-            "DefaultProjectName" = $ProjectName
-            "VSTeamAccount" = $false
-            "TFSCmdletsConnection" = $false
+            "DefaultProjectName"     = $ProjectName
+            "VSTeamAccount"          = $false
+            "TFSCmdletsConnection"   = $false
         }
 
         $VSTBConn = New-Object -TypeName psobject -Property $props
         $Global:VSTBConn = $VSTBConn
-    }else{
+    }
+    else
+    {
         $Global:VSTBConn.DefaultProjectName = $ProjectName
     }
     <#
