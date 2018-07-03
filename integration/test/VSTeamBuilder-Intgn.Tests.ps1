@@ -4,7 +4,7 @@ $SuppressImportModule = $false
 
 $VerbosePreference = "Continue"
 
-Describe 'VSTeamBuilder Integration Test'{
+Describe 'VSTeamBuilder Integration Org Test'{
     BeforeAll {
         $projectName = $env:projectName
         $collectionName = $env:collectionName
