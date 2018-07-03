@@ -218,7 +218,7 @@ Describe 'VSTeamBuilder Integration Test'{
         }
 
         It 'Sets TFS Permission on Team Iteration - Set-TBPermission' {
-            $iteration = Get-TFSIteration -Iteration "$Teamcode" -ProjectName $projectName -Collection $collectionName
+            $iteration = Get-TFSIteration -Iteration "$Teamcode" -Project $projectName -Collection $collectionName
             $token = Get-TBToken -ObjectId $iteration.Id -NSName "Iteration" -ProjectName $projectName
             $result = Set-TBPermission -TokenObject $token -GroupName "$TeamCode-Contributors" -AllowValue 7 -ProjectName $projectName
             $result.count -gt 0 | Should Be True
@@ -268,26 +268,15 @@ Describe "Standalone Integration Test - Temporary" {
         Set-TBDefaultProject -ProjectName $projectName
     }
 
-    Context 'Add/Remove Team' {
-        $TeamName = "MyTestTeam"
+    Context 'TFS Permissions and Tokens' {
         $TeamCode = "MTT"
-        $TeamDescription = "The best Test of a new team"
-        $TeamRootPath = ""
 
-        It 'Creates a new Team - New-TBTeam' {
-            $result = New-TBTeam -Name $TeamName -Description $TeamDescription -TeamCode $TeamCode -TeamPath $TeamRootPath -isCoded -ProjectName $projectName
-            $result | Should Be True
-        }
-
-        It 'Creates a new SubTeam - New-TBTeam' {
-            $result = New-TBTeam -Name "$TeamName-Sub" -Description $TeamDescription -TeamCode "$TeamCode-Sub" -TeamPath "MTT" -isCoded -ProjectName $projectName
-            $result | Should Be True
-        }
-
-        It 'Remove Teams - New-TBTeam' {
-            $result1 = Remove-TBTeam -Name $TeamName -TeamCode $TeamCode -TeamPath $TeamRootPath -isCoded -ProjectName $projectName
-            $result2 = Remove-TBTeam -Name "$TeamName-Sub" -TeamCode "$TeamCode-Sub" -TeamPath "MTT" -isCoded -ProjectName $projectName
-            $result1 -and $result2 | Should Be True
+        It 'Sets TFS Permission on Team Iteration - Set-TBPermission' {
+            $iteration = Get-TFSIteration -Iteration "$TeamCode" -Project $projectName -Collection $collectionName
+            $iterationId = ($iteration.Uri -split "Node/")[1]
+            $token = Get-TBToken -ObjectId $iterationId -NSName "Iteration" -ProjectName $projectName
+            $result = Set-TBPermission -TokenObject $token -GroupName "$TeamCode-Contributors" -AllowValue 7 -ProjectName $projectName
+            $result.count -gt 0 | Should Be True
         }
     }
 
