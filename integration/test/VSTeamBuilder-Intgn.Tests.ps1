@@ -203,9 +203,9 @@ Describe "Testing Team Creation and Settings" {
         }
 
         It 'Adds Team Iterations - Add-TBTeamIteration' {
-            $IterationSub = "$IterationName\MTT-Iteration1"
+            #$IterationSub = "$IterationName\MTT-Iteration1"
             $result = Add-TBTeamIteration -IterationName $IterationName -TeamName $TeamName -ProjectName $projectName
-            $($result.path) -like "*$IterationSub" | Should Be True
+            $($result.path) -like "*$IterationName" | Should Be True
         }
 
         It 'Gets Team Iterations - Get-TBTeamIteration' {
@@ -292,15 +292,42 @@ Describe "Standalone Integration Test - Temporary" {
         Set-TBDefaultProject -ProjectName $projectName
     }
 
-    Context 'TFS Permissions and Tokens' {
-        $TeamCode = "MTT"
+    Context 'Team Area' {
+        $TeamName = "MyTestTeam"
+        $AreaPath = "MTT"
+        It 'Sets Team Area Default Setting - Set-TBTeamAreaSetting' {
+            $result = Set-TBTeamAreaSetting -AreaPath $AreaPath -TeamName $TeamName -ProjectName $projectName
+            $($result.defaultValue) -like "*$AreaPath" | Should Be True
+        }
 
-        It 'Sets TFS Permission on Team Iteration - Set-TBPermission' {
-            $iteration = Get-TFSIteration -Iteration "$TeamCode" -Project $projectName -Collection $collectionName
-            $iterationId = ($iteration.Uri -split "Node/")[1]
-            $token = Get-TBToken -ObjectId $iterationId -NSName "Iteration" -ProjectName $projectName
-            $result = Set-TBPermission -TokenObject $token -GroupName "$TeamCode-Contributors" -AllowValue 7 -ProjectName $projectName
-            $result.count -gt 0 | Should Be True
+        It 'Gets Team Area Default Setting - Get-TBTeamAreaSetting' {
+            $result = Get-TBTeamAreaSetting -TeamName $TeamName -ProjectName $projectName
+            $($result.defaultValue) -like "*$AreaPath" | Should Be True
+        }
+    }
+
+    Context 'Team Iteration' {
+        $TeamName = "MyTestTeam"
+        $IterationName = "MTT"
+        It 'Sets Team Iteration Default Setting - Set-TBTeamIterationSetting' {
+            $result = Set-TBTeamIterationSetting -IterationName $IterationName -TeamName $TeamName -ProjectName $projectName
+            $($result.backlogIteration.name) -eq $IterationName | Should Be True
+        }
+
+        It 'Gets Team Iteration Default Setting - Get-TBTeamIterationSetting' {
+            $result = Get-TBTeamIterationSetting -TeamName $TeamName -ProjectName $projectName
+            $($result.backlogIteration.id) -ne $null -or $($result.backlogIteration.id) -ne "00000000-0000-0000-0000-000000000000" | Should Be True
+        }
+
+        It 'Adds Team Iterations - Add-TBTeamIteration' {
+            $IterationSub = "$IterationName\MTT-Iteration1"
+            $result = Add-TBTeamIteration -IterationName $IterationSub -TeamName $TeamName -ProjectName $projectName
+            $($result.path) -like "*$IterationSub" | Should Be True
+        }
+
+        It 'Gets Team Iterations - Get-TBTeamIteration' {
+            $result = Get-TBTeamIteration -TeamName $TeamName -ProjectName $projectName
+            $($result.value) -ne $null | Should Be True
         }
     }
 

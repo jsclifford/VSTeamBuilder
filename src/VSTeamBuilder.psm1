@@ -1570,9 +1570,11 @@ function Set-TBTeamAreaSetting
 
     try
     {
-        if ($PSCmdlet.ShouldProcess("Adding IterationID: $iterationId to team: $TeamName"))
+        if ($PSCmdlet.ShouldProcess("Adding IterationID: $AreaPath to team: $TeamName"))
         {
-            $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$TeamName" -resource "_apis/work/teamsettings/teamfieldvalues" -method Patch -body $JSON -ContentType "application/json" -version 2.0-preview.1
+            #$result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$TeamName" -resource "_apis/work/teamsettings/teamfieldvalues" -method Patch -body $JSON -ContentType "application/json" -version 2.0-preview.1
+            $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings/teamfieldvalues?api-version=3.0"
+            $result = Invoke-VSTeamRequest -Url $Url -method Patch -body $JSON -ContentType "application/json"
         }
     }
     catch
@@ -1637,7 +1639,9 @@ function Get-TBTeamAreaSetting
 
     try
     {
-        $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings/teamfieldvalues" -method Get -version 2.0-preview.1
+        #$result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings/teamfieldvalues" -method Get -version 2.0-preview.1
+        $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings/teamfieldvalues?api-version=3.0"
+        $result = Invoke-VSTeamRequest -Url $Url -method Get
     }
     catch
     {
@@ -1730,7 +1734,9 @@ function Set-TBTeamIterationSetting
     {
         if ($PSCmdlet.ShouldProcess("Adding IterationID: $iterationId to team: $TeamName"))
         {
-            $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings" -method Patch -body $JSON -ContentType "application/json" -version 2.0-preview.1
+            #$result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings" -method Patch -body $JSON -ContentType "application/json" -version 2.0-preview.1
+            $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings?api-version=3.0"
+            $result = Invoke-VSTeamRequest -Url $Url -method Patch -body $JSON -ContentType "application/json"
         }
     }
     catch
@@ -1795,7 +1801,9 @@ function Get-TBTeamIterationSetting
 
     try
     {
-        $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings" -method Get -version 2.0-preview.1
+        #$result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings" -method Get -version 2.0-preview.1
+        $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings?api-version=3.0"
+        $result = Invoke-VSTeamRequest -Url $Url -method Get
     }
     catch
     {
@@ -1879,7 +1887,9 @@ function Add-TBTeamIteration
     {
         if ($PSCmdlet.ShouldProcess("Adding IterationID: $iterationId to team: $TeamName"))
         {
-            $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings/iterations" -method Post -body $JSON -ContentType "application/json" -version 2.0-preview.1
+            #$result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings/iterations" -method Post -body $JSON -ContentType "application/json" -version 2.0-preview.1
+            $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings/iterations?api-version=3.0"
+            $result = Invoke-VSTeamRequest -Url $Url -method Post -body $JSON -ContentType "application/json"
         }
     }
     catch
@@ -1944,7 +1954,9 @@ function Get-TBTeamIteration
 
     try
     {
-        $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings/iterations" -method Get -version 2.0-preview.1
+        #$result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings/iterations" -method Get -version 2.0-preview.1
+        $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings/iterations?api-version=3.0"
+        $result = Invoke-VSTeamRequest -Url $Url -method Get
     }
     catch
     {
@@ -2119,7 +2131,7 @@ function Get-TBTokenCollection
     {
         try
         {
-            $acls = Invoke-VSTeamRequest -area "accesscontrollists" -resource $NamespaceId -method Get -version 1.0
+            $acls = Invoke-VSTeamRequest -area "accesscontrollists" -resource $NamespaceId -method Get -version 1.0 -id -
             $TokenCollection.Remove($NamespaceId)
             $TokenCollection.Add("$NamespaceId", $($acls.value))
         }
