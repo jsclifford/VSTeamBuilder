@@ -21,6 +21,7 @@ InModuleScope VSTeamBuilder {
 
         Mock Invoke-VSTeamRequest { return @{"defaultValue" = "$AreaPath"} }
         Mock _testConnection { return $true }
+        $testUrl = "$($VSTBConn.AccountUrl)/$projectName/$TeamName/_apis/work/teamsettings/teamfieldvalues?api-version=3.0"
 
         Context 'Set-TBTeamAreaSetting' {
             #Mock Invoke-VSTeamRequest { return @{"defaultValue" = "$AreaPath"} }
@@ -30,7 +31,7 @@ InModuleScope VSTeamBuilder {
 
                 # Make sure it was called with the correct values
                 Assert-MockCalled Invoke-VSTeamRequest -Exactly 1 -ParameterFilter {
-                    $ProjectName -eq $projectName -and $Area -eq $TeamName -and $Method -eq "Patch"
+                    $Url -eq $testUrl -and $ContentType -eq "application/json" -and $Method -eq "Patch"
                 }
             }
         }
@@ -43,11 +44,80 @@ InModuleScope VSTeamBuilder {
 
                 # Make sure it was called with the correct values
                 Assert-MockCalled Invoke-VSTeamRequest -Exactly 1 -ParameterFilter {
-                    $ProjectName -eq $projectName -and $Area -eq $TeamName -and $Method -eq "Get"
+                    $Url -eq $testUrl  -and $Method -eq "Get"
                 }
             }
         }
     }
+
+    Describe "Team Iteration Settings" {
+        BeforeAll {
+            $projectName = "VSTeamBuilderDemo"
+            $TeamName = "MyTestTeam"
+            $TeamPath = "MTT"
+            $IterationName = "MTT"
+            $Global:VSTBConn = @{ "AccountUrl" = "https://myproject.visualstudio.com"}
+        }
+
+        Mock _testConnection { return $true }
+        Mock Get-TfsIteration { return @{"Uri" = "123123/Node/123123"}}
+
+        Context 'Team Iteration' {
+            $testUrl = "$($VSTBConn.AccountUrl)/$projectName/$TeamName/_apis/work/teamsettings?api-version=3.0"
+            Mock Invoke-VSTeamRequest { return @{"backlogIteration" = @{ "name" ="$IterationName"; "id" = "1234"} } }
+
+            It 'Sets Team Iteration Default Setting - Set-TBTeamIterationSetting' {
+                $result = Set-TBTeamIterationSetting -IterationName $IterationName -TeamName $TeamName -ProjectName $projectName
+                $($result.backlogIteration.name) -eq $IterationName | Should Be True
+
+                # Make sure it was called with the correct values
+                Assert-MockCalled Invoke-VSTeamRequest -Exactly 1 -ParameterFilter {
+                    $Url -eq $testUrl -and $ContentType -eq "application/json" -and $Method -eq "Patch"
+                }
+            }
+
+            It 'Gets Team Iteration Default Setting - Get-TBTeamIterationSetting' {
+                $result = Get-TBTeamIterationSetting -TeamName $TeamName -ProjectName $projectName
+                $($result.backlogIteration.id) -ne $null -or $($result.backlogIteration.id) -ne "00000000-0000-0000-0000-000000000000" | Should Be True
+
+                # Make sure it was called with the correct values
+                Assert-MockCalled Invoke-VSTeamRequest -Exactly 1 -ParameterFilter {
+                    $Url -eq $testUrl  -and $Method -eq "Get"
+                }
+            }
+        }
+
+        Context 'Add Team Iterations to team' {
+            $testUrl = "$($VSTBConn.AccountUrl)/$projectName/$TeamName/_apis/work/teamsettings/iterations?api-version=3.0"
+            Mock Invoke-VSTeamRequest { return @{"path" = "$IterationName\MTT-Iteration1"} }
+
+            It 'Adds Team Iterations - Add-TBTeamIteration' {
+                $IterationSub = "$IterationName\MTT-Iteration1"
+                $result = Add-TBTeamIteration -IterationName $IterationName -TeamName $TeamName -ProjectName $projectName
+                $($result.path) -like "*$IterationSub" | Should Be True
+
+                # Make sure it was called with the correct values
+                Assert-MockCalled Invoke-VSTeamRequest -Exactly 1 -ParameterFilter {
+                    $Url -eq $testUrl -and $ContentType -eq "application/json" -and $Method -eq "Post"
+                }
+            }
+
+            It 'Gets Team Iterations - Get-TBTeamIteration' {
+                $result = Get-TBTeamIteration -TeamName $TeamName -ProjectName $projectName
+                $($result.path) -ne $null | Should Be True
+
+                # Make sure it was called with the correct values
+                Assert-MockCalled Invoke-VSTeamRequest -Exactly 1 -ParameterFilter {
+                    $Url -eq $testUrl  -and $Method -eq "Get"
+                }
+            }
+        }
+
+        AfterAll{
+            $Global:VSTBConn = $null
+        }
+    }
+
     Describe 'TBConnection'{
         BeforeAll {
             $projectName = "VSTeamBuilderDemo"
@@ -218,30 +288,7 @@ Describe "Not Complete Tests" {
 
 
 
-    Context 'Team Iteration' {
-        $TeamName = "MyTestTeam"
-        $IterationName = "MTT"
-        It 'Sets Team Iteration Default Setting - Set-TBTeamIterationSetting' {
-            #$result = Set-TBTeamIterationSetting -IterationName $IterationName -TeamName $TeamName -ProjectName $projectName
-            $($result.backlogIteration.name) -eq $IterationName | Should Be True
-        }
 
-        It 'Gets Team Iteration Default Setting - Get-TBTeamIterationSetting' {
-            #$result = Get-TBTeamIterationSetting -TeamName $TeamName -ProjectName $projectName
-            $($result.backlogIteration.id) -ne $null -or $($result.backlogIteration.id) -ne "00000000-0000-0000-0000-000000000000" | Should Be True
-        }
-
-        It 'Adds Team Iterations - Add-TBTeamIteration' {
-            #$IterationSub = "$IterationName\MTT-Iteration1"
-            #$result = Add-TBTeamIteration -IterationName $IterationName -TeamName $TeamName -ProjectName $projectName
-            $($result.path) -like "*$IterationSub" | Should Be True
-        }
-
-        It 'Gets Team Iterations - Get-TBTeamIteration' {
-            #$result = Get-TBTeamIteration -TeamName $TeamName -ProjectName $projectName
-            $($result.value) -ne $null | Should Be True
-        }
-    }
 
     Context 'TFS Permissions and Tokens' {
         $TeamCode = "MTT"
