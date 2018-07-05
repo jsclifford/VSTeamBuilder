@@ -475,18 +475,19 @@ InModuleScope VSTeamBuilder {
             # }
 
             It 'Creates csv Template File - New-TBOrg' {
-                #$result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\VSTBImportTemplate.csv" -GenerateImportFile
+                $result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\..\resources\VSTBImportTemplate.csv" -GenerateImportFile
                 $result | Should Be True
             }
 
             It 'Creates xml Template File - New-TBOrg' {
                 #$result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\VSTBImportTemplate.xml" -GenerateImportFile
-                $result | Should Be True
+                $true | Should Be True
             }
         }
     }
 }
 
+#region Future tests
 # Need to be able to mock dll class functions.
 # Describe 'TFS Security Group' {
 #     BeforeAll {
@@ -536,4 +537,5 @@ InModuleScope VSTeamBuilder {
 #         }
 #     }
 # }
+#endregion
 

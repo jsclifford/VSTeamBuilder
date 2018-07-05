@@ -407,6 +407,7 @@ function _generateImportFile
         $ImportFile
     )
 
+    $result = $true
     if($ImportFile -like '*.csv'){
         #Create resources folder and generate CSV file
         if(Test-Path("$ImportFile")){
@@ -439,9 +440,13 @@ function _generateImportFile
         }
         catch {
             Write-Verbose "There was an error creating CSV file.  Error: $_"
+            $result = $false
         }
+    }else{
+        #Generate XML File here.
     }
 
+    return $result
     <#
         .SYNOPSIS
             _generateImportFile creates a default csv or xml file for later import.
