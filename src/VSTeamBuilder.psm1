@@ -2131,7 +2131,7 @@ function Get-TBTokenCollection
     {
         try
         {
-            $acls = Invoke-VSTeamRequest -area "accesscontrollists" -resource $NamespaceId -method Get -version 1.0 -id -
+            $acls = Invoke-VSTeamRequest -area "accesscontrollists" -resource $NamespaceId -method Get -version 1.0
             $TokenCollection.Remove($NamespaceId)
             $TokenCollection.Add("$NamespaceId", $($acls.value))
         }

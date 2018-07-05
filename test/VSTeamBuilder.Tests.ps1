@@ -12,6 +12,7 @@ Describe "Manifest & xml validation" {
 }
 
 InModuleScope VSTeamBuilder {
+
     Describe 'Team Area' {
         BeforeAll {
             $projectName = "VSTeamBuilderDemo"
@@ -50,7 +51,7 @@ InModuleScope VSTeamBuilder {
         }
     }
 
-    Describe "Team Iteration Settings" {
+    Describe 'Team Iteration Settings' {
         BeforeAll {
             $projectName = "VSTeamBuilderDemo"
             $TeamName = "MyTestTeam"
@@ -118,6 +119,153 @@ InModuleScope VSTeamBuilder {
         }
     }
 
+    Describe 'TFS Permissions and Tokens' {
+        BeforeAll {
+            $projectName = "VSTeamBuilderDemo"
+            $TeamName = "MyTestTeam"
+            $TeamPath = "MTT"
+            $Global:VSTBConn = @{ "AccountUrl" = "https://myproject.visualstudio.com" }
+            $TeamCode = "MTT"
+        }
+
+        Mock _testConnection { return $true }
+
+        Mock Invoke-VSTeamRequest {
+            #region NamspaceCollection
+            $props = @{
+                "namespaceId" = "2e9eb7ed-3c0a-47d4-87c1-0ffdd275fd87";
+                "name"        = "Git Repositories";
+                "displayName" = "Git Repositories"
+            }
+
+            $props2 = @{
+                "namespaceId" = "bf7bfa03-b2b7-47db-8113-fa2e002cc5b1";
+                "name"        = "Iteration";
+                "displayName" = "Iteration"
+            }
+
+            $namespacers = [PSCustomObject]@{
+                Count = 2
+                Value = @($(new-object -TypeName psobject -property $props),$(new-object -TypeName psobject -property $props2))
+            }
+            #endregion
+
+            #region Repo Token Collection
+            $props3 = @{
+                "inheritPermissions" = $true;
+                "token"        = "repoV2/ee61f49b-415d-4171-8ecd-59ff98e951e1/6c48366b-9615-4bd8-a6af-907db7cc8d7e";
+                "acesDictionary" = @("Microsoft.IdentityModel.Claims.ClaimsIdentity";"S-1-9-1551374245-1204400969-2402986413-2179408616")
+            }
+
+            $props4 = @{
+                "inheritPermissions" = $true;
+                "token"        = "repoV2/efe839bb-501e-4b8b-bf9f-a99762e88fe4/456c059d-340c-488d-ac8f-ec11b8547123";
+                "acesDictionary" = @("Microsoft.IdentityModel.Claims.ClaimsIdentity";"S-1-9-1551374245-1204400969-2402986413-2179408616")
+            }
+
+            $repoTokenObject = [PSCustomObject]@{
+                Count = 2
+                Value = @($(new-object -TypeName psobject -property $props3),$(new-object -TypeName psobject -property $props4))
+            }
+            #endregion
+
+            #region Iteration Token Collection
+            $props5 = @{
+                "inheritPermissions" = $true;
+                "token"        = "vstfs:///Classification/Node/a031c740-6c8e-4fd5-a81c-062766a6d181";
+                "acesDictionary" = @("Microsoft.IdentityModel.Claims.ClaimsIdentity";"S-1-9-1551374245-1204400969-2402986413-2179408616")
+            }
+
+            $props6 = @{
+                "inheritPermissions" = $true;
+                "token"        = "vstfs:///Classification/Node/eb847e29-46e7-4433-9ee8-32baf1191280:vstfs:///Classification/Node/54a18dcc-1111-40c6-2222-1727130c1de6";
+                "acesDictionary" = @("Microsoft.IdentityModel.Claims.ClaimsIdentity";"S-1-9-1551374245-1204400969-2402986413-2179408616")
+            }
+
+            $iterationTokenObject = [PSCustomObject]@{
+                Count = 2
+                Value = @($(new-object -TypeName psobject -property $props5),$(new-object -TypeName psobject -property $props6))
+            }
+            #endregion
+
+            $result = $null
+            if($area -eq 'securitynamespaces'){
+                $result = $namespacers
+            }elseif($area -eq 'accesscontrollists'){
+                if($resource -eq '2e9eb7ed-3c0a-47d4-87c1-0ffdd275fd87'){
+                    $result = $repoTokenObject
+                }else{
+                    $result = $iterationTokenObject
+                }
+            }else{
+                $result = @('Permission','Array')
+            }
+            return $result
+        }
+
+        Mock Get-VSTeamGitRepository { $newrepo = [PSCustomObject]@{
+            id = '456c059d-340c-488d-ac8f-ec11b8547123'
+            name = $projectName
+            }
+            return $newrepo
+        }
+
+        Context 'Namespace' {
+
+            It 'Gets Namespace Collection - Get-TBNamespaceCollection' {
+                $namespaces = Get-TBNamespaceCollection
+                $namespaces.length -gt 0 | Should Be True
+            }
+
+            It 'Get Token Collection - Get-TBTokenCollection' {
+                $tokens = Get-TBTokenCollection -NamespaceId "2e9eb7ed-3c0a-47d4-87c1-0ffdd275fd87"
+                $tokens.length -gt 0 | Should Be True
+            }
+
+            It 'Get Token - Get-TBToken' {
+                $object = Get-VSTeamGitRepository -ProjectName $projectName -Name "$projectName"
+                $objectId = $object.id
+                $token = Get-TBToken -ObjectId $objectId -NsName "Git Repositories" -ProjectName $projectName
+                $token.token -ne $null | Should Be True
+            }
+        }
+
+        Context 'Permissions' {
+
+            Mock Get-TBSecurityGroup {
+                $mySecGroup = [PSCustomObject]@{
+                    Descriptor = [PSCustomObject]@{
+                        Identifier = 'S-1-9-1551374245-3141134575-507595019-3213911895-1659408356-1-3998242047-824170319-3175886546-38988226'
+                        IdentityType = 'Microsoft.TeamFoundation.Identity'
+                    }
+                }
+                return $mySecGroup
+            }
+
+            It 'Sets TFS Permission on Git Repo - Set-TBPermission' {
+                $gitRepo = Get-VSTeamGitRepository -ProjectName $projectName -Name "$projectName"
+                $token = Get-TBToken -ObjectId $gitRepo.id -NsName "Git Repositories" -ProjectName $projectName
+                $result = Set-TBPermission -TokenObject $token -GroupName "$TeamCode-Contributors" -AllowValue 118 -ProjectName $projectName
+                $result.count -gt 0 | Should Be True
+            }
+
+            Mock Get-TfsIteration { $newiteration = [PSCustomObject]@{
+                    uri = 'vstfs:///Classification/Node/54a18dcc-1111-40c6-2222-1727130c1de6'
+                    name = "$TeamCode"
+                }
+                return $newiteration
+            }
+
+            It 'Sets TFS Permission on Team Iteration - Set-TBPermission' {
+                $iteration = Get-TFSIteration -Iteration "$Teamcode" -Project $projectName -Collection $collectionName
+                $iterationId = ($iteration.uri -split 'Node/')[1]
+                $token = Get-TBToken -ObjectId $iterationId -NSName "Iteration" -ProjectName $projectName
+                $result = Set-TBPermission -TokenObject $token -GroupName "$TeamCode-Contributors" -AllowValue 7 -ProjectName $projectName
+                $result.count -gt 0 | Should Be True
+            }
+        }
+    }
+
     Describe 'TBConnection'{
         BeforeAll {
             $projectName = "VSTeamBuilderDemo"
@@ -163,6 +311,7 @@ InModuleScope VSTeamBuilder {
         }
     }
 }
+
 
 Describe "Not Complete Tests" {
     Context 'Add/Remove TBOrg' {
@@ -253,76 +402,53 @@ Describe "Not Complete Tests" {
         }
     }
 
-    Context 'TFS Security Group' {
+}
+
+Describe 'TFS Security Group' {
+    BeforeAll {
+        $projectName = "VSTeamBuilderDemo"
+        $TeamName = "MyTestTeam"
+        $TeamCode = "MTT"
+        $Global:VSTBConn = @{ "TeamExplorerConnection" = "https://myproject.visualstudio.com"}
+    }
+
+    Mock _testConnection { return $true }
+
+    Context 'Create Group' {
         $TeamName = "MyTestTeam2"
         $TeamCode = "MTT2"
         $TeamDescription = "The best Test of a new team"
 
         It 'Creates new TFS Security Group - New-TBSecurityGroup' {
-            #$createIt = New-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName -Description $TeamDescription
-            #$result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
+            # $createIt = New-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName -Description $TeamDescription
+            # $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
             $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be True
         }
 
         It 'Gets TFS Security Group Get-TBSecurityGroup' {
-            #$result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
+            # $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
             $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be True
         }
+    }
 
+    Context 'Security Group Member' {
         It 'Adds a team to the new group - Add-TBSecurityGroupMember' {
-            #$result = Add-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName
+            # $result = Add-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName
             $result -eq $null | Should Be True
         }
 
         It 'Removes a team to the new group - Remove-TBSecurityGroupMember' {
-            #$result = Remove-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName
+            # $result = Remove-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName
             $result -eq $null | Should Be True
         }
 
-        It 'Removes new TFS Security Group - Remove-TBSecurityGroup' {
-            #$removeIt = Remove-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
-            #$result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
-            $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be False
-        }
     }
 
-
-
-
-
-    Context 'TFS Permissions and Tokens' {
-        $TeamCode = "MTT"
-
-        It 'Gets Namespce Collection - Get-TBNamespaceCollection' {
-            #$namespaces = Get-TBNamespaceCollection
-            $namespaces.length -gt 0 | Should Be True
-        }
-
-        It 'Get Token Collection - Get-TBTokenCollection' {
-            #$namespaces = Get-TBNamespaceCollection
-            #$tokens = Get-TBTokenCollection -NamespaceId "2e9eb7ed-3c0a-47d4-87c1-0ffdd275fd87"
-            $tokens.length -gt 0 | Should Be True
-        }
-
-        It 'Get Token - Get-TBToken' {
-            #$object = Get-VSTeamGitRepository -ProjectName $projectName -Name "$projectName"
-            #$objectId = $object.id
-            #$token = Get-TBToken -ObjectId $objectId -NsName "Git Repositories" -ProjectName $projectName
-            $token.token -ne $null | Should Be True
-        }
-
-        It 'Sets TFS Permission on Git Repo - Set-TBPermission' {
-            # $gitRepo = Get-VSTeamGitRepository -ProjectName $projectName -Name "$projectName"
-            # $token = Get-TBToken -ObjectId $gitRepo.id -NsName "Git Repositories" -ProjectName $projectName
-            # $result = Set-TBPermission -TokenObject $token -GroupName "$TeamCode-Contributors" -AllowValue 118 -ProjectName $projectName
-            $result.count -gt 0 | Should Be True
-        }
-
-        It 'Sets TFS Permission on Team Iteration - Set-TBPermission' {
-            # $iteration = Get-TFSIteration -Iteration "$Teamcode" -ProjectName $projectName -Collection $collectionName
-            # $token = Get-TBToken -ObjectId $iteration.Id -NSName "Iteration" -ProjectName $projectName
-            # $result = Set-TBPermission -TokenObject $token -GroupName "$TeamCode-Contributors" -AllowValue 7 -ProjectName $projectName
-            $result.count -gt 0 | Should Be True
+    Context 'Remove Security Group'{
+        It 'Removes new TFS Security Group - Remove-TBSecurityGroup' {
+            # $removeIt = Remove-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
+            # $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
+            $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be False
         }
     }
 }
