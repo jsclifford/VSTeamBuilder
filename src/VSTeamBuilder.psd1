@@ -133,7 +133,7 @@ PrivateData = @{
         ReleaseNotes = 'https://github.com/jsclifford/VSTeamBuilder/blob/master/ReleaseNotes.md'
 
         # TFS Client Version
-        TfsClientVersion = '${TfsOmNugetVersion}'
+        #TfsClientVersion = '${TfsOmNugetVersion}'
 
         #External dependent modules of this module
         ExternalModuleDependencies = 'VSTeam,TFSCmdlets'
