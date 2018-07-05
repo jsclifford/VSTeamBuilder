@@ -310,146 +310,230 @@ InModuleScope VSTeamBuilder {
 
         }
     }
-}
 
+    Describe "New Organization and New Team" {
+        BeforeAll {
+            $projectName = "VSTeamBuilderDemo"
+            $TeamName = "MyTestTeam"
+            $TeamPath = "MTT"
+            $Global:VSTBConn = @{ "AccountUrl" = "https://myproject.visualstudio.com" }
+            $TeamCode = "MTT"
+            $TeamDescription = "The best Test of a new team"
 
-Describe "Not Complete Tests" {
-    Context 'Add/Remove TBOrg' {
-        It 'Creates new project and uses CSV as template - New-TBOrg' {
-            #$result = New-TBOrg -ProjectName "$projectName-csv" -ProjectDescription "The Best Project Ever" -ImportFile "$PSScriptRoot\VSTBImportFile.csv" -NewProject
-            $result | Should Be True
         }
 
-        It 'Removes team project structure from csv file - Remove-TBOrg' {
-            #$result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$PSScriptRoot\VSTBImportFile.csv"
-            $result | Should Be True
+        Mock _testConnection { return $true }
+
+        Context 'Add Team Basic Version' {
+            #region Mocked Functions
+            $Global:g = 0
+            $Global:i = 0
+            $Global:a = 0
+            Mock Get-TfsArea {
+                $Global:a += 1
+                if($Global:a -gt 1){
+                    $newArea = @{
+                        uri = 'vstfs:///Classification/Node/54a18dcc-1111-40c6-2222-1727130c1de6'
+                        name = "$TeamCode"
+                    }
+                    return $newArea
+                }else{
+                    return $null
+                }
+
+            }
+            Mock New-TfsArea { return "New Area" }
+            Mock New-TBSecurityGroup { return $Name }
+            Mock Get-VSTeam { return $null }
+            Mock Add-VSTeam { return $TeamName }
+            Mock Set-TBTeamAreaSetting { return $TeamName }
+            Mock Get-VSTeamGitRepository {
+                $Global:g += 1
+                if($Global:g -gt 1){
+                    $newrepo = @{
+                        id = '456c059d-340c-488d-ac8f-ec11b8547123'
+                        name = $projectName
+                        }
+                    return $newrepo
+                }else{
+                    return $null
+                }
+            }
+            Mock Add-VSTeamGitRepository { return $Name }
+            Mock Get-TFSIteration {
+                $Global:i += 1
+                if($Global:i -gt 1){
+                    $newiteration = @{
+                        uri = 'vstfs:///Classification/Node/54a18dcc-1111-40c6-2222-1727130c1de6'
+                        name = "$TeamCode"
+                    }
+                    return $newiteration
+                }else{
+                    return $null
+                }
+            }
+            Mock New-TFSIteration { return $iteration }
+            Mock Set-TBTeamIterationSetting { return $true }
+            Mock Add-TBTeamIteration { return $true }
+            Mock Get-TBToken { return @{"namespaceid" = "1234"; "token" = "mytoken1234"}}
+            Mock Set-TBPermission { return $true }
+            Mock Add-TBSecurityGroupMember { return $true }
+            Mock Set-TBPermission { return $true }
+            Mock Get-TBNamespaceCollection {
+                #region NamspaceCollection
+                $props = @{
+                    "namespaceId" = "2e9eb7ed-3c0a-47d4-87c1-0ffdd275fd87";
+                    "name"        = "Git Repositories";
+                    "displayName" = "Git Repositories"
+                }
+
+                $props2 = @{
+                    "namespaceId" = "bf7bfa03-b2b7-47db-8113-fa2e002cc5b1";
+                    "name"        = "Iteration";
+                    "displayName" = "Iteration"
+                }
+
+                $props2 = @{
+                    "namespaceId" = "77777777-b2b7-47db-8113-fa2e002cc5b1";
+                    "name"        = "Project";
+                    "displayName" = "Project"
+                }
+
+                $namespacers = [PSCustomObject]@{
+                    Count = 2
+                    Value = @($(new-object -TypeName psobject -property $props),$(new-object -TypeName psobject -property $props2))
+                }
+                #endregion
+                return $namespacers
+            }
+            Mock Get-VSTeamProject {
+                $theproject = [PSCustomObject]@{
+                    uri = 'vstfs:///Classification/Node/54a18dcc-1111-40c6-2222-1727130c1de6'
+                    name = "$TeamCode"
+                }
+                return $theproject
+            }
+            #endregion
+
+            It 'Creates a new Team - New-TBTeam' {
+                $result = New-TBTeam -Name $TeamName -Description $TeamDescription -TeamCode $TeamCode -TeamPath $TeamRootPath -isCoded -ProjectName $projectName
+                $result | Should Be True
+            }
+
+            It 'Creates a new SubTeam - New-TBTeam' {
+                $result = New-TBTeam -Name "$TeamName-Sub" -Description $TeamDescription -TeamCode "$TeamCode-Sub" -TeamPath "MTT" -ProjectName $projectName
+                $result | Should Be True
+            }
         }
 
-        #Not implemented yet.
-        # It 'Creates new project from xml file - New-TBOrg' {
-        #     #$result = New-TBOrg -ProjectName "$projectName-xml" -ProjectDescription "The Best Project Ever" -ImportFile "$PSScriptRoot\VSTBImportFile.xml" -NewProject
-        #     $result | Should Be True
-        # }
+        Context 'Remove Team' {
+            #region Mock functions
+            Mock Get-VSTeamGitRepository { return @{"name" = $Name; "id" = "0426189d-b33a-4564-82d6-fd4d88a68fe5"} }
+            Mock Remove-VSTeamGitRepository { return $true }
+            Mock Get-TFSIteration { return $Iteration }
+            Mock Remove-TFSIteration { return $true }
+            Mock Get-TFSArea { return $true }
+            Mock Remove-TfsArea { return $true }
+            Mock Remove-TBSecurityGroup { return $true }
+            Mock Get-VSTeam { return $Name }
+            Mock Remove-VSTeam { return $true }
+            #endregion
 
-        # It 'Removes team project structure from xml file - Remove-TBOrg' {
-        #     #$result = Remove-TBOrg -ProjectName "$projectName-xml" -ImportFile "$PSScriptRoot\VSTBImportFile.xml"
-        #     $result | Should Be True
-        # }
-
-        It 'Creates csv Template File - New-TBOrg' {
-            #$result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\VSTBImportTemplate.csv" -GenerateImportFile
-            $result | Should Be True
+            It 'Remove Teams - Remove-TBTeam' {
+                $result1 = Remove-TBTeam -Name $TeamName -TeamCode $TeamCode -TeamPath $TeamRootPath -isCoded -ProjectName $projectName
+                $result2 = Remove-TBTeam -Name "$TeamName-Sub" -TeamCode "$TeamCode-Sub" -TeamPath "MTT" -ProjectName $projectName
+                $result1 -and $result2 | Should Be True
+            }
         }
 
-        It 'Creates xml Template File - New-TBOrg' {
-            #$result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\VSTBImportTemplate.xml" -GenerateImportFile
-            $result | Should Be True
-        }
-    }
+        Context 'Add/Remove TBOrg' {
+            #region Mock Functions
+            Mock Get-VSTeamProject { return $null }
+            Mock Add-VSTeamProject { return $ProjectName }
+            Mock New-TBTeam { return $true }
+            Mock Remove-TBTeam { return $true }
+            #endregion
+            It 'Creates new project and uses CSV as template - New-TBOrg' {
+                $result = New-TBOrg -ProjectName "$projectName-csv" -ProjectDescription "The Best Project Ever" -ImportFile "$PSScriptRoot\VSTBImportFile.csv" -NewProject
+                $result | Should Be True
+            }
 
-    Context 'Add/Remove and Test Team Settings CSV Basic Version' {
-        $TeamName = "MyTestTeam"
-        $TeamCode = "MTT"
-        $TeamDescription = "The best Test of a new team"
-        $TeamRootPath = ""
+            It 'Removes team project structure from csv file - Remove-TBOrg' {
+                $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$PSScriptRoot\VSTBImportFile.csv"
+                $result | Should Be True
+            }
 
-        It 'Creates a new Team - New-TBTeam' {
-            #$result = New-TBTeam -Name $TeamName -Description $TeamDescription -TeamCode $TeamCode -TeamPath $TeamRootPath -isCoded -ProjectName $projectName
-            $result | Should Be True
-        }
-
-        It 'Creates a new SubTeam - New-TBTeam' {
-            #$result = New-TBTeam -Name "$TeamName-Sub" -Description $TeamDescription -TeamCode "$TeamCode-Sub" -TeamPath "MTT" -isCoded -ProjectName $projectName
-            $result | Should Be True
-        }
-
-        It 'Team Check - New-TBTeam' {
-            #$team = Get-VSTeam -Name "$TeamName" -ProjectName $projectName
-            $team -ne $null | Should Be True
-        }
-
-        It 'Team Area Check - New-TBTeam' {
-            #$area = Get-TfsArea -Area "$TeamCode" -ProjectName $projectName -Collection $acctUrl
-            $area -ne $null | Should Be True
-        }
-
-        It 'Team Security Group Check - New-TBTeam' {
-            #$teamGroups = @("Contributors","CodeReviewers","Readers")
-            # $exists = $false
-            # foreach($group in $teamGroups){
-            #     $result = (Get-TBSecurityGroup -Name "$TeamCode-$group" -ProjectName $projectName).DisplayName
-            #     if($result -like "*$TeamCode-$group"){
-            #         $exists = $true
-            #     }
+            #Not implemented yet.
+            # It 'Creates new project from xml file - New-TBOrg' {
+            #     #$result = New-TBOrg -ProjectName "$projectName-xml" -ProjectDescription "The Best Project Ever" -ImportFile "$PSScriptRoot\VSTBImportFile.xml" -NewProject
+            #     $result | Should Be True
             # }
-            $exists | Should Be True
-        }
 
-        It 'Team Repo Check - New-TBTeam' {
-            #$repo = Get-VSTeamGitRepository -Name "$TeamCode" -ProjectName $projectName
-            $repo -ne $null | Should Be True
-        }
+            # It 'Removes team project structure from xml file - Remove-TBOrg' {
+            #     #$result = Remove-TBOrg -ProjectName "$projectName-xml" -ImportFile "$PSScriptRoot\VSTBImportFile.xml"
+            #     $result | Should Be True
+            # }
 
-        It 'Team Iteration Check - New-TBTeam' {
-            #$iteration = Get-TfsIteration -Iteration "$TeamCode" -ProjectName $projectName -Collection $acctUrl
-            $iteration -ne $null | Should Be True
-        }
+            It 'Creates csv Template File - New-TBOrg' {
+                #$result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\VSTBImportTemplate.csv" -GenerateImportFile
+                $result | Should Be True
+            }
 
-        It 'Remove Teams - New-TBTeam' {
-            #$result1 = Remove-TBTeam -Name $TeamName -TeamCode $TeamCode -TeamPath $TeamRootPath -isCoded -ProjectName $projectName
-            #$result2 = Remove-TBTeam -Name "$TeamName-Sub" -TeamCode "$TeamCode-Sub" -TeamPath "MTT" -isCoded -ProjectName $projectName
-            $result1 -and $result2 | Should Be True
-        }
-    }
-
-}
-
-Describe 'TFS Security Group' {
-    BeforeAll {
-        $projectName = "VSTeamBuilderDemo"
-        $TeamName = "MyTestTeam"
-        $TeamCode = "MTT"
-        $Global:VSTBConn = @{ "TeamExplorerConnection" = "https://myproject.visualstudio.com"}
-    }
-
-    Mock _testConnection { return $true }
-
-    Context 'Create Group' {
-        $TeamName = "MyTestTeam2"
-        $TeamCode = "MTT2"
-        $TeamDescription = "The best Test of a new team"
-
-        It 'Creates new TFS Security Group - New-TBSecurityGroup' {
-            # $createIt = New-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName -Description $TeamDescription
-            # $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
-            $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be True
-        }
-
-        It 'Gets TFS Security Group Get-TBSecurityGroup' {
-            # $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
-            $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be True
-        }
-    }
-
-    Context 'Security Group Member' {
-        It 'Adds a team to the new group - Add-TBSecurityGroupMember' {
-            # $result = Add-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName
-            $result -eq $null | Should Be True
-        }
-
-        It 'Removes a team to the new group - Remove-TBSecurityGroupMember' {
-            # $result = Remove-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName
-            $result -eq $null | Should Be True
-        }
-
-    }
-
-    Context 'Remove Security Group'{
-        It 'Removes new TFS Security Group - Remove-TBSecurityGroup' {
-            # $removeIt = Remove-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
-            # $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
-            $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be False
+            It 'Creates xml Template File - New-TBOrg' {
+                #$result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\VSTBImportTemplate.xml" -GenerateImportFile
+                $result | Should Be True
+            }
         }
     }
 }
+
+# Need to be able to mock dll class functions.
+# Describe 'TFS Security Group' {
+#     BeforeAll {
+#         $projectName = "VSTeamBuilderDemo"
+#         $TeamName = "MyTestTeam"
+#         $TeamCode = "MTT"
+#         $Global:VSTBConn = @{ "TeamExplorerConnection" = "https://myproject.visualstudio.com"}
+#     }
+
+#     Mock _testConnection { return $true }
+
+#     Context 'Create Group' {
+#         $TeamName = "MyTestTeam2"
+#         $TeamCode = "MTT2"
+#         $TeamDescription = "The best Test of a new team"
+
+#         It 'Creates new TFS Security Group - New-TBSecurityGroup' {
+#             $createIt = New-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName -Description $TeamDescription
+#             $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
+#             $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be True
+#         }
+
+#         It 'Gets TFS Security Group Get-TBSecurityGroup' {
+#             $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
+#             $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be True
+#         }
+#     }
+
+#     Context 'Security Group Member' {
+#         It 'Adds a team to the new group - Add-TBSecurityGroupMember' {
+#             $result = Add-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName
+#             $result -eq $null | Should Be True
+#         }
+
+#         It 'Removes a team to the new group - Remove-TBSecurityGroupMember' {
+#             $result = Remove-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName
+#             $result -eq $null | Should Be True
+#         }
+
+#     }
+
+#     Context 'Remove Security Group'{
+#         It 'Removes new TFS Security Group - Remove-TBSecurityGroup' {
+#             # $removeIt = Remove-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
+#             # $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
+#             $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be False
+#         }
+#     }
+# }
 
