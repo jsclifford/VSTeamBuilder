@@ -36,7 +36,7 @@ Describe 'VSTeamBuilder Integration Test'{
         }
 
         It 'Removes team project structure from csv file - Remove-TBOrg' {
-            $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$PSScriptRoot\VSTBImportFile.csv"
+            $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$PSScriptRoot\..\..\resources\VSTBImportFile.csv"
             $result | Should Be True
         }
 
@@ -52,12 +52,12 @@ Describe 'VSTeamBuilder Integration Test'{
         # }
 
         It 'Creates csv Template File - New-TBOrg' {
-            $result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\VSTBImportTemplate.csv" -GenerateImportFile
+            $result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\..\..\resources\VSTBImportFile-New.csv" -GenerateImportFile
             $result | Should Be True
         }
 
         It 'Creates xml Template File - New-TBOrg' {
-            $result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\VSTBImportTemplate.xml" -GenerateImportFile
+            $result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\..\..\resources\VSTBImportFile-New.xml" -GenerateImportFile
             $result | Should Be True
         }
     }
@@ -294,14 +294,6 @@ Describe "Standalone Integration Test - Temporary" {
     }
 
     $TeamCode = "MTT"
-
-    It 'Sets TFS Permission on Team Iteration - Set-TBPermission' {
-        $iteration = Get-TFSIteration -Iteration "$Teamcode" -Project $projectName -Collection $collectionName
-        $iterationId = ($iteration.uri -split 'Node/')[1]
-        $token = Get-TBToken -ObjectId $iterationId -NSName "Iteration" -ProjectName $projectName
-        $result = Set-TBPermission -TokenObject $token -GroupName "$TeamCode-Contributors" -AllowValue 7 -ProjectName $projectName
-        $result.count -gt 0 | Should Be True
-    }
 
     AfterAll {
         # Put everything back

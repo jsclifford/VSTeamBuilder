@@ -454,12 +454,12 @@ InModuleScope VSTeamBuilder {
             Mock Remove-TBTeam { return $true }
             #endregion
             It 'Creates new project and uses CSV as template - New-TBOrg' {
-                $result = New-TBOrg -ProjectName "$projectName-csv" -ProjectDescription "The Best Project Ever" -ImportFile "$PSScriptRoot\VSTBImportFile.csv" -NewProject
+                $result = New-TBOrg -ProjectName "$projectName-csv" -ProjectDescription "The Best Project Ever" -ImportFile "$PSScriptRoot\..\resources\VSTBImportFile.csv" -NewProject
                 $result | Should Be True
             }
 
             It 'Removes team project structure from csv file - Remove-TBOrg' {
-                $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$PSScriptRoot\VSTBImportFile.csv"
+                $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$PSScriptRoot\..\resources\VSTBImportFile.csv"
                 $result | Should Be True
             }
 
