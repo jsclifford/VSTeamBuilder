@@ -407,10 +407,41 @@ function _generateImportFile
         $ImportFile
     )
 
-    if ($PSCmdlet.ShouldProcess("Processing section 1."))
-    {
-        #Process something here.
+    if($ImportFile -like '*.csv'){
+        #Create resources folder and generate CSV file
+        if(Test-Path("$ImportFile")){
+            Write-Verbose "Csv template file already exists. ."
+        }
+
+        $CSVList = @(
+            [PSCustomObject]@{
+                "TeamProjectName" = "VSTeamBuilderDemo"
+                "TeamName" = "MyTestTeam"
+                "TeamCode" = "MTT"
+                "TeamPath" = ""
+                "TeamDescription" = "Best Test Team"
+                "isCoded" = "y"
+                "ProcessOrder" = 1
+            },
+            [PSCustomObject]@{
+                "TeamProjectName" = "VSTeamBuilderDemo"
+                "TeamName" = "MyTestTeam2"
+                "TeamCode" = "MTT2"
+                "TeamPath" = "MTT"
+                "TeamDescription" = "Best Test Team2"
+                "isCoded" = "n"
+                "ProcessOrder" = 2
+            }
+        )
+        try {
+            $CSVList | Export-Csv -NoTypeInformation -Path "$ImportFile"
+            Write-Information "CSV Template File created successfully. File Path: $ImportFile"
+        }
+        catch {
+            Write-Verbose "There was an error creating CSV file.  Error: $_"
+        }
     }
+
     <#
         .SYNOPSIS
             _generateImportFile creates a default csv or xml file for later import.
