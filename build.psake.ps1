@@ -100,6 +100,37 @@ Task Clean -depends Init -requiredVariables OutDir {
 }
 
 Task StageFiles -depends Init, Clean, BeforeStageFiles, CoreStageFiles {
+    #Create resources folder and generate CSV file
+    if(Test-Path("$PSScriptRoot\resources")){
+        Write-Verbose "Resources folder already created."
+    }else{
+        mkdir "$PSScriptRoot\resources"
+    }
+
+    $CSVList = @(
+        [PSCustomObject]@{
+            "TeamProjectName" = "VSTeamBuilderDemo"
+            "TeamName" = "MyTestTeam"
+            "TeamCode" = "MTT"
+            "TeamPath" = ""
+            "TeamDescription" = "Best Test Team"
+            "isCoded" = "y"
+            "ProcessOrder" = 1
+        },
+        [PSCustomObject]@{
+            "TeamProjectName" = "VSTeamBuilderDemo"
+            "TeamName" = "MyTestTeam2"
+            "TeamCode" = "MTT2"
+            "TeamPath" = "MTT"
+            "TeamDescription" = "Best Test Team2"
+            "isCoded" = "n"
+            "ProcessOrder" = 2
+        }
+    )
+
+    $CSVList | Export-Csv -NoTypeInformation -Path "$PSScriptRoot\resources\VSTBImportFile.csv" -Force
+
+
     #Getting TFS dlls from nuget.
     # Write-Verbose "Restoring Microsoft.TeamFoundationServer.ExtendedClient Nuget package (if needed)"
 

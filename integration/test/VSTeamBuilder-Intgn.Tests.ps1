@@ -36,7 +36,7 @@ Describe 'VSTeamBuilder Integration Org Test'{
         }
 
         It 'Removes team project structure from csv file - Remove-TBOrg' {
-            $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$PSScriptRoot\VSTBImportFile.csv"
+            $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$PSScriptRoot\..\..\resources\VSTBImportFile.csv"
             $result | Should Be True
         }
 
@@ -52,12 +52,12 @@ Describe 'VSTeamBuilder Integration Org Test'{
         # }
 
         It 'Creates csv Template File - New-TBOrg' {
-            $result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\VSTBImportTemplate.csv" -GenerateImportFile
+            $result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\..\..\resources\VSTBImportFile-New.csv" -GenerateImportFile
             $result | Should Be True
         }
 
         It 'Creates xml Template File - New-TBOrg' {
-            $result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\VSTBImportTemplate.xml" -GenerateImportFile
+            $result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\..\..\resources\VSTBImportFile-New.xml" -GenerateImportFile
             $result | Should Be True
         }
     }
@@ -203,9 +203,9 @@ Describe "Testing Team Creation and Settings" {
         }
 
         It 'Adds Team Iterations - Add-TBTeamIteration' {
-            $IterationSub = "$IterationName\MTT-Iteration1"
+            #$IterationSub = "$IterationName\MTT-Iteration1"
             $result = Add-TBTeamIteration -IterationName $IterationName -TeamName $TeamName -ProjectName $projectName
-            $($result.path) -like "*$IterationSub" | Should Be True
+            $($result.path) -like "*$IterationName" | Should Be True
         }
 
         It 'Gets Team Iterations - Get-TBTeamIteration' {
@@ -244,7 +244,8 @@ Describe "Testing Team Creation and Settings" {
 
         It 'Sets TFS Permission on Team Iteration - Set-TBPermission' {
             $iteration = Get-TFSIteration -Iteration "$Teamcode" -Project $projectName -Collection $collectionName
-            $token = Get-TBToken -ObjectId $iteration.Id -NSName "Iteration" -ProjectName $projectName
+            $iterationId = ($iteration.uri -split 'Node/')[1]
+            $token = Get-TBToken -ObjectId $iterationId -NSName "Iteration" -ProjectName $projectName
             $result = Set-TBPermission -TokenObject $token -GroupName "$TeamCode-Contributors" -AllowValue 7 -ProjectName $projectName
             $result.count -gt 0 | Should Be True
         }
@@ -292,17 +293,7 @@ Describe "Standalone Integration Test - Temporary" {
         Set-TBDefaultProject -ProjectName $projectName
     }
 
-    Context 'TFS Permissions and Tokens' {
-        $TeamCode = "MTT"
-
-        It 'Sets TFS Permission on Team Iteration - Set-TBPermission' {
-            $iteration = Get-TFSIteration -Iteration "$TeamCode" -Project $projectName -Collection $collectionName
-            $iterationId = ($iteration.Uri -split "Node/")[1]
-            $token = Get-TBToken -ObjectId $iterationId -NSName "Iteration" -ProjectName $projectName
-            $result = Set-TBPermission -TokenObject $token -GroupName "$TeamCode-Contributors" -AllowValue 7 -ProjectName $projectName
-            $result.count -gt 0 | Should Be True
-        }
-    }
+    $TeamCode = "MTT"
 
     AfterAll {
         # Put everything back

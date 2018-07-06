@@ -12,7 +12,7 @@
 RootModule = 'VSTeamBuilder.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.1.1'
+ModuleVersion = '0.4.1'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -133,7 +133,7 @@ PrivateData = @{
         ReleaseNotes = 'https://github.com/jsclifford/VSTeamBuilder/blob/master/ReleaseNotes.md'
 
         # TFS Client Version
-        TfsClientVersion = '${TfsOmNugetVersion}'
+        #TfsClientVersion = '${TfsOmNugetVersion}'
 
         #External dependent modules of this module
         ExternalModuleDependencies = 'VSTeam,TFSCmdlets'

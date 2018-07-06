@@ -341,7 +341,7 @@ function Remove-TBOrg
                 }
                 else
                 {
-                    $result = New-TBTeam -Name $($teamNode.TeamName) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal
+                    $result = Remove-TBTeam -Name $($teamNode.TeamName) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal
                 }
                 if ($result)
                 {
@@ -380,6 +380,7 @@ function Remove-TBOrg
         }
     }
     #endregion
+    return $result
 
     <#
         .SYNOPSIS
@@ -406,10 +407,46 @@ function _generateImportFile
         $ImportFile
     )
 
-    if ($PSCmdlet.ShouldProcess("Processing section 1."))
-    {
-        #Process something here.
+    $result = $true
+    if($ImportFile -like '*.csv'){
+        #Create resources folder and generate CSV file
+        if(Test-Path("$ImportFile")){
+            Write-Verbose "Csv template file already exists. ."
+        }
+
+        $CSVList = @(
+            [PSCustomObject]@{
+                "TeamProjectName" = "VSTeamBuilderDemo"
+                "TeamName" = "MyTestTeam"
+                "TeamCode" = "MTT"
+                "TeamPath" = ""
+                "TeamDescription" = "Best Test Team"
+                "isCoded" = "y"
+                "ProcessOrder" = 1
+            },
+            [PSCustomObject]@{
+                "TeamProjectName" = "VSTeamBuilderDemo"
+                "TeamName" = "MyTestTeam2"
+                "TeamCode" = "MTT2"
+                "TeamPath" = "MTT"
+                "TeamDescription" = "Best Test Team2"
+                "isCoded" = "n"
+                "ProcessOrder" = 2
+            }
+        )
+        try {
+            $CSVList | Export-Csv -NoTypeInformation -Path "$ImportFile"
+            Write-Information "CSV Template File created successfully. File Path: $ImportFile"
+        }
+        catch {
+            Write-Verbose "There was an error creating CSV file.  Error: $_"
+            $result = $false
+        }
+    }else{
+        #Generate XML File here.
     }
+
+    return $result
     <#
         .SYNOPSIS
             _generateImportFile creates a default csv or xml file for later import.
@@ -495,7 +532,7 @@ function New-TBTeam
         $projectNameLocal = $ProjectName
     }
 
-    $result = $null
+    $result = $true
     #endregion
 
     #region Create Team Area
@@ -870,123 +907,132 @@ function Remove-TBTeam
 
     $result = $true
     #endregion
-
-    #region Remove Version Control Repos
-    if ($IsCoded)
-    {
-        if ($PSCmdlet.ShouldProcess("Remove Version Control Repos"))
+    $result = $true
+    try {
+        #region Remove Version Control Repos
+        if ($IsCoded)
         {
-            foreach ($repoName in $RepoList)
+            if ($PSCmdlet.ShouldProcess("Remove Version Control Repos"))
             {
-                $FullReponame = "$TeamCode-$repoName"
-                if ($repoName -eq '{TeamCode}')
+                foreach ($repoName in $RepoList)
                 {
-                    $FullReponame = "$TeamCode"
-                }
-                try
-                {
-                    $repoToDelete = Get-VSTeamGitRepository -ProjectName $ProjectName -Name "$FullRepoName"
-                }
-                catch
-                {
-                    $repoToDelete = $null
-                }
+                    $FullReponame = "$TeamCode-$repoName"
+                    if ($repoName -eq '{TeamCode}')
+                    {
+                        $FullReponame = "$TeamCode"
+                    }
+                    try
+                    {
+                        $repoToDelete = Get-VSTeamGitRepository -ProjectName $ProjectName -Name "$FullRepoName"
+                    }
+                    catch
+                    {
+                        $repoToDelete = $null
+                    }
 
-                if ($null -ne $repoToDelete)
+                    if ($null -ne $repoToDelete)
+                    {
+                        #Creating Repo
+                        $holder = Remove-VSTeamGitRepository -Id "$($repoToDelete.id)" -Force
+                        #$holder = New-TFSGitRepository -Name "$FullRepoName" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
+                        Write-Verbose "$FullReponame Repo removed."
+                    }
+                    else
+                    {
+                        Write-Verbose "$FullReponame Repo already removed.  "
+                    }
+                    $repoExists = $null
+                }
+            }
+        }
+        #endregion
+
+        #region Remove Team Iterations.
+        $teamIterationRootPath = "$TeamPath\$TeamCode"
+
+        foreach ($iteration in $IterationList)
+        {
+            if ($iteration -eq '{TeamCode}')
+            {
+                $iteration = $teamIterationRootPath
+            }
+            else
+            {
+                $iteration = "$teamIterationRootPath\$iteration"
+            }
+            $iterationExists = Get-TFSIteration -Iteration "$iteration" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
+            if ($null -ne $iterationExists)
+            {
+                if ($PSCmdlet.ShouldProcess("Remove Team Iteration. Iteration Name: $iteration"))
                 {
                     #Creating Repo
-                    $holder = Remove-VSTeamGitRepository -Id "$($repoToDelete.id)" -Force
-                    #$holder = New-TFSGitRepository -Name "$FullRepoName" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
-                    Write-Verbose "$FullReponame Repo removed."
+                    $holder = Remove-TFSIteration -Iteration "$iteration" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
+                    Write-Verbose "$iteration Iteration Created."
                 }
-                else
-                {
-                    Write-Verbose "$FullReponame Repo already removed.  "
-                }
-                $repoExists = $null
             }
-        }
-    }
-    #endregion
-
-    #region Remove Team Iterations.
-    $teamIterationRootPath = "$TeamPath\$TeamCode"
-
-    foreach ($iteration in $IterationList)
-    {
-        if ($iteration -eq '{TeamCode}')
-        {
-            $iteration = $teamIterationRootPath
-        }
-        else
-        {
-            $iteration = "$teamIterationRootPath\$iteration"
-        }
-        $iterationExists = Get-TFSIteration -Iteration "$iteration" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
-        if ($null -ne $iterationExists)
-        {
-            if ($PSCmdlet.ShouldProcess("Remove Team Iteration. Iteration Name: $iteration"))
+            else
             {
-                #Creating Repo
-                $holder = Remove-TFSIteration -Iteration "$iteration" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
-                Write-Verbose "$iteration Iteration Created."
+                Write-Verbose "$teamIterationRootPath\$iteration Iteration already removed.  "
+            }
+            $repoExists = $null
+        }
+
+        #endregion
+
+        #region Delete Team Area
+        if ($PSCmdlet.ShouldProcess("Remove Team Area."))
+        {
+            $areaExists = Get-TFSArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
+            if ($null -ne $areaExists)
+            {
+                $holder = Remove-TfsArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
+                Write-Verbose "Removed Area: $TeamPath\$TeamCode"
+            }
+            else
+            {
+                Write-Verbose "Area already removed: $TeamPath\$TeamCode"
             }
         }
-        else
+        #endregion
+
+        #region Remove Team Application Security Groups
+        if ($PSCmdlet.ShouldProcess("Remove Team Application Security Groups."))
         {
-            Write-Verbose "$teamIterationRootPath\$iteration Iteration already removed.  "
+            foreach ($group in $TeamGroups)
+            {
+                $holder = Remove-TBSecurityGroup -Name "$TeamCode-$group" -ProjectName $projectNameLocal
+                Write-Verbose "Removed TFS Application Security Group: $TeamCode-$group"
+            }
         }
-        $repoExists = $null
+        #endregion
+
+        #region Remove Team
+        if ($PSCmdlet.ShouldProcess("Remove Team."))
+        {
+            try
+            {
+                $teamExists = Get-VSTeam -Name $Name -Project $projectNameLocal
+            }
+            catch
+            {
+                $teamExists = $null
+            }
+
+            if ($null -ne $teamExists)
+            {
+                $holder = Remove-VSTeam -Team $Name -Project $projectNameLocal -Force
+                Write-Verbose "Removed Team: $Name"
+            }
+        }
+        #endregion
+    }
+    catch {
+       $result = $false
+       Write-Verbose "There was an error removing the team.  Error: $_"
     }
 
-    #endregion
+    return $true
 
-    #region Delete Team Area
-    if ($PSCmdlet.ShouldProcess("Remove Team Area."))
-    {
-        $areaExists = Get-TFSArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
-        if ($null -ne $areaExists)
-        {
-            $holder = Remove-TfsArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
-            Write-Verbose "Removed Area: $TeamPath\$TeamCode"
-        }
-        else
-        {
-            Write-Verbose "Area already removed: $TeamPath\$TeamCode"
-        }
-    }
-    #endregion
-
-    #region Remove Team Application Security Groups
-    if ($PSCmdlet.ShouldProcess("Remove Team Application Security Groups."))
-    {
-        foreach ($group in $TeamGroups)
-        {
-            $holder = Remove-TBSecurityGroup -Name "$TeamCode-$group" -ProjectName $projectNameLocal
-            Write-Verbose "Removed TFS Application Security Group: $TeamCode-$group"
-        }
-    }
-    #endregion
-
-    #region Remove Team
-    if ($PSCmdlet.ShouldProcess("Remove Team."))
-    {
-        try
-        {
-            $teamExists = Get-VSTeam -Name $Name -Project $projectNameLocal
-        }
-        catch
-        {
-            $teamExists = $null
-        }
-
-        if ($null -ne $teamExists)
-        {
-            $holder = Remove-VSTeam -Team $Name -Project $projectNameLocal -Force
-            Write-Verbose "Removed Team: $Name"
-        }
-    }
-    #endregion
     <#
         .SYNOPSIS
             Remove-TBTeam will remove all team security groups,areas,inerations,VersionControl Repos.
@@ -1570,9 +1616,11 @@ function Set-TBTeamAreaSetting
 
     try
     {
-        if ($PSCmdlet.ShouldProcess("Adding IterationID: $iterationId to team: $TeamName"))
+        if ($PSCmdlet.ShouldProcess("Adding IterationID: $AreaPath to team: $TeamName"))
         {
-            $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$TeamName" -resource "_apis/work/teamsettings/teamfieldvalues" -method Patch -body $JSON -ContentType "application/json" -version 2.0-preview.1
+            #$result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$TeamName" -resource "_apis/work/teamsettings/teamfieldvalues" -method Patch -body $JSON -ContentType "application/json" -version 2.0-preview.1
+            $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings/teamfieldvalues?api-version=3.0"
+            $result = Invoke-VSTeamRequest -Url $Url -method Patch -body $JSON -ContentType "application/json"
         }
     }
     catch
@@ -1637,7 +1685,9 @@ function Get-TBTeamAreaSetting
 
     try
     {
-        $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings/teamfieldvalues" -method Get -version 2.0-preview.1
+        #$result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings/teamfieldvalues" -method Get -version 2.0-preview.1
+        $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings/teamfieldvalues?api-version=3.0"
+        $result = Invoke-VSTeamRequest -Url $Url -method Get
     }
     catch
     {
@@ -1730,7 +1780,9 @@ function Set-TBTeamIterationSetting
     {
         if ($PSCmdlet.ShouldProcess("Adding IterationID: $iterationId to team: $TeamName"))
         {
-            $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings" -method Patch -body $JSON -ContentType "application/json" -version 2.0-preview.1
+            #$result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings" -method Patch -body $JSON -ContentType "application/json" -version 2.0-preview.1
+            $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings?api-version=3.0"
+            $result = Invoke-VSTeamRequest -Url $Url -method Patch -body $JSON -ContentType "application/json"
         }
     }
     catch
@@ -1795,7 +1847,9 @@ function Get-TBTeamIterationSetting
 
     try
     {
-        $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings" -method Get -version 2.0-preview.1
+        #$result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings" -method Get -version 2.0-preview.1
+        $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings?api-version=3.0"
+        $result = Invoke-VSTeamRequest -Url $Url -method Get
     }
     catch
     {
@@ -1879,7 +1933,9 @@ function Add-TBTeamIteration
     {
         if ($PSCmdlet.ShouldProcess("Adding IterationID: $iterationId to team: $TeamName"))
         {
-            $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings/iterations" -method Post -body $JSON -ContentType "application/json" -version 2.0-preview.1
+            #$result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings/iterations" -method Post -body $JSON -ContentType "application/json" -version 2.0-preview.1
+            $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings/iterations?api-version=3.0"
+            $result = Invoke-VSTeamRequest -Url $Url -method Post -body $JSON -ContentType "application/json"
         }
     }
     catch
@@ -1944,7 +2000,9 @@ function Get-TBTeamIteration
 
     try
     {
-        $result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings/iterations" -method Get -version 2.0-preview.1
+        #$result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings/iterations" -method Get -version 2.0-preview.1
+        $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings/iterations?api-version=3.0"
+        $result = Invoke-VSTeamRequest -Url $Url -method Get
     }
     catch
     {
@@ -2559,4 +2617,3 @@ function Set-TBDefaultProject
 
 # Export only the functions using PowerShell standard verb-noun naming.
 Export-ModuleMember -Function *-*
-
