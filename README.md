@@ -11,7 +11,8 @@ The goal of this project is to automate management of VSTS/TFS big projects.  Th
 
 ### dev
 
-
+![Build status](https://masterkey53.visualstudio.com/_apis/public/build/definitions/1faeb996-a9d4-4d7a-81f8-467fb14c974c/4/badge)
+[](https://masterkey53.visualstudio.com/VSTeamBuilder/_apis/build/repos/git/badge?branchName=dev&api-version=4.1-preview.1)
 
 ## Contributors
 
