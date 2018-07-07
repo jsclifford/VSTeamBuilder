@@ -16,3 +16,7 @@ Creation of the module and project Scaffolding.
 ### 0.1.1
 
 Initial creation of powershell functions.
+
+### 0.4.1
+
+Added PAT logon support.
