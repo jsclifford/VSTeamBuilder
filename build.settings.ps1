@@ -147,7 +147,7 @@ Properties {
     # This is typically used to write out test results so that they can be sent to a CI
     # system like AppVeyor.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $TestOutputFile = "$TestRootDir\PesterOutput.log"
+    $TestOutputFile = "$TestRootDir\PesterOutput.TEST.xml"
 
     # Specifies the test output format to use when the TestOutputFile property is given
     # a path.  This parameter is passed through to Invoke-Pester's -OutputFormat parameter.
