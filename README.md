@@ -30,4 +30,4 @@ Initial creation of powershell functions.
 
 ### 0.4.1
 
-Added PAT logon support.
+Added PAT logon support. Alpha Release
