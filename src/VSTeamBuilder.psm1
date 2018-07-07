@@ -48,7 +48,8 @@ function New-TBOrg
     if (! (_testConnection))
     {
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
-        return
+        $isReturned = $true
+        return $false
     }
     if ($null -eq $ProjectName)
     {
@@ -74,12 +75,14 @@ function New-TBOrg
     $XMLAdvancedImport = $null
     $CSVImport = $null
     $isXML = $false
+    $isReturned = $false
 
     if (-not (Test-Path($ImportFile)))
     {
         if ($GenerateImportFile)
         {
             _generateImportFile -ImportFile $ImportFile
+            $isReturned = $true
             return $true
         }
     }
@@ -89,6 +92,7 @@ function New-TBOrg
         if ($CSVImport.Count -lt 1)
         {
             Write-Verbose "Import File is empty.  Please run -GenerateTemplateFile switch to get started."
+            $isReturned = $true
             return $false
         }
 
@@ -115,6 +119,7 @@ function New-TBOrg
         if ($validColumnNameCount -gt ($colnames.Length))
         {
             Write-Verbose "CSV File does not have required Columns for processing. Please run -GenerateTemplateFile switch to get started."
+            $isReturned = $true
             return $false
         }
     }
@@ -123,6 +128,7 @@ function New-TBOrg
         $XMLAdvancedImport = Import-Clixml -Path $ImportFile
         $isXML = $true
         Write-Verbose "This feature is not implemented at this time.  Please use CSV file."
+        $isReturned = $true
         return $true
     }
 
@@ -206,8 +212,10 @@ function New-TBOrg
         }
     }
     #endregion
+    if(-not $isReturned){
+        return $result
+    }
 
-    return $result
     <#
         .SYNOPSIS
             New-TBOrg will create TFS/VSTS Project and Team structure from an associated CSV or XML file.

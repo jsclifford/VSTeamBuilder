@@ -476,7 +476,11 @@ InModuleScope VSTeamBuilder {
 
             It 'Creates csv Template File - New-TBOrg' {
                 $result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\..\resources\VSTBImportTemplate.csv" -GenerateImportFile
-                $result | Should Be True
+                $success = $false
+                if($result){
+                    $success = $true
+                }
+                $success | Should Be True
             }
 
             It 'Creates xml Template File - New-TBOrg' {
