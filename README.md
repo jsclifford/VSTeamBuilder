@@ -31,3 +31,9 @@ Initial creation of powershell functions.
 ### 0.4.1
 
 Added PAT logon support. Alpha Release
+
+### 0.4.2
+
+Added PAT logon support. Alpha Release.
+Removed code signing file to prevent install
+error.

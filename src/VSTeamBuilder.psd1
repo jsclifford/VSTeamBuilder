@@ -12,7 +12,7 @@
 RootModule = 'VSTeamBuilder.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.4.1'
+ModuleVersion = '0.4.2'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -118,7 +118,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = @('VSTeamBuilder','VSTS', 'TFS', 'DevOps', 'Visual Studio', 'TeamServices', 'Team')
+        Tags = @('VSTeamBuilder','VSTS', 'TFS', 'DevOps', 'VisualStudio', 'TeamServices', 'Team')
 
         # A URL to the license for this module.
         LicenseUri = 'https://github.com/jsclifford/VSTeamBuilder/blob/master/LICENSE'
@@ -130,7 +130,9 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'https://github.com/jsclifford/VSTeamBuilder/blob/master/ReleaseNotes.md'
+        ReleaseNotes = 'Alpha Release
+        Removed code signing requirement in module for smooth install.
+        https://github.com/jsclifford/VSTeamBuilder/blob/master/ReleaseNotes.md'
 
         # TFS Client Version
         #TfsClientVersion = '${TfsOmNugetVersion}'
