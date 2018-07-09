@@ -452,7 +452,7 @@ Task CoreInstall -requiredVariables ModuleOutDir {
     "Module installed into $InstallPath"
 }
 
-Task Test -depends Build -requiredVariables TestRootDir, ModuleName, CodeCoverageEnabled, CodeCoverageFiles {
+Task Test -depends Build -requiredVariables TestRootDir, ModuleName, CodeCoverageEnabled, CodeCoverageFiles,CodeCoverageOutPutFile,CodeCoverageOutputFileFormat,PesterReportFolder  {
     if (!(Get-Module Pester -ListAvailable)) {
         "Pester module is not installed. Skipping $($psake.context.currentTaskName) task."
         return
@@ -478,9 +478,15 @@ Task Test -depends Build -requiredVariables TestRootDir, ModuleName, CodeCoverag
             }
         }
 
+        if(-not (Test-Path($PesterReportFolder))){
+            mkdir $PesterReportFolder
+        }
+
         # To control the Pester code coverage, a boolean $CodeCoverageEnabled is used.
         if ($CodeCoverageEnabled) {
             $testing.CodeCoverage = $CodeCoverageFiles
+            $testing.CodeCoverageOutPutFile = $CodeCoverageOutPutFile
+            $testing.CodeCoverageOutputFileFormat = $CodeCoverageOutputFileFormat
         }
 
         $testResult = Invoke-Pester @testing
