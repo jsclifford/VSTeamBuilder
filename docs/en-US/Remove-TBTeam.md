@@ -8,7 +8,7 @@ schema: 2.0.0
 # Remove-TBTeam
 
 ## SYNOPSIS
-{{Fill in the Synopsis}}
+Remove-TBTeam will remove all team security groups,areas,inerations,VersionControl Repos.
 
 ## SYNTAX
 
@@ -19,21 +19,19 @@ Remove-TBTeam [-Name] <String> [-TeamCode] <String> [[-TeamPath] <String>] [[-Re
 ```
 
 ## DESCRIPTION
-{{Fill in the Description}}
+Remove-TBTeam will remove all team security groups,areas,inerations,VersionControl Repos
 
 ## EXAMPLES
 
-### Example 1
-```powershell
-PS C:\> {{ Add example code here }}
+### EXAMPLE 1
 ```
-
-{{ Add example description here }}
+Remove-TBTeam -Name "My Team" -Teamcode "My-Team" -TeamPath "ParentTeam\MY-TEAM" -ProjectName "MyProject" -IsCoded
+```
 
 ## PARAMETERS
 
 ### -Name
-{{Fill Name Description}}
+TFS Team Name
 
 ```yaml
 Type: String
@@ -48,7 +46,7 @@ Accept wildcard characters: False
 ```
 
 ### -TeamCode
-{{Fill TeamCode Description}}
+TFS TeamCode - Used for Repo, Area, and Iteration Names
 
 ```yaml
 Type: String
@@ -63,7 +61,8 @@ Accept wildcard characters: False
 ```
 
 ### -TeamPath
-{{Fill TeamPath Description}}
+TFS Team Iteration/Area Root Path - Nested paths must not have leading back slash.
+Required back slash as a seperator.
 
 ```yaml
 Type: String
@@ -78,7 +77,8 @@ Accept wildcard characters: False
 ```
 
 ### -RepoList
-{{Fill RepoList Description}}
+TFS RepoList - List of repo names to remove. 
+Default is the TeamCode
 
 ```yaml
 Type: String[]
@@ -87,13 +87,14 @@ Aliases:
 
 Required: False
 Position: 4
-Default value: None
+Default value: @('{TeamCode}')
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
 ### -IterationList
-{{Fill IterationList Description}}
+TFS IterationList - List of iteration names to remove. 
+Default is the TeamCode
 
 ```yaml
 Type: String[]
@@ -102,13 +103,14 @@ Aliases:
 
 Required: False
 Position: 5
-Default value: None
+Default value: @('{TeamCode}')
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
 ### -TeamGroups
-{{Fill TeamGroups Description}}
+TFS Team Security Groups - List of Application Security Groups to remove. 
+Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers"
 
 ```yaml
 Type: String[]
@@ -117,13 +119,13 @@ Aliases:
 
 Required: False
 Position: 6
-Default value: None
+Default value: @("Contributors", "CodeReviewers", "Readers")
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
 ### -ProjectName
-{{Fill ProjectName Description}}
+TFS TeamCode - Used for Repo, Area, and Iteration Names
 
 ```yaml
 Type: String
@@ -138,7 +140,7 @@ Accept wildcard characters: False
 ```
 
 ### -IsCoded
-{{Fill IsCoded Description}}
+isCoded switch will make Version Control Repos if set.
 
 ```yaml
 Type: SwitchParameter
@@ -147,7 +149,7 @@ Aliases:
 
 Required: False
 Position: Named
-Default value: None
+Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
@@ -184,15 +186,12 @@ Accept wildcard characters: False
 ```
 
 ### CommonParameters
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### None
-
 ## OUTPUTS
-
-### System.Object
 
 ## NOTES
 
