@@ -2373,6 +2373,13 @@ function Add-TBConnection
 
         # TFS/VSTS AccountUrl -  For TFS this is the TFS Server url + the collectionname.
         [Parameter(Mandatory = $true)]
+        [ValidateScript({
+            if(($_ -match '.*\.visualstudio.com') -or ($_ -match '\.*.com/{1}\.*')){
+                $true
+            }else{
+                throw "$_ is not a valid value. Value must be in format [accountname].visualstudio.com or http(s)://[TFS Site URl]/[Collection Name]"
+            }
+        })]
         [string]
         $AcctUrl,
 
