@@ -39,7 +39,11 @@ function New-TBOrg
 
         # Generates a template file at the path specified in the ImportFile paramater.
         [switch]
-        $GenerateImportFile
+        $GenerateImportFile,
+
+        # Disables progress bar.
+        [switch]
+        $DisableProgressBar
     )
 
     #region global connection Variables
@@ -162,8 +166,11 @@ function New-TBOrg
     #region Creating Teams
     if ($isXML)
     {
+        $i = 0
         foreach ($teamNode in $teams)
         {
+            Write-Progress -Activity "Creating Teams" -Status "Creating Team: $($row.TeamName)" -PercentComplete ($i/$CSVImportSorted.Count*100)
+            $i++
             if ($PSCmdlet.ShouldProcess("Creating Team: $($row.TeamName). Advanced Config"))
             {
                 if ($teamNode.iscoded -eq 'y')
@@ -188,8 +195,15 @@ function New-TBOrg
     else
     {
         $CSVImportSorted = $CSVImport| Sort-Object -Property ProcessOrder
+        $i = 0
         foreach ($row in $CSVImportSorted)
         {
+            if($row.TeamName -eq $null -or $row.TeamName -eq ""){
+                Write-Verbose "Row is empty.  Skipping record."
+                continue
+            }
+            Write-Progress -Activity "Creating Teams" -Status "Creating Team: $($row.TeamName)" -PercentComplete ($i/$CSVImportSorted.Count*100)
+            $i++
             if ($PSCmdlet.ShouldProcess("Creating Team: $($row.TeamName). Basic Config"))
             {
                 if ($row.iscoded -eq 'y')
@@ -2374,7 +2388,7 @@ function Add-TBConnection
         # TFS/VSTS AccountUrl - Proper format: [accountname].visualstudio.com or http(s)://[TFS Site URl]/[Collection Name].
         [Parameter(Mandatory = $true)]
         [ValidateScript({
-            if(($_ -match '.*\.visualstudio.com') -or ($_ -match '\.*.com/{1}\.*')){
+            if(($_ -match '.*\.visualstudio.com') -or ($_ -match '.*//.*\.+.*/{1}\w+')){
                 $true
             }else{
                 throw "$_ is not a valid value. Value must be in format [accountname].visualstudio.com or http(s)://[TFS Site URl]/[Collection Name]"
