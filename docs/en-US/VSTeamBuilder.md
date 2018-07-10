@@ -2,78 +2,77 @@
 Module Name: VSTeamBuilder
 Module Guid: 698282cf-f034-4476-a875-8f6591ed45d2
 Download Help Link: {{Please enter FwLink manually}}
-Help Version: {{Please enter version of help manually (X.X.X.X) format}}
+Help Version: 0.4.3
 Locale: en-US
 ---
 
 # VSTeamBuilder Module
 ## Description
-{{Manually Enter Description Here}}
+Powershell Module that automates VSTS/TFS project creation and configuration for large project setups.
 
 ## VSTeamBuilder Cmdlets
 ### [Add-TBConnection](Add-TBConnection.md)
-{{Manually Enter Add-TBConnection Description Here}}
+Add-TBConnection will add TB Connection to current session. Windows Credentials and PAT tokens are only supported at this time.
 
 ### [Add-TBSecurityGroupMember](Add-TBSecurityGroupMember.md)
-{{Manually Enter Add-TBSecurityGroupMember Description Here}}
+Add-TBSecurityGroupMember will add a TFS member to a TFS Application Security Group.
 
 ### [Add-TBTeamIteration](Add-TBTeamIteration.md)
-{{Manually Enter Add-TBTeamIteration Description Here}}
+Add-TBTeamIteration adds an iteration to a team.
 
 ### [Get-TBNamespaceCollection](Get-TBNamespaceCollection.md)
-{{Manually Enter Get-TBNamespaceCollection Description Here}}
+Get-TBNamespaceCollection pulls all namespaces from TFS for permission identification. This is primarily used in Set-TBPermission. This functions sets the variable $Global:VSTBNamespaceCollection.
 
 ### [Get-TBSecurityGroup](Get-TBSecurityGroup.md)
-{{Manually Enter Get-TBSecurityGroup Description Here}}
+Get-TBSecurityGroup outputs the TFS security group object.
 
 ### [Get-TBTeamAreaSetting](Get-TBTeamAreaSetting.md)
-{{Manually Enter Get-TBTeamAreaSetting Description Here}}
+Get-TBTeamAreaSetting will get default team area.
 
 ### [Get-TBTeamIteration](Get-TBTeamIteration.md)
-{{Manually Enter Get-TBTeamIteration Description Here}}
+Get-TBTeamIteration Retrieves teh Team Iteration object.
 
 ### [Get-TBTeamIterationSetting](Get-TBTeamIterationSetting.md)
-{{Manually Enter Get-TBTeamIterationSetting Description Here}}
+Get-TBTeamIterationSetting gets the Team iteration settings.
 
 ### [Get-TBToken](Get-TBToken.md)
-{{Manually Enter Get-TBToken Description Here}}
+Get-TBToken return a token object with namespaceid and token id
 
 ### [Get-TBTokenCollection](Get-TBTokenCollection.md)
-{{Manually Enter Get-TBTokenCollection Description Here}}
+Get-TBTokenCollection retrieves all the tokens for a specific namespace and project.
 
 ### [New-TBOrg](New-TBOrg.md)
-{{Manually Enter New-TBOrg Description Here}}
+New-TBOrg will create TFS/VSTS Project and Team structure from an associated CSV or XML file.
 
 ### [New-TBSecurityGroup](New-TBSecurityGroup.md)
-{{Manually Enter New-TBSecurityGroup Description Here}}
+New-TBSecurityGroup will create a new TFS/VSTS Security group.
 
 ### [New-TBTeam](New-TBTeam.md)
-{{Manually Enter New-TBTeam Description Here}}
+New-TBTeam will create a TFS Team with associated Repos, Areas, Iterations, and TFS Application Security Groups (with assigned permissions)
 
 ### [Remove-TBConnection](Remove-TBConnection.md)
-{{Manually Enter Remove-TBConnection Description Here}}
+Remove-TBConnection will remove Global Variable for this module.
 
 ### [Remove-TBOrg](Remove-TBOrg.md)
-{{Manually Enter Remove-TBOrg Description Here}}
+Remove-TBOrg will remove TFS/VSTS Project structure define in associated template file.
 
 ### [Remove-TBSecurityGroup](Remove-TBSecurityGroup.md)
-{{Manually Enter Remove-TBSecurityGroup Description Here}}
+Remove-TBSecurityGroup will remove a TFS/VSTS Security group.
 
 ### [Remove-TBSecurityGroupMember](Remove-TBSecurityGroupMember.md)
-{{Manually Enter Remove-TBSecurityGroupMember Description Here}}
+Remove-TBSecurityGroupMember will remove a TFS member to a TFS Application Security Group.
 
 ### [Remove-TBTeam](Remove-TBTeam.md)
-{{Manually Enter Remove-TBTeam Description Here}}
+Remove-TBTeam will remove all team security groups,areas,inerations,VersionControl Repos.
 
 ### [Set-TBDefaultProject](Set-TBDefaultProject.md)
-{{Manually Enter Set-TBDefaultProject Description Here}}
+Set-TBDefaultProject will add the project name to the $VSTBVersionTable Object.
 
 ### [Set-TBPermission](Set-TBPermission.md)
-{{Manually Enter Set-TBPermission Description Here}}
+Set-TBPermission sets a tfs permission for a tfs token object.
 
 ### [Set-TBTeamAreaSetting](Set-TBTeamAreaSetting.md)
-{{Manually Enter Set-TBTeamAreaSetting Description Here}}
+Set-TBTeamAreaSetting will set the default area for the team.
 
 ### [Set-TBTeamIterationSetting](Set-TBTeamIterationSetting.md)
-{{Manually Enter Set-TBTeamIterationSetting Description Here}}
-
+Set-TBTeamIterationSetting set default iteration settings.

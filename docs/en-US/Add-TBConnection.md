@@ -31,7 +31,7 @@ Add-TBConnection -AcctUrl "http://mywebsite.com/tfs"
 ## PARAMETERS
 
 ### -AcctUrl
-TFS/VSTS AccountUrl -  For TFS this is the TFS Server url + the collectionname.
+TFS/VSTS AccountUrl - Proper format: \[accountname\].visualstudio.com or http(s)://\[TFS Site URl\]/\[Collection Name\].
 
 ```yaml
 Type: String
