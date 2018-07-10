@@ -16,13 +16,10 @@ Added PAT logon support. Alpha Release
 
 Added PAT logon support. Alpha Release.
 Removed code signing file to prevent install
-<<<<<<< HEAD
-
-=======
 error.
 
 ### 0.4.5
 
 Added Validation Test to AcctUrl variable on Add-TBConnection.
 This resolves inputing wrong url format.
->>>>>>> dev-working
+
