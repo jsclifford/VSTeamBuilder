@@ -568,7 +568,7 @@ InModuleScope VSTeamBuilder {
             $TeamCode = "MTT"
             $mockTpc = [mTfsTeamProjectCollection]::new($env:accturl)
             $Global:VSTBConn = @{ "TeamExplorerConnection" = $mockTpc}
-            $searchGroup = $env:searchGroup
+            $searchGroup = "Readers"
         }
 
         Mock _testConnection { return $true }
