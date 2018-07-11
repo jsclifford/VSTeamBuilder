@@ -1,8 +1,6 @@
 # Dot source this script in any Pester test script that requires the module to be imported.
 
 $ModuleManifestName = 'VSTeamBuilder.psd1'
-#$RemoveIntegrationPath = $PSScriptRoot -replace "\\integration\\test", ""
-#$ModuleManifestPath = "$RemoveIntegrationPath\src\$ModuleManifestName"
 $ModuleManifestPath = "$PSScriptRoot\..\..\src\$ModuleManifestName"
 
 if (!$SuppressImportModule) {
