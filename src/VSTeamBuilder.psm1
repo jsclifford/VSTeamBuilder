@@ -204,15 +204,10 @@ function New-TBOrg
                 Write-Verbose "Row is empty.  Skipping record."
                 continue
             }
-<<<<<<< HEAD
-            Write-Progress -Activity "Creating Teams" -Status "Creating Team: $($row.TeamName)" -PercentComplete ($i/$CSVImportSorted.Count*100)
-            $i++
-=======
             if(!$DisableProgressBar){
                 Write-Progress -Activity "Creating Teams" -Status "Creating Team: $($row.TeamName)" -PercentComplete ($i/$CSVImportSorted.Count*100)
                 $i++
             }
->>>>>>> fcb8987e63627c06917d0eb3e7f13780039eaf0b
             if ($PSCmdlet.ShouldProcess("Creating Team: $($row.TeamName). Basic Config"))
             {
                 if ($row.iscoded -eq 'y')
