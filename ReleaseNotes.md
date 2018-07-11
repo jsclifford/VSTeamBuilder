@@ -23,3 +23,7 @@ error.
 Added Validation Test to AcctUrl variable on Add-TBConnection.
 This resolves inputing wrong url format.
 
+### 0.5.1
+
+Added Validation for AcctUrl variable on Add-TBConnection.
+Added progress bar on New-TBOrg.

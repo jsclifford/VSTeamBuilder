@@ -276,10 +276,9 @@ Describe "Testing Team Creation and Settings" {
 
 Describe "Standalone Integration Test - Temporary" {
     BeforeAll {
-        $projectName = $env:projectName
+        $projectName = "5RCC-E Master Control"
         $collectionName = $env:collectionName
         $acctUrl = $env:accturl
-        #$acctUrl = "masterkey53"
         $pat = $env:PAT
         $api = $env:API
         $searchGroup = $env:searchGroup
@@ -293,7 +292,13 @@ Describe "Standalone Integration Test - Temporary" {
         Set-TBDefaultProject -ProjectName $projectName
     }
 
-    $TeamCode = "MTT"
+    Context 'Add/Remove TBOrg' {
+        It 'Creates new project and uses CSV as template - New-TBOrg' {
+            $result = New-TBOrg -ProjectName "$projectName" -ProjectDescription "The Best Project Ever" -ImportFile "C:\viper\VSCodeProjects\ManagementProjects\TFS-Mgmt-Team\project_import_definition\RCCDC_5RCC-E_Master_Control.csv"
+            $result | Should Be True
+        }
+    }
+
 
     AfterAll {
         # Put everything back

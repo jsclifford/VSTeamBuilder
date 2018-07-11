@@ -169,9 +169,17 @@ function New-TBOrg
         $i = 0
         foreach ($teamNode in $teams)
         {
+<<<<<<< HEAD
             Write-Progress -Activity "Creating Teams" -Status "Creating Team: $($row.TeamName)" -PercentComplete ($i/$CSVImportSorted.Count*100)
             $i++
             if ($PSCmdlet.ShouldProcess("Creating Team: $($row.TeamName). Advanced Config"))
+=======
+            if(!$DisableProgressBar){
+                Write-Progress -Activity "Creating Teams" -Status "Creating Team: $($teamNode.TeamName)" -PercentComplete ($i/$teams.Count*100)
+                $i++
+            }
+            if ($PSCmdlet.ShouldProcess("Creating Team: $($teamNode.TeamName). Advanced Config"))
+>>>>>>> fcb8987e63627c06917d0eb3e7f13780039eaf0b
             {
                 if ($teamNode.iscoded -eq 'y')
                 {
@@ -202,8 +210,15 @@ function New-TBOrg
                 Write-Verbose "Row is empty.  Skipping record."
                 continue
             }
+<<<<<<< HEAD
             Write-Progress -Activity "Creating Teams" -Status "Creating Team: $($row.TeamName)" -PercentComplete ($i/$CSVImportSorted.Count*100)
             $i++
+=======
+            if(!$DisableProgressBar){
+                Write-Progress -Activity "Creating Teams" -Status "Creating Team: $($row.TeamName)" -PercentComplete ($i/$CSVImportSorted.Count*100)
+                $i++
+            }
+>>>>>>> fcb8987e63627c06917d0eb3e7f13780039eaf0b
             if ($PSCmdlet.ShouldProcess("Creating Team: $($row.TeamName). Basic Config"))
             {
                 if ($row.iscoded -eq 'y')
@@ -263,7 +278,11 @@ function Remove-TBOrg
         # Import File path.
         [Parameter(Mandatory = $true)]
         [string]
-        $ImportFile
+        $ImportFile,
+
+        # Disables progress bar.
+        [switch]
+        $DisableProgressBar
     )
 
     #region global connection Variables
@@ -353,8 +372,13 @@ function Remove-TBOrg
     #region Removing Teams Basic config
     if ($isXML)
     {
+        $i = 0
         foreach ($teamNode in $teams)
         {
+            if(!$DisableProgressBar){
+                Write-Progress -Activity "Removing Teams" -Status "Removing Team: $($row.TeamName)" -PercentComplete ($i/$teams.Count*100)
+                $i++
+            }
             if ($PSCmdlet.ShouldProcess("Removing Team: $($teamNode.TeamName). Advanced Config"))
             {
                 if ($teamNode.iscoded -eq 'y')
@@ -378,8 +402,18 @@ function Remove-TBOrg
     }
     else
     {
-        foreach ($row in $CSVImport)
+        $CSVImportSorted = $CSVImport| Sort-Object -Property ProcessOrder
+        $i = 0
+        foreach ($row in $CSVImportSorted)
         {
+            if($row.TeamName -eq $null -or $row.TeamName -eq ""){
+                Write-Verbose "Row is empty.  Skipping record."
+                continue
+            }
+            if(!$DisableProgressBar){
+                Write-Progress -Activity "Removing Teams" -Status "Removing Team: $($row.TeamName)" -PercentComplete ($i/$CSVImportSorted.Count*100)
+                $i++
+            }
             if ($PSCmdlet.ShouldProcess("Removing Team: $($teamNode.TeamName). Basic Config"))
             {
                 if ($row.iscoded -eq 'y')

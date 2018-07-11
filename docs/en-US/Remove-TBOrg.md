@@ -13,7 +13,8 @@ Remove-TBOrg will remove TFS/VSTS Project structure define in associated templat
 ## SYNTAX
 
 ```
-Remove-TBOrg [-ProjectName] <String> [-ImportFile] <String> [-WhatIf] [-Confirm] [<CommonParameters>]
+Remove-TBOrg [-ProjectName] <String> [-ImportFile] <String> [-DisableProgressBar] [-WhatIf] [-Confirm]
+ [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -59,6 +60,19 @@ Aliases:
 Required: True
 Position: 2
 Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -DisableProgressBar
+Disables progress bar.```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
 Accept pipeline input: False
 Accept wildcard characters: False
 ```

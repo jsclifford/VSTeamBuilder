@@ -2,6 +2,9 @@
 $SuppressImportModule = $false
 . $PSScriptRoot\Shared.ps1
 
+# Adding Mocked classes
+. $PSScriptRoot\MockClasses_TfsCmdlets.ps1
+
 Describe "Manifest & xml validation" {
     Context 'Module Manifest' {
         It 'Passes Test-ModuleManifest' {
@@ -489,57 +492,62 @@ InModuleScope VSTeamBuilder {
             }
         }
     }
+
+    Describe 'TFS Security Group' {
+        BeforeAll {
+            $projectName = "VSTeamBuilderDemo"
+            $TeamName = "MyTestTeam"
+            $TeamCode = "MTT"
+
+            $mockTpc = New-Object mTfsTeamProjectCollection
+            $Global:VSTBConn = @{ "TeamExplorerConnection" = $mockTpc}
+        }
+
+        Mock _testConnection { return $true }
+
+        Context 'Create Group' {
+            $TeamName = "MyTestTeam2"
+            $TeamCode = "MTT2"
+            $TeamDescription = "The best Test of a new team"
+
+            It 'Creates new TFS Security Group - New-TBSecurityGroup' {
+                $createIt = New-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName -Description $TeamDescription
+                $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
+                $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be True
+            }
+
+
+            It 'Gets TFS Security Group Get-TBSecurityGroup' {
+                $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
+                $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be True
+            }
+        }
+
+        Context 'Security Group Member' {
+            It 'Adds a team to the new group - Add-TBSecurityGroupMember' {
+                $result = Add-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName
+                $result -eq $null | Should Be True
+            }
+
+            It 'Removes a team to the new group - Remove-TBSecurityGroupMember' {
+                $result = Remove-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName
+                $result -eq $null | Should Be True
+            }
+
+        }
+
+        Context 'Remove Security Group'{
+            It 'Removes new TFS Security Group - Remove-TBSecurityGroup' {
+                # $removeIt = Remove-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
+                # $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
+                $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be False
+            }
+        }
+    }
 }
 
 #region Future tests
-# Need to be able to mock dll class functions.
-# Describe 'TFS Security Group' {
-#     BeforeAll {
-#         $projectName = "VSTeamBuilderDemo"
-#         $TeamName = "MyTestTeam"
-#         $TeamCode = "MTT"
-#         $Global:VSTBConn = @{ "TeamExplorerConnection" = "https://myproject.visualstudio.com"}
-#     }
+#Need to be able to mock dll class functions.
 
-#     Mock _testConnection { return $true }
-
-#     Context 'Create Group' {
-#         $TeamName = "MyTestTeam2"
-#         $TeamCode = "MTT2"
-#         $TeamDescription = "The best Test of a new team"
-
-#         It 'Creates new TFS Security Group - New-TBSecurityGroup' {
-#             $createIt = New-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName -Description $TeamDescription
-#             $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
-#             $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be True
-#         }
-
-#         It 'Gets TFS Security Group Get-TBSecurityGroup' {
-#             $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
-#             $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be True
-#         }
-#     }
-
-#     Context 'Security Group Member' {
-#         It 'Adds a team to the new group - Add-TBSecurityGroupMember' {
-#             $result = Add-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName
-#             $result -eq $null | Should Be True
-#         }
-
-#         It 'Removes a team to the new group - Remove-TBSecurityGroupMember' {
-#             $result = Remove-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName
-#             $result -eq $null | Should Be True
-#         }
-
-#     }
-
-#     Context 'Remove Security Group'{
-#         It 'Removes new TFS Security Group - Remove-TBSecurityGroup' {
-#             # $removeIt = Remove-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
-#             # $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
-#             $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be False
-#         }
-#     }
-# }
 #endregion
 

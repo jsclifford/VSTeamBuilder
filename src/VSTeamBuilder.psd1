@@ -12,7 +12,7 @@
 RootModule = 'VSTeamBuilder.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.4.5'
+ModuleVersion = '0.5.1'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -131,7 +131,8 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = 'Alpha Release
-Added Validation for AcctUrl variable on Add-TBConnection
+Added Validation for AcctUrl variable on Add-TBConnection.
+Added progress bar on New-TBOrg.
 https://github.com/jsclifford/VSTeamBuilder/blob/master/ReleaseNotes.md'
 
         # TFS Client Version
