@@ -169,17 +169,11 @@ function New-TBOrg
         $i = 0
         foreach ($teamNode in $teams)
         {
-<<<<<<< HEAD
-            Write-Progress -Activity "Creating Teams" -Status "Creating Team: $($row.TeamName)" -PercentComplete ($i/$CSVImportSorted.Count*100)
-            $i++
-            if ($PSCmdlet.ShouldProcess("Creating Team: $($row.TeamName). Advanced Config"))
-=======
             if(!$DisableProgressBar){
                 Write-Progress -Activity "Creating Teams" -Status "Creating Team: $($teamNode.TeamName)" -PercentComplete ($i/$teams.Count*100)
                 $i++
             }
             if ($PSCmdlet.ShouldProcess("Creating Team: $($teamNode.TeamName). Advanced Config"))
->>>>>>> fcb8987e63627c06917d0eb3e7f13780039eaf0b
             {
                 if ($teamNode.iscoded -eq 'y')
                 {
