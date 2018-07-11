@@ -551,12 +551,12 @@ InModuleScope VSTeamBuilder {
         }
 
         [string]AddMemberToApplicationGroup([string]$groupDescriptor,[string]$memberToAddDescriptor){
-            Write-Verbose "Added member to group.  Group: $groupDescriptor ---  Member: $memberToAddDescriptor"
+            #Write-Verbose "Added member to group.  Group: $groupDescriptor ---  Member: $memberToAddDescriptor"
             return $null
         }
 
         [string]RemoveMemberFromApplicationGroup([string]$groupDescriptor,[string]$memberToRemoveDescriptor){
-            Write-Verbose "Added member to group.  Group: $groupDescriptor ---  Member: $memberToRemoveDescriptor"
+            #Write-Verbose "Added member to group.  Group: $groupDescriptor ---  Member: $memberToRemoveDescriptor"
             return $null
         }
     }
@@ -596,12 +596,12 @@ InModuleScope VSTeamBuilder {
         Context 'Security Group Member' {
             It 'Adds a team to the new group - Add-TBSecurityGroupMember' {
                 $result = Add-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName
-                $result -eq $null | Should Be True
+                $result -eq "" | Should Be True
             }
 
             It 'Removes a team to the new group - Remove-TBSecurityGroupMember' {
                 $result = Remove-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName
-                $result -eq $null | Should Be True
+                $result -eq "" | Should Be True
             }
 
         }
