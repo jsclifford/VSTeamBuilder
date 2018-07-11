@@ -279,7 +279,6 @@ Describe "Standalone Integration Test - Temporary" {
         $projectName = $env:projectName
         $collectionName = $env:collectionName
         $acctUrl = $env:accturl
-        #$acctUrl = "masterkey53"
         $pat = $env:PAT
         $api = $env:API
         $searchGroup = $env:searchGroup
@@ -293,7 +292,34 @@ Describe "Standalone Integration Test - Temporary" {
         Set-TBDefaultProject -ProjectName $projectName
     }
 
-    $TeamCode = "MTT"
+    Context 'TFS Security Group' {
+        $TeamName = "MyTestTeam2"
+        $TeamCode = "MTT2"
+        $TeamDescription = "The best Test of a new team"
+
+        It 'Creates new TFS Security Group - New-TBSecurityGroup' {
+            $createIt = New-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName -Description $TeamDescription
+            $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
+            $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be True
+        }
+
+       It 'Adds a team to the new group - Add-TBSecurityGroupMember' {
+            $result = Add-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName
+            $result -eq $null | Should Be True
+        }
+
+        It 'Removes a team to the new group - Remove-TBSecurityGroupMember' {
+            $result = Remove-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName
+            $result -eq $null | Should Be True
+        }
+
+        It 'Removes new TFS Security Group - Remove-TBSecurityGroup' {
+            $removeIt = Remove-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
+            $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
+            $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be False
+        }
+    }
+
 
     AfterAll {
         # Put everything back

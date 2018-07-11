@@ -1,0 +1,25 @@
+{
+    "name": "vsteambuilder",
+    "version": "0.5.1",
+    "description": "![Build status](https://masterkey53.visualstudio.com/_apis/public/build/definitions/1faeb996-a9d4-4d7a-81f8-467fb14c974c/4/badge)\r # VSTeamBuilder\r Automate Project Creation and team provisioning.",
+    "directories": {
+      "doc": "docs",
+      "test": "test"
+    },
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/jsclifford/VSTeamBuilder.git"
+    },
+    "author": "",
+    "license": "GPLv3",
+    "bugs": {
+      "url": "https://github.com/jsclifford/VSTeamBuilder/issues"
+    },
+    "homepage": "https://github.com/jsclifford/VSTeamBuilder#readme",
+    "dependencies": {
+      "markdown-include": "^0.4.3"
+    }
+  }
