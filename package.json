@@ -13,7 +13,7 @@
       "type": "git",
       "url": "git+https://github.com/jsclifford/VSTeamBuilder.git"
     },
-    "author": "",
+    "author": "jsclifford",
     "license": "GPLv3",
     "bugs": {
       "url": "https://github.com/jsclifford/VSTeamBuilder/issues"
