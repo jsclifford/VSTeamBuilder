@@ -276,7 +276,7 @@ Describe "Testing Team Creation and Settings" {
 
 Describe "Standalone Integration Test - Temporary" {
     BeforeAll {
-        $projectName = "5RCC-E Master Control"
+        $projectName = $env:projectName
         $collectionName = $env:collectionName
         $acctUrl = $env:accturl
         $pat = $env:PAT
