@@ -2,9 +2,6 @@
 $SuppressImportModule = $false
 . $PSScriptRoot\Shared.ps1
 
-# Adding Mocked classes
-. $PSScriptRoot\MockClasses_TfsCmdlets.ps1
-
 Describe "Manifest & xml validation" {
     Context 'Module Manifest' {
         It 'Passes Test-ModuleManifest' {
@@ -493,14 +490,85 @@ InModuleScope VSTeamBuilder {
         }
     }
 
+    #region Mocked Classes
+    $Global:nullGroup = $false
+    class mTfsTeamProjectCollection{
+        [string]$acctUrl
+
+        mTfsTeamProjectCollection([string]$AcctUrl){
+            $this.acctUrl = $AcctUrl
+        }
+
+        [object]GetService([string]$service){
+           $resultObject = $null
+            switch ($service) {
+                "Microsoft.TeamFoundation.Framework.Client.IIdentityManagementService" { $resultObject = [mIIdentitymanagementService]::new() }
+                "Microsoft.TeamFoundation.Server.ICommonStructureService3" { $resultObject = [mICommonStructureService3]::new() }
+            }
+            return $resultObject
+        }
+    }
+
+    class mICommonStructureService3{
+        [object]GetProjectFromName([string]$projectName){
+            $projectObject = [PSCustomObject]@{
+                Uri = "vstfs:///Classification/TeamProject/efe839bb-501e-4b8b-bf9f-a99762e77gt3"
+            }
+            return $projectObject
+        }
+    }
+
+    class mIIdentitymanagementService{
+        [string]CreateApplicationGroup([string]$projectId,[string]$name,[string]$description){
+            return "Group Created. Group Name: $name"
+        }
+
+        [string]DeleteApplicationGroup([string]$groupSid){
+            return "GroupSid Deleted: $groupSid"
+        }
+
+        [object]ReadIdentities([object]$SearchFactor,[string]$groupName,[object]$Expanded,[object]$TrueSid){
+            if($Global:nullGroup){
+                $groupArr = $null
+            }else{
+                $groupArr = @(
+                    @(
+                        [PSCustomObject]@{
+                            IsContainer = $true
+                            UniqueName = "vstfs:///Classification/TeamProject/efe839bb-501e-4b8b-bf9f-a99762e88fe4/$groupname"
+                            Descriptor = [PSCustomObject]@{
+                                Identifier = "S-1-9-1551374245-3141145675-508595019-3214911895-1659678356-1-2187896479-2513455524-3216817848-116679711"
+                                IdentityType = "Microsoft.TeamFoundation.Identity"
+                            }
+                            DisplayName = "$groupName"
+                            IsActive = $true
+                            TeamFoundationId = "79733bd3-e1fe-473f-863d-d57e058bd237"
+                        }
+                    )
+                )
+            }
+            return $groupArr
+        }
+
+        [string]AddMemberToApplicationGroup([string]$groupDescriptor,[string]$memberToAddDescriptor){
+            #Write-Verbose "Added member to group.  Group: $groupDescriptor ---  Member: $memberToAddDescriptor"
+            return $null
+        }
+
+        [string]RemoveMemberFromApplicationGroup([string]$groupDescriptor,[string]$memberToRemoveDescriptor){
+            #Write-Verbose "Added member to group.  Group: $groupDescriptor ---  Member: $memberToRemoveDescriptor"
+            return $null
+        }
+    }
+    #endregion
     Describe 'TFS Security Group' {
         BeforeAll {
             $projectName = "VSTeamBuilderDemo"
             $TeamName = "MyTestTeam"
             $TeamCode = "MTT"
-
-            $mockTpc = New-Object mTfsTeamProjectCollection
+            $mockTpc = [mTfsTeamProjectCollection]::new($env:accturl)
             $Global:VSTBConn = @{ "TeamExplorerConnection" = $mockTpc}
+            $searchGroup = "Readers"
         }
 
         Mock _testConnection { return $true }
@@ -511,7 +579,9 @@ InModuleScope VSTeamBuilder {
             $TeamDescription = "The best Test of a new team"
 
             It 'Creates new TFS Security Group - New-TBSecurityGroup' {
+                $Global:nullGroup = $true
                 $createIt = New-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName -Description $TeamDescription
+                $Global:nullGroup = $false
                 $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
                 $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be True
             }
@@ -526,28 +596,24 @@ InModuleScope VSTeamBuilder {
         Context 'Security Group Member' {
             It 'Adds a team to the new group - Add-TBSecurityGroupMember' {
                 $result = Add-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName
-                $result -eq $null | Should Be True
+                $result -eq "" | Should Be True
             }
 
             It 'Removes a team to the new group - Remove-TBSecurityGroupMember' {
                 $result = Remove-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName
-                $result -eq $null | Should Be True
+                $result -eq "" | Should Be True
             }
 
         }
 
         Context 'Remove Security Group'{
             It 'Removes new TFS Security Group - Remove-TBSecurityGroup' {
-                # $removeIt = Remove-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
-                # $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
+                $removeIt = Remove-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
+                $Global:nullGroup = $true
+                $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
                 $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be False
             }
         }
     }
 }
-
-#region Future tests
-#Need to be able to mock dll class functions.
-
-#endregion
 
