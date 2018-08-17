@@ -185,7 +185,7 @@ function New-TBOrg
                 $teamExists = $null
                 try
                 {
-                    $teamExists = Get-VSTeam -Name $($teamNode.TeamName) -Project $ProjectName -ErrorAction SilentlyContinue
+                    $teamExists = Get-VSTeam -Name $($teamNode.TeamName) -Project $ProjectName
                 }
                 catch
                 {
@@ -239,7 +239,7 @@ function New-TBOrg
                 $teamExists = $null
                 try
                 {
-                    $teamExists = Get-VSTeam -Name $($teamNode.TeamName) -Project $ProjectName -ErrorAction SilentlyContinue
+                    $teamExists = Get-VSTeam -Name $($row.TeamName) -Project $ProjectName
                 }
                 catch
                 {
@@ -248,7 +248,7 @@ function New-TBOrg
                 if ($null -ne $teamExists)
                 {
                     if(!$DisableProgressBar){
-                        Write-Progress -Activity "Creating Teams" -Status "Skipping Existing Team: $($teamNode.TeamName)" -PercentComplete ($i/$teams.Count*100)
+                        Write-Progress -Activity "Creating Teams" -Status "Skipping Existing Team: $($row.TeamName)" -PercentComplete ($i/$CSVImportSorted.Count*100)
                         $i++
                     }
                     continue
