@@ -43,7 +43,11 @@ function New-TBOrg
 
         # Disables progress bar.
         [switch]
-        $DisableProgressBar
+        $DisableProgressBar,
+
+        # Skip Existing Team Update
+        [switch]
+        $SkipExistingTeam
     )
 
     #region global connection Variables
@@ -164,14 +168,37 @@ function New-TBOrg
     #endregion
 
     #region Creating Teams
+    $i = 0
+    if(!$DisableProgressBar){
+        Write-Progress -Activity "Creating Teams" -Status "Starting Team Creation" -PercentComplete ($i/$teams.Count*100)
+        $i++
+    }
+
     if ($isXML)
     {
-        $i = 0
         foreach ($teamNode in $teams)
         {
             if(!$DisableProgressBar){
                 Write-Progress -Activity "Creating Teams" -Status "Creating Team: $($teamNode.TeamName)" -PercentComplete ($i/$teams.Count*100)
                 $i++
+            }
+            if($SkipExistingTeam){
+                $teamExists = $null
+                try
+                {
+                    $teamExists = Get-VSTeam -Name $($teamNode.TeamName) -Project $ProjectName -ErrorAction SilentlyContinue
+                }
+                catch
+                {
+                    $teamExists = $null
+                }
+                if ($null -ne $teamExists)
+                {
+                    if(!$DisableProgressBar){
+                        Write-Progress -Activity "Creating Teams" -Status "Skipping Existing Team: $($teamNode.TeamName)" -PercentComplete ($i/$teams.Count*100)
+                    }
+                    continue
+                }
             }
             if ($PSCmdlet.ShouldProcess("Creating Team: $($teamNode.TeamName). Advanced Config"))
             {
@@ -197,12 +224,29 @@ function New-TBOrg
     else
     {
         $CSVImportSorted = $CSVImport| Sort-Object -Property ProcessOrder
-        $i = 0
         foreach ($row in $CSVImportSorted)
         {
             if($row.TeamName -eq $null -or $row.TeamName -eq ""){
                 Write-Verbose "Row is empty.  Skipping record."
                 continue
+            }
+            if($SkipExistingTeam){
+                $teamExists = $null
+                try
+                {
+                    $teamExists = Get-VSTeam -Name $($teamNode.TeamName) -Project $ProjectName -ErrorAction SilentlyContinue
+                }
+                catch
+                {
+                    $teamExists = $null
+                }
+                if ($null -ne $teamExists)
+                {
+                    if(!$DisableProgressBar){
+                        Write-Progress -Activity "Creating Teams" -Status "Skipping Existing Team: $($teamNode.TeamName)" -PercentComplete ($i/$teams.Count*100)
+                    }
+                    continue
+                }
             }
             if(!$DisableProgressBar){
                 Write-Progress -Activity "Creating Teams" -Status "Creating Team: $($row.TeamName)" -PercentComplete ($i/$CSVImportSorted.Count*100)
@@ -537,10 +581,70 @@ function New-TBTeam
         [string[]]
         $IterationList = @('{TeamCode}'),
 
-        # TFS Team Security Groups - List of Application Security Groups to create.  Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers"
+        <# TFS Team Security Groups - List of Application Security Groups to create.
+        Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers".
+        Permission Numbers with categories:  Array of Hastables example below
+        $TeamGroups = @(
+            @{
+                Name = "CodeReviewers"
+                Permissions = @{
+                    Git = 126
+                    Iteration = 7
+                    Area = 49
+                    Project = 513
+                }
+            },
+            @{
+                Name = "Contributors"
+                Permissions = @{
+                    Git = 118
+                    Iteration = 7
+                    Area = 49
+                    Project = 513
+                }
+            },
+            @{
+                Name = "Readers"
+                Permissions = @{
+                    Git = 2
+                    Iteration = 1
+                    Area = 49
+                    Project = 513
+                }
+            }
+        )
+        #>
         [Parameter(Mandatory = $false)]
-        [string[]]
-        $TeamGroups = @("Contributors", "CodeReviewers", "Readers"),
+        [hashtable[]]
+        $TeamGroups = @(
+            @{
+                Name = "CodeReviewers"
+                Permissions = @{
+                    Git = 126
+                    Iteration = 7
+                    Area = 49
+                    Project = 513
+                }
+            },
+            @{
+                Name = "Contributors"
+                Permissions = @{
+                    Git = 118
+                    Iteration = 7
+                    Area = 49
+                    Project = 513
+                }
+            },
+            @{
+                Name = "Readers"
+                Permissions = @{
+                    Git = 2
+                    Iteration = 1
+                    Area = 49
+                    Project = 513
+                }
+            }
+        ),
 
         # TFS TeamCode - Used for Repo, Area, and Iteration Names
         [Parameter(Mandatory = $false)]
@@ -549,7 +653,11 @@ function New-TBTeam
 
         # isCoded switch will make Version Control Repos if set.
         [switch]
-        $IsCoded
+        $IsCoded,
+
+        # Disables progress bar.
+        [switch]
+        $DisableProgressBar
     )
 
     #region global connection Variables
@@ -601,8 +709,9 @@ function New-TBTeam
     {
         foreach ($group in $TeamGroups)
         {
-            $holder = New-TBSecurityGroup -Name "$TeamCode-$group" -Description "$TeamCode-$group" -ProjectName $projectNameLocal
-            Write-Verbose "Created TFS Application Security Group: $TeamCode-$group"
+            $groupName = $group.Name
+            $holder = New-TBSecurityGroup -Name "$TeamCode-$groupName" -Description "$TeamCode-$groupName" -ProjectName $projectNameLocal
+            Write-Verbose "Created TFS Application Security Group: $TeamCode-$groupName"
         }
     }
     #endregion
@@ -767,9 +876,13 @@ function New-TBTeam
             $repoToken = Get-TBToken -ObjectId $repo.id -NsName "Git Repositories" -ProjectName $projectNameLocal
             try
             {
+                foreach($group in $TeamGroups){
+                    $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-$($group.Name)" -AllowValue $($group.Permission.Git) -ProjectName $projectNameLocal
+                }
                 #TODO Need to add foreach loop to process through TeamGroups Variable.
-                $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-Contributors" -AllowValue 118 -ProjectName $projectNameLocal
-                $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-Readers" -AllowValue 2 -ProjectName $projectNameLocal
+                # $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-CodeReviewers" -AllowValue 126 -ProjectName $projectNameLocal
+                # $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-Contributors" -AllowValue 118 -ProjectName $projectNameLocal
+                # $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-Readers" -AllowValue 2 -ProjectName $projectNameLocal
             }
             catch
             {
@@ -790,9 +903,13 @@ function New-TBTeam
         $iterationToken = Get-TBToken -ObjectId $iterationId -NsName "Iteration" -ProjectName $projectNameLocal
         try
         {
+            foreach($group in $TeamGroups){
+                $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-$($group.Name)" -AllowValue $($group.Permission.Iteration) -ProjectName $projectNameLocal
+            }
             #TODO Need to add foreach loop to process through TeamGroups Variable.
-            $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-Contributors" -AllowValue 7 -ProjectName $projectNameLocal
-            $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-Readers" -AllowValue 1 -ProjectName $projectNameLocal
+            # $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-CodeReviewers" -AllowValue 7 -ProjectName $projectNameLocal
+            # $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-Contributors" -AllowValue 7 -ProjectName $projectNameLocal
+            # $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-Readers" -AllowValue 1 -ProjectName $projectNameLocal
         }
         catch
         {
@@ -812,9 +929,13 @@ function New-TBTeam
         $areaToken = Get-TBToken -ObjectId $areaId -NsName "CSS" -ProjectName $projectNameLocal
         try
         {
+            foreach($group in $TeamGroups){
+                $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-$($group.Name)" -AllowValue $($group.Permission.Area) -ProjectName $projectNameLocal
+            }
             #TODO Need to add foreach loop to process through TeamGroups Variable.
-            $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-Contributors" -AllowValue 49 -ProjectName $projectNameLocal
-            $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-Readers" -AllowValue 17 -ProjectName $projectNameLocal
+            # $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-CodeReviewers" -AllowValue 49 -ProjectName $projectNameLocal
+            # $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-Contributors" -AllowValue 49 -ProjectName $projectNameLocal
+            # $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-Readers" -AllowValue 17 -ProjectName $projectNameLocal
         }
         catch
         {
@@ -844,9 +965,13 @@ function New-TBTeam
             $projectTokenObject = New-Object -TypeName PSObject -Property $props
             try
             {
+                foreach($group in $TeamGroups){
+                    $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-$($group.Name)" -AllowValue $($group.Permission.Project) -ProjectName $projectNameLocal
+                }
                 #TODO Need to add foreach loop to process through TeamGroups Variable.
-                $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-Contributors" -AllowValue 513 -ProjectName $projectNameLocal
-                $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-Readers" -AllowValue 513 -ProjectName $projectNameLocal
+                # $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-CodeReviewers" -AllowValue 513 -ProjectName $projectNameLocal
+                # $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-Contributors" -AllowValue 513 -ProjectName $projectNameLocal
+                # $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-Readers" -AllowValue 513 -ProjectName $projectNameLocal
             }
             catch
             {

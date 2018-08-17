@@ -47,3 +47,9 @@ This resolves inputing wrong url format.
 
 Added Validation for AcctUrl variable on Add-TBConnection.
 Added progress bar on New-TBOrg.
+
+### 0.6.1
+
+Added SkipExistingTeam to New-TBOrg
+Changed TeamGroups parameter to include ability to specify group permissions on New-TBTeam
+Fixed progress bar.
