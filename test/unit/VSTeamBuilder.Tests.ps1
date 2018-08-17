@@ -492,6 +492,37 @@ InModuleScope VSTeamBuilder {
             #     $result | Should Be True
             # }
         }
+
+        Context 'Update Existing TBOrg' {
+            #region Mock Functions
+            $Global:g = 0
+            Mock Get-VSTeam {
+                $Global:g += 1
+                switch($Global:g){
+                    1 { return "TeamExists" }
+                    2 { throw "Team Doesn't exist" }
+                }
+            }
+            Mock Get-VSTeamProject { return $null }
+            Mock Add-VSTeamProject { return $ProjectName }
+            Mock New-TBTeam { return $true }
+            Mock Remove-TBTeam { return $true }
+            #endregion
+
+            It 'Creates csv Template File - New-TBOrg' {
+                $result = New-TBOrg -ProjectName $projectName -ImportFile "$ResourceRootDir\VSTBImportTemplate.csv" -GenerateImportFile
+                $success = $false
+                if($result){
+                    $success = $true
+                }
+                $success | Should Be True
+            }
+
+            It 'Updates Existing project - Skip Existing Teams - New-TBOrg' {
+                $result = New-TBOrg -ProjectName "$projectName" -ProjectDescription "The Best Project Ever" -ImportFile "$ResourceRootDir\VSTBImportTemplate.csv" -SkipExistingTeam
+                $result | Should Be True
+            }
+        }
     }
 
     #region Mocked Classes

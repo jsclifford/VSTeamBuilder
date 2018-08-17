@@ -85,14 +85,13 @@ function New-TBOrg
     $isXML = $false
     $isReturned = $false
 
-    if (-not (Test-Path($ImportFile)))
+    if (-not (Test-Path($ImportFile)) -and $GenerateImportFile)
     {
-        if ($GenerateImportFile)
-        {
-            _generateImportFile -ImportFile $ImportFile
-            $isReturned = $true
-            return $true
-        }
+        _generateImportFile -ImportFile $ImportFile
+        $isReturned = $true
+        return $true
+    }elseif($GenerateImportFile){
+        return $true
     }
     if ($ImportFile -like '*.csv')
     {

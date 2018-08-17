@@ -2,6 +2,10 @@
 $SuppressImportModule = $false
 . $PSScriptRoot\Shared.ps1
 
+if($usePAT -and $PATToken -eq $null){
+    . $PSScriptRoot\SecureSettings.ps1
+}
+
 $VerbosePreference = "Continue"
 
 Describe 'VSTeamBuilder Integration Org Test'{
@@ -40,14 +44,14 @@ Describe 'VSTeamBuilder Integration Org Test'{
             $success | Should Be True
         }
 
-        It 'Creates xml Template File - New-TBOrg' {
-            $result = New-TBOrg -ProjectName $projectName -ImportFile "$ResourceRootDir\VSTBImportFile-New.xml" -GenerateImportFile
-            $success = $false
-            if($result){
-                $success = $true
-            }
-            $success | Should Be True
-        }
+        # It 'Creates xml Template File - New-TBOrg' {
+        #     $result = New-TBOrg -ProjectName $projectName -ImportFile "$ResourceRootDir\VSTBImportFile-New.xml" -GenerateImportFile
+        #     $success = $false
+        #     if($result){
+        #         $success = $true
+        #     }
+        #     $success | Should Be True
+        # }
 
         It 'Creates new project and uses CSV as template - New-TBOrg' {
             $result = New-TBOrg -ProjectName "$projectName-CSV" -ProjectDescription "The Best Project Ever" -ImportFile "$ResourceRootDir\VSTBImportFile.csv" -NewProject
