@@ -47,7 +47,12 @@ function New-TBOrg
 
         # Skip Existing Team Update
         [switch]
-        $SkipExistingTeam
+        $SkipExistingTeam,
+
+        # Create Team with TFVC Version Control
+        [switch]
+        $TFVC
+
     )
 
     #region global connection Variables
@@ -87,7 +92,7 @@ function New-TBOrg
 
     if (-not (Test-Path($ImportFile)) -and $GenerateImportFile)
     {
-        _generateImportFile -ImportFile $ImportFile
+        _generateImportFile -ImportFile $ImportFile -Verbose:$VerbosePreference
         $isReturned = $true
         return $true
     }elseif($GenerateImportFile){
@@ -144,7 +149,6 @@ function New-TBOrg
     #region Creating New Team Project
     if ($PSCmdlet.ShouldProcess("Creating New Team Project.") -and $NewProject)
     {
-        $TFVC = $false
         try{
             $projectExists = Get-VSTeamProject -Name $projectNameLocal
         }catch{
@@ -153,15 +157,7 @@ function New-TBOrg
 
         if ($null -eq $projectExists)
         {
-            if ($TFVC)
-            {
-                #$holder = Add-VSTeamProject -ProjectName $projectNameLocal -Description $ProjectDescription -ProcessTemplate $processTemplate -TFVC
-            }
-            else
-            {
-                $holder = Add-VSTeamProject -ProjectName $projectNameLocal -Description $ProjectDescription -ProcessTemplate $ProcessTemplate
-            }
-
+            $holder = Add-VSTeamProject -ProjectName $projectNameLocal -Description $ProjectDescription -ProcessTemplate $processTemplate -TFVC:$TFVC
         }
     }
     #endregion
@@ -201,14 +197,14 @@ function New-TBOrg
             }
             if ($PSCmdlet.ShouldProcess("Creating Team: $($teamNode.TeamName). Advanced Config"))
             {
+                $isCoded = $false
                 if ($teamNode.iscoded -eq 'y')
                 {
-                    $result = New-TBTeam -Name $($teamNode.TeamName) -Description $($teamNode.TeamDescription) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal -IsCoded
+                    $isCoded = $true
                 }
-                else
-                {
-                    $result = New-TBTeam -Name $($teamNode.TeamName) -Description $($teamNode.TeamDescription) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal
-                }
+
+                $result = New-TBTeam -Name $($teamNode.TeamName) -Description $($teamNode.TeamDescription) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal -IsCoded:$isCoded -Verbose:$VerbosePreference
+
                 if ($result)
                 {
                     Write-Verbose "------------ Successfully Created Team $($teamNode.TeamName) ------------------"
@@ -259,14 +255,14 @@ function New-TBOrg
             }
             if ($PSCmdlet.ShouldProcess("Creating Team: $($row.TeamName). Basic Config"))
             {
+                $isCoded = $false
                 if ($row.iscoded -eq 'y')
                 {
-                    $result = New-TBTeam -Name $($row.TeamName) -Description $($row.TeamDescription) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal -IsCoded
+                    $isCoded = $true
                 }
-                else
-                {
-                    $result = New-TBTeam -Name $($row.TeamName) -Description $($row.TeamDescription) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal
-                }
+
+                $result = New-TBTeam -Name $($row.TeamName) -Description $($row.TeamDescription) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal -IsCoded:$isCoded -Verbose:$VerbosePreference
+
                 if ($result)
                 {
                     Write-Verbose "------------ Successfully Created Team $($row.TeamName) ------------------"
@@ -421,11 +417,11 @@ function Remove-TBOrg
             {
                 if ($teamNode.iscoded -eq 'y')
                 {
-                    $result = Remove-TBTeam -Name $($teamNode.TeamName) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal -IsCoded
+                    $result = Remove-TBTeam -Name $($teamNode.TeamName) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal -IsCoded -Verbose:$VerbosePreference
                 }
                 else
                 {
-                    $result = Remove-TBTeam -Name $($teamNode.TeamName) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal
+                    $result = Remove-TBTeam -Name $($teamNode.TeamName) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal -Verbose:$VerbosePreference
                 }
                 if ($result)
                 {
@@ -456,11 +452,11 @@ function Remove-TBOrg
             {
                 if ($row.iscoded -eq 'y')
                 {
-                    $result = Remove-TBTeam -Name $($row.TeamName) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal -IsCoded
+                    $result = Remove-TBTeam -Name $($row.TeamName) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal -IsCoded -Verbose:$VerbosePreference
                 }
                 else
                 {
-                    $result = Remove-TBTeam -Name $($row.TeamName) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal
+                    $result = Remove-TBTeam -Name $($row.TeamName) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal -Verbose:$VerbosePreference
                 }
                 if ($result)
                 {
@@ -660,14 +656,21 @@ function New-TBTeam
         [switch]
         $IsCoded,
 
+        # Specifies if project is using TFSVC version control.
+        [switch]
+        $TFSVC,
+
         # Disables progress bar.
         [switch]
         $DisableProgressBar
+
+
     )
 
     #region global connection Variables
     $projectNameLocal = $null
     $VSTBConn = $Global:VSTBConn
+
     if (! (_testConnection))
     {
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
@@ -693,6 +696,16 @@ function New-TBTeam
     $result = $true
     #endregion
 
+    #region Get Version Control Type
+    # try {
+    #     $projectObject = Get-VSTeamProject -Name $projectNameLocal #Get-TFSTeamProject -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl) #FixNow
+    # }
+    # catch {
+    #     $projectObject = $null
+    # }
+
+    #endregion
+
     #region Create Team Area
     if ($PSCmdlet.ShouldProcess("Create Team Area."))
     {
@@ -715,7 +728,7 @@ function New-TBTeam
         foreach ($group in $TeamGroups)
         {
             $groupName = $group.Name
-            $holder = New-TBSecurityGroup -Name "$TeamCode-$groupName" -Description "$TeamCode-$groupName" -ProjectName $projectNameLocal
+            $holder = New-TBSecurityGroup -Name "$TeamCode-$groupName" -Description "$TeamCode-$groupName" -ProjectName $projectNameLocal -Verbose:$VerbosePreference
             Write-Verbose "Created TFS Application Security Group: $TeamCode-$groupName"
         }
     }
@@ -740,7 +753,7 @@ function New-TBTeam
         }
 
         #Setting Default Area.
-        $holder = Set-TBTeamAreaSetting -TeamName $Name -AreaPath "$TeamPath\$TeamCode" -ProjectName $projectNameLocal
+        $holder = Set-TBTeamAreaSetting -TeamName $Name -AreaPath "$TeamPath\$TeamCode" -ProjectName $projectNameLocal -Verbose:$VerbosePreference
         Write-Verbose "Set team Area $TeamPath\$TeamCode to team $Name"
     }
     #endregion
@@ -1165,7 +1178,7 @@ function Remove-TBTeam
                 if ($PSCmdlet.ShouldProcess("Remove Team Iteration. Iteration Name: $iteration"))
                 {
                     #Creating Repo
-                    $holder = Remove-TFSIteration -Iteration "$iteration" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
+                    $holder = Remove-TFSIteration -Iteration "$iteration" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl) -Confirm:$false
                     Write-Verbose "$iteration Iteration Created."
                 }
             }
@@ -1184,7 +1197,7 @@ function Remove-TBTeam
             $areaExists = Get-TFSArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
             if ($null -ne $areaExists)
             {
-                $holder = Remove-TfsArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
+                $holder = Remove-TfsArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl) -Confirm:$false
                 Write-Verbose "Removed Area: $TeamPath\$TeamCode"
             }
             else

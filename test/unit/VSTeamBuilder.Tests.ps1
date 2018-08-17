@@ -308,8 +308,30 @@ InModuleScope VSTeamBuilder {
             }
         }
 
-        AfterAll {
+        Context 'Set-Default Project' {
+            It 'Create VSTBConn object' {
+                $Global:VSTBConn = $null
+                Set-TBDefaultProject -ProjectName $projectName
+                $Global:VSTBConn.DefaultProjectName -eq $projectName | Should Be True
+            }
 
+            It 'Updates VSTBConn object' {
+                $props = @{
+                    "AccountUrl"             = $null
+                    "TeamExplorerConnection" = $null
+                    "DefaultProjectName"     = $null
+                    "VSTeamAccount"          = $false
+                    "TFSCmdletsConnection"   = $false
+                }
+
+                $VSTBConn = New-Object -TypeName psobject -Property $props
+                $Global:VSTBConn = $VSTBConn
+                Set-TBDefaultProject -ProjectName $projectName
+                $Global:VSTBConn.DefaultProjectName -eq $projectName | Should Be True
+            }
+        }
+        AfterAll {
+            $Global:VSTBConn = $null
         }
     }
 
@@ -457,6 +479,11 @@ InModuleScope VSTeamBuilder {
             Mock Remove-TBTeam { return $true }
             #endregion
 
+            It 'Creates csv file - _generateImportFile' {
+                _generateImportFile -ImportFile "$ResourceRootDir\generateImportTest.csv"
+                Test-Path("$ResourceRootDir\generateImportTest.csv") | Should Be True
+            }
+
             It 'Creates csv Template File - New-TBOrg' {
                 $result = New-TBOrg -ProjectName $projectName -ImportFile "$ResourceRootDir\VSTBImportTemplate.csv" -GenerateImportFile
                 $success = $false
@@ -501,6 +528,8 @@ InModuleScope VSTeamBuilder {
                 switch($Global:g){
                     1 { return "TeamExists" }
                     2 { throw "Team Doesn't exist" }
+                    2 { return $null }
+                    default { return "TeamExists" }
                 }
             }
             Mock Get-VSTeamProject { return $null }
