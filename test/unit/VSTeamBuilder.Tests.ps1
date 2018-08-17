@@ -2,6 +2,8 @@
 $SuppressImportModule = $false
 . $PSScriptRoot\Shared.ps1
 
+$global:RootDir = $RootDir
+
 Describe "Manifest & xml validation" {
     Context 'Module Manifest' {
         It 'Passes Test-ModuleManifest' {
@@ -319,6 +321,7 @@ InModuleScope VSTeamBuilder {
             $Global:VSTBConn = @{ "AccountUrl" = "https://myproject.visualstudio.com" }
             $TeamCode = "MTT"
             $TeamDescription = "The best Test of a new team"
+            $ResourceRootDir = "$global:RootDir\resources"
 
         }
 
@@ -455,7 +458,7 @@ InModuleScope VSTeamBuilder {
             #endregion
 
             It 'Creates csv Template File - New-TBOrg' {
-                $result = New-TBOrg -ProjectName $projectName -ImportFile "$RootDir\resources\VSTBImportTemplate.csv" -GenerateImportFile
+                $result = New-TBOrg -ProjectName $projectName -ImportFile "$ResourceRootDir\VSTBImportTemplate.csv" -GenerateImportFile
                 $success = $false
                 if($result){
                     $success = $true
@@ -464,28 +467,28 @@ InModuleScope VSTeamBuilder {
             }
 
             It 'Creates xml Template File - New-TBOrg' {
-                #$result = New-TBOrg -ProjectName $projectName -ImportFile ""$RootDir\resources\VSTBImportTemplate.xml" -GenerateImportFile
+                #$result = New-TBOrg -ProjectName $projectName -ImportFile "$ResourceRootDir\VSTBImportTemplate.xml" -GenerateImportFile
                 $true | Should Be True
             }
 
             It 'Creates new project and uses CSV as template - New-TBOrg' {
-                $result = New-TBOrg -ProjectName "$projectName-csv" -ProjectDescription "The Best Project Ever" -ImportFile "$RootDir\resources\VSTBImportTemplate.csv" -NewProject
+                $result = New-TBOrg -ProjectName "$projectName-csv" -ProjectDescription "The Best Project Ever" -ImportFile "$ResourceRootDir\VSTBImportTemplate.csv" -NewProject
                 $result | Should Be True
             }
 
             It 'Removes team project structure from csv file - Remove-TBOrg' {
-                $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$RootDir\resources\VSTBImportTemplate.csv"
+                $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$ResourceRootDir\VSTBImportTemplate.csv"
                 $result | Should Be True
             }
 
             #Not implemented yet.
             # It 'Creates new project from xml file - New-TBOrg' {
-            #     #$result = New-TBOrg -ProjectName "$projectName-xml" -ProjectDescription "The Best Project Ever" -ImportFile "$RootDir\resources\VSTBImportFile.xml" -NewProject
+            #     #$result = New-TBOrg -ProjectName "$projectName-xml" -ProjectDescription "The Best Project Ever" -ImportFile "$ResourceRootDir\VSTBImportFile.xml" -NewProject
             #     $result | Should Be True
             # }
 
             # It 'Removes team project structure from xml file - Remove-TBOrg' {
-            #     #$result = Remove-TBOrg -ProjectName "$projectName-xml" -ImportFile "$RootDir\resources\VSTBImportFile.xml"
+            #     #$result = Remove-TBOrg -ProjectName "$projectName-xml" -ImportFile "$ResourceRootDir\VSTBImportFile.xml"
             #     $result | Should Be True
             # }
         }

@@ -9,10 +9,11 @@ Describe 'VSTeamBuilder Integration Org Test'{
         $projectName = $env:projectName
         $collectionName = $env:collectionName
         $acctUrl = $env:accturl
-        $pat = $env:PAT
+        $pat = $PATToken
         $api = $env:API
         $searchGroup = $env:searchGroup
         $originalLocation = Get-Location
+        $ResourceRootDir = "$RootDir\resources"
 
         if($usePAT){
             Add-TBConnection -AcctUrl $acctUrl -PAT $pat -API $api
@@ -31,7 +32,7 @@ Describe 'VSTeamBuilder Integration Org Test'{
 
     Context 'Add/Remove TBOrg' {
         It 'Creates csv Template File - New-TBOrg' {
-            $result = New-TBOrg -ProjectName $projectName -ImportFile "$RootDir\resources\VSTBImportFile-New.csv" -GenerateImportFile
+            $result = New-TBOrg -ProjectName $projectName -ImportFile "$ResourceRootDir\VSTBImportFile-New.csv" -GenerateImportFile
             $success = $false
             if($result){
                 $success = $true
@@ -40,7 +41,7 @@ Describe 'VSTeamBuilder Integration Org Test'{
         }
 
         It 'Creates xml Template File - New-TBOrg' {
-            $result = New-TBOrg -ProjectName $projectName -ImportFile "$RootDir\resources\VSTBImportFile-New.xml" -GenerateImportFile
+            $result = New-TBOrg -ProjectName $projectName -ImportFile "$ResourceRootDir\VSTBImportFile-New.xml" -GenerateImportFile
             $success = $false
             if($result){
                 $success = $true
@@ -49,7 +50,7 @@ Describe 'VSTeamBuilder Integration Org Test'{
         }
 
         It 'Creates new project and uses CSV as template - New-TBOrg' {
-            $result = New-TBOrg -ProjectName "$projectName-CSV" -ProjectDescription "The Best Project Ever" -ImportFile "$RootDir\resources\VSTBImportFile.csv" -NewProject
+            $result = New-TBOrg -ProjectName "$projectName-CSV" -ProjectDescription "The Best Project Ever" -ImportFile "$ResourceRootDir\VSTBImportFile.csv" -NewProject
             $success = $false
             if($result){
                 $success = $true
@@ -58,7 +59,7 @@ Describe 'VSTeamBuilder Integration Org Test'{
         }
 
         It 'Removes team project structure from csv file - Remove-TBOrg' {
-            $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$RootDir\resources\VSTBImportFile.csv"
+            $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$ResourceRootDir\VSTBImportFile.csv"
             $success = $false
             if($result){
                 $success = $true
@@ -68,7 +69,7 @@ Describe 'VSTeamBuilder Integration Org Test'{
 
         #Not implemented yet.
         # It 'Creates new project from xml file - New-TBOrg' {
-        #     $result = New-TBOrg -ProjectName "$projectName-xml" -ProjectDescription "The Best Project Ever" -ImportFile "$RootDir\resources\VSTBImportFile.xml" -NewProject
+        #     $result = New-TBOrg -ProjectName "$projectName-xml" -ProjectDescription "The Best Project Ever" -ImportFile "$ResourceRootDir\VSTBImportFile.xml" -NewProject
         #     $success = $false
             # if($result){
             #     $success = $true
@@ -77,7 +78,7 @@ Describe 'VSTeamBuilder Integration Org Test'{
         # }
 
         # It 'Removes team project structure from xml file - Remove-TBOrg' {
-        #     $result = Remove-TBOrg -ProjectName "$projectName-xml" -ImportFile "$RootDir\resources\VSTBImportFile.xml"
+        #     $result = Remove-TBOrg -ProjectName "$projectName-xml" -ImportFile "$ResourceRootDir\VSTBImportFile.xml"
         #     $success = $false
             # if($result){
             #     $success = $true
@@ -98,7 +99,7 @@ Describe "Testing Team Creation and Settings" {
         $projectName = $env:projectName
         $collectionName = $env:collectionName
         $acctUrl = $env:accturl
-        $pat = $env:PAT
+        $pat = $PATToken
         $api = $env:API
         $searchGroup = $env:searchGroup
         $originalLocation = Get-Location
@@ -303,7 +304,7 @@ Describe "Standalone Integration Test - Temporary" {
         $projectName = $env:projectName
         $collectionName = $env:collectionName
         $acctUrl = $env:accturl
-        $pat = $env:PAT
+        $pat = $PATToken
         $api = $env:API
         $searchGroup = $env:searchGroup
         $originalLocation = Get-Location

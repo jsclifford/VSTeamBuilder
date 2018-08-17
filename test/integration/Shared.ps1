@@ -10,3 +10,20 @@ if (!$SuppressImportModule) {
     Import-Module $ModuleManifestPath -Scope Global -Force
 }
 
+# Getting Pat Key.
+$SettingsPath = "$env:LOCALAPPDATA\Plaster\VSTeamBuilder\SecuredBuildSettings.clixml"
+if ($PATToken = GetSetting -Path $SettingsPath -Key PATToken) {
+    "Using stored PATToken"
+}
+else {
+    $promptForKeyCredParams = @{
+        DestinationPath = $SettingsPath
+        Message         = 'Enter your PAT API key in the password field'
+        Key             = 'PATToken'
+    }
+
+    $cred = PromptUserForCredentialAndStorePassword @promptForKeyCredParams
+    $PATToken = $cred.GetNetworkCredential().Password
+    "The PATToken has been stored in $SettingsPath"
+}
+
