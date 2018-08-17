@@ -461,7 +461,7 @@ Task Test -depends Build -requiredVariables TestRootDir, ModuleName, CodeCoverag
     Import-Module Pester
 
     try {
-        Microsoft.PowerShell.Management\Push-Location -LiteralPath $TestRootDir
+        Microsoft.PowerShell.Management\Push-Location -LiteralPath "$TestRootDir/unit"
 
         if ($TestOutputFile) {
             $testing = @{
