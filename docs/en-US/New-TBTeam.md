@@ -14,8 +14,8 @@ New-TBTeam will create a TFS Team with associated Repos, Areas, Iterations, and 
 
 ```
 New-TBTeam [-Name] <String> [-Description] <String> [-TeamCode] <String> [[-TeamPath] <String>]
- [[-RepoList] <String[]>] [[-IterationList] <String[]>] [[-TeamGroups] <String[]>] [[-ProjectName] <String>]
- [-IsCoded] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [[-RepoList] <String[]>] [[-IterationList] <String[]>] [[-TeamGroups] <Hashtable[]>] [[-ProjectName] <String>]
+ [-IsCoded] [-DisableProgressBar] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -128,7 +128,7 @@ TFS Team Security Groups - List of Application Security Groups to create.
 Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers"
 
 ```yaml
-Type: String[]
+Type: Hashtable[]
 Parameter Sets: (All)
 Aliases:
 
@@ -158,6 +158,19 @@ Accept wildcard characters: False
 isCoded switch will make Version Control Repos if set.
 
 ```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -DisableProgressBar
+Disables progress bar.```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
 Aliases:

@@ -453,13 +453,28 @@ InModuleScope VSTeamBuilder {
             Mock New-TBTeam { return $true }
             Mock Remove-TBTeam { return $true }
             #endregion
+
+            It 'Creates csv Template File - New-TBOrg' {
+                $result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\..\..\resources\VSTBImportTemplate.csv" -GenerateImportFile
+                $success = $false
+                if($result){
+                    $success = $true
+                }
+                $success | Should Be True
+            }
+
+            It 'Creates xml Template File - New-TBOrg' {
+                #$result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\VSTBImportTemplate.xml" -GenerateImportFile
+                $true | Should Be True
+            }
+
             It 'Creates new project and uses CSV as template - New-TBOrg' {
-                $result = New-TBOrg -ProjectName "$projectName-csv" -ProjectDescription "The Best Project Ever" -ImportFile "$PSScriptRoot\..\resources\VSTBImportFile.csv" -NewProject
+                $result = New-TBOrg -ProjectName "$projectName-csv" -ProjectDescription "The Best Project Ever" -ImportFile "$PSScriptRoot\..\..\resources\VSTBImportTemplate.csv" -NewProject
                 $result | Should Be True
             }
 
             It 'Removes team project structure from csv file - Remove-TBOrg' {
-                $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$PSScriptRoot\..\resources\VSTBImportFile.csv"
+                $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$PSScriptRoot\..\..\resources\VSTBImportTemplate.csv"
                 $result | Should Be True
             }
 
@@ -473,20 +488,6 @@ InModuleScope VSTeamBuilder {
             #     #$result = Remove-TBOrg -ProjectName "$projectName-xml" -ImportFile "$PSScriptRoot\VSTBImportFile.xml"
             #     $result | Should Be True
             # }
-
-            It 'Creates csv Template File - New-TBOrg' {
-                $result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\..\resources\VSTBImportTemplate.csv" -GenerateImportFile
-                $success = $false
-                if($result){
-                    $success = $true
-                }
-                $success | Should Be True
-            }
-
-            It 'Creates xml Template File - New-TBOrg' {
-                #$result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\VSTBImportTemplate.xml" -GenerateImportFile
-                $true | Should Be True
-            }
         }
     }
 

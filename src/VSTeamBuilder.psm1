@@ -168,14 +168,13 @@ function New-TBOrg
     #endregion
 
     #region Creating Teams
-    $i = 0
-    if(!$DisableProgressBar){
-        Write-Progress -Activity "Creating Teams" -Status "Starting Team Creation" -PercentComplete ($i/$teams.Count*100)
-        $i++
-    }
-
     if ($isXML)
     {
+        $teams = @()
+        $i = 0
+        if(!$DisableProgressBar){
+            Write-Progress -Activity "Creating Teams" -Status "Starting Team Creation. Team Count: $($teams.Count)" -PercentComplete ($i/$teams.Count*100)
+        }
         foreach ($teamNode in $teams)
         {
             if(!$DisableProgressBar){
@@ -196,6 +195,7 @@ function New-TBOrg
                 {
                     if(!$DisableProgressBar){
                         Write-Progress -Activity "Creating Teams" -Status "Skipping Existing Team: $($teamNode.TeamName)" -PercentComplete ($i/$teams.Count*100)
+                        $i++
                     }
                     continue
                 }
@@ -224,6 +224,11 @@ function New-TBOrg
     else
     {
         $CSVImportSorted = $CSVImport| Sort-Object -Property ProcessOrder
+        $i = 0
+        if(!$DisableProgressBar){
+            Write-Progress -Activity "Creating Teams" -Status "Starting Team Creation. Team Count: $($CSVImportSorted.Count)" -PercentComplete ($i/$CSVImportSorted.Count*100)
+        }
+
         foreach ($row in $CSVImportSorted)
         {
             if($row.TeamName -eq $null -or $row.TeamName -eq ""){
@@ -244,6 +249,7 @@ function New-TBOrg
                 {
                     if(!$DisableProgressBar){
                         Write-Progress -Activity "Creating Teams" -Status "Skipping Existing Team: $($teamNode.TeamName)" -PercentComplete ($i/$teams.Count*100)
+                        $i++
                     }
                     continue
                 }
@@ -877,7 +883,7 @@ function New-TBTeam
             try
             {
                 foreach($group in $TeamGroups){
-                    $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-$($group.Name)" -AllowValue $($group.Permission.Git) -ProjectName $projectNameLocal
+                    $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-$($group.Name)" -AllowValue $($group.Permissions.Git) -ProjectName $projectNameLocal
                 }
                 #TODO Need to add foreach loop to process through TeamGroups Variable.
                 # $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-CodeReviewers" -AllowValue 126 -ProjectName $projectNameLocal
@@ -904,7 +910,7 @@ function New-TBTeam
         try
         {
             foreach($group in $TeamGroups){
-                $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-$($group.Name)" -AllowValue $($group.Permission.Iteration) -ProjectName $projectNameLocal
+                $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-$($group.Name)" -AllowValue $($group.Permissions.Iteration) -ProjectName $projectNameLocal
             }
             #TODO Need to add foreach loop to process through TeamGroups Variable.
             # $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-CodeReviewers" -AllowValue 7 -ProjectName $projectNameLocal
@@ -930,7 +936,7 @@ function New-TBTeam
         try
         {
             foreach($group in $TeamGroups){
-                $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-$($group.Name)" -AllowValue $($group.Permission.Area) -ProjectName $projectNameLocal
+                $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-$($group.Name)" -AllowValue $($group.Permissions.Area) -ProjectName $projectNameLocal
             }
             #TODO Need to add foreach loop to process through TeamGroups Variable.
             # $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-CodeReviewers" -AllowValue 49 -ProjectName $projectNameLocal
@@ -966,7 +972,7 @@ function New-TBTeam
             try
             {
                 foreach($group in $TeamGroups){
-                    $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-$($group.Name)" -AllowValue $($group.Permission.Project) -ProjectName $projectNameLocal
+                    $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-$($group.Name)" -AllowValue $($group.Permissions.Project) -ProjectName $projectNameLocal
                 }
                 #TODO Need to add foreach loop to process through TeamGroups Variable.
                 # $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-CodeReviewers" -AllowValue 513 -ProjectName $projectNameLocal
@@ -1035,10 +1041,34 @@ function Remove-TBTeam
         [string[]]
         $IterationList = @('{TeamCode}'),
 
-        # TFS Team Security Groups - List of Application Security Groups to remove.  Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers"
+        <# TFS Team Security Groups -
+        List of Application Security Groups to remove.
+        Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers"
+        $TeamGroups = @(
+            @{
+                Name = "CodeReviewers"
+            },
+            @{
+                Name = "Contributors"
+            },
+            @{
+                Name = "Readers"
+            }
+        )
+        #>
         [Parameter(Mandatory = $false)]
-        [string[]]
-        $TeamGroups = @("Contributors", "CodeReviewers", "Readers"),
+        [hashtable[]]
+        $TeamGroups = @(
+            @{
+                Name = "CodeReviewers"
+            },
+            @{
+                Name = "Contributors"
+            },
+            @{
+                Name = "Readers"
+            }
+        ),
 
         # TFS TeamCode - Used for Repo, Area, and Iteration Names
         [Parameter(Mandatory = $false)]
@@ -1170,7 +1200,7 @@ function Remove-TBTeam
         {
             foreach ($group in $TeamGroups)
             {
-                $holder = Remove-TBSecurityGroup -Name "$TeamCode-$group" -ProjectName $projectNameLocal
+                $holder = Remove-TBSecurityGroup -Name "$TeamCode-$($group.Name)" -ProjectName $projectNameLocal
                 Write-Verbose "Removed TFS Application Security Group: $TeamCode-$group"
             }
         }

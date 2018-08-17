@@ -14,7 +14,7 @@ Remove-TBTeam will remove all team security groups,areas,inerations,VersionContr
 
 ```
 Remove-TBTeam [-Name] <String> [-TeamCode] <String> [[-TeamPath] <String>] [[-RepoList] <String[]>]
- [[-IterationList] <String[]>] [[-TeamGroups] <String[]>] [[-ProjectName] <String>] [-IsCoded] [-WhatIf]
+ [[-IterationList] <String[]>] [[-TeamGroups] <Hashtable[]>] [[-ProjectName] <String>] [-IsCoded] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```
 
@@ -113,7 +113,7 @@ TFS Team Security Groups - List of Application Security Groups to remove.
 Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers"
 
 ```yaml
-Type: String[]
+Type: Hashtable[]
 Parameter Sets: (All)
 Aliases:
 
