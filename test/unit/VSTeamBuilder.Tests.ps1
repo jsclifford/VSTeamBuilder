@@ -455,7 +455,7 @@ InModuleScope VSTeamBuilder {
             #endregion
 
             It 'Creates csv Template File - New-TBOrg' {
-                $result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\..\..\resources\VSTBImportTemplate.csv" -GenerateImportFile
+                $result = New-TBOrg -ProjectName $projectName -ImportFile "$RootDir\resources\VSTBImportTemplate.csv" -GenerateImportFile
                 $success = $false
                 if($result){
                     $success = $true
@@ -464,28 +464,28 @@ InModuleScope VSTeamBuilder {
             }
 
             It 'Creates xml Template File - New-TBOrg' {
-                #$result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\VSTBImportTemplate.xml" -GenerateImportFile
+                #$result = New-TBOrg -ProjectName $projectName -ImportFile ""$RootDir\resources\VSTBImportTemplate.xml" -GenerateImportFile
                 $true | Should Be True
             }
 
             It 'Creates new project and uses CSV as template - New-TBOrg' {
-                $result = New-TBOrg -ProjectName "$projectName-csv" -ProjectDescription "The Best Project Ever" -ImportFile "$PSScriptRoot\..\..\resources\VSTBImportTemplate.csv" -NewProject
+                $result = New-TBOrg -ProjectName "$projectName-csv" -ProjectDescription "The Best Project Ever" -ImportFile "$RootDir\resources\VSTBImportTemplate.csv" -NewProject
                 $result | Should Be True
             }
 
             It 'Removes team project structure from csv file - Remove-TBOrg' {
-                $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$PSScriptRoot\..\..\resources\VSTBImportTemplate.csv"
+                $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$RootDir\resources\VSTBImportTemplate.csv"
                 $result | Should Be True
             }
 
             #Not implemented yet.
             # It 'Creates new project from xml file - New-TBOrg' {
-            #     #$result = New-TBOrg -ProjectName "$projectName-xml" -ProjectDescription "The Best Project Ever" -ImportFile "$PSScriptRoot\VSTBImportFile.xml" -NewProject
+            #     #$result = New-TBOrg -ProjectName "$projectName-xml" -ProjectDescription "The Best Project Ever" -ImportFile "$RootDir\resources\VSTBImportFile.xml" -NewProject
             #     $result | Should Be True
             # }
 
             # It 'Removes team project structure from xml file - Remove-TBOrg' {
-            #     #$result = Remove-TBOrg -ProjectName "$projectName-xml" -ImportFile "$PSScriptRoot\VSTBImportFile.xml"
+            #     #$result = Remove-TBOrg -ProjectName "$projectName-xml" -ImportFile "$RootDir\resources\VSTBImportFile.xml"
             #     $result | Should Be True
             # }
         }

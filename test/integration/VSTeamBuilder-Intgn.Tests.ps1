@@ -31,7 +31,7 @@ Describe 'VSTeamBuilder Integration Org Test'{
 
     Context 'Add/Remove TBOrg' {
         It 'Creates csv Template File - New-TBOrg' {
-            $result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\..\..\resources\VSTBImportFile-New.csv" -GenerateImportFile
+            $result = New-TBOrg -ProjectName $projectName -ImportFile "$RootDir\resources\VSTBImportFile-New.csv" -GenerateImportFile
             $success = $false
             if($result){
                 $success = $true
@@ -40,7 +40,7 @@ Describe 'VSTeamBuilder Integration Org Test'{
         }
 
         It 'Creates xml Template File - New-TBOrg' {
-            $result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\..\..\resources\VSTBImportFile-New.xml" -GenerateImportFile
+            $result = New-TBOrg -ProjectName $projectName -ImportFile "$RootDir\resources\VSTBImportFile-New.xml" -GenerateImportFile
             $success = $false
             if($result){
                 $success = $true
@@ -49,7 +49,7 @@ Describe 'VSTeamBuilder Integration Org Test'{
         }
 
         It 'Creates new project and uses CSV as template - New-TBOrg' {
-            $result = New-TBOrg -ProjectName "$projectName-CSV" -ProjectDescription "The Best Project Ever" -ImportFile "$PSScriptRoot\..\..\resources\VSTBImportFile.csv" -NewProject
+            $result = New-TBOrg -ProjectName "$projectName-CSV" -ProjectDescription "The Best Project Ever" -ImportFile "$RootDir\resources\VSTBImportFile.csv" -NewProject
             $success = $false
             if($result){
                 $success = $true
@@ -58,7 +58,7 @@ Describe 'VSTeamBuilder Integration Org Test'{
         }
 
         It 'Removes team project structure from csv file - Remove-TBOrg' {
-            $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$PSScriptRoot\..\..\resources\VSTBImportFile.csv"
+            $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$RootDir\resources\VSTBImportFile.csv"
             $success = $false
             if($result){
                 $success = $true
@@ -68,7 +68,7 @@ Describe 'VSTeamBuilder Integration Org Test'{
 
         #Not implemented yet.
         # It 'Creates new project from xml file - New-TBOrg' {
-        #     $result = New-TBOrg -ProjectName "$projectName-xml" -ProjectDescription "The Best Project Ever" -ImportFile "$PSScriptRoot\VSTBImportFile.xml" -NewProject
+        #     $result = New-TBOrg -ProjectName "$projectName-xml" -ProjectDescription "The Best Project Ever" -ImportFile "$RootDir\resources\VSTBImportFile.xml" -NewProject
         #     $success = $false
             # if($result){
             #     $success = $true
@@ -77,7 +77,7 @@ Describe 'VSTeamBuilder Integration Org Test'{
         # }
 
         # It 'Removes team project structure from xml file - Remove-TBOrg' {
-        #     $result = Remove-TBOrg -ProjectName "$projectName-xml" -ImportFile "$PSScriptRoot\VSTBImportFile.xml"
+        #     $result = Remove-TBOrg -ProjectName "$projectName-xml" -ImportFile "$RootDir\resources\VSTBImportFile.xml"
         #     $success = $false
             # if($result){
             #     $success = $true
