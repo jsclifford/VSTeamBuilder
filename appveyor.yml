@@ -7,7 +7,7 @@
 #---------------------------------#
 #      general configuration      #
 #---------------------------------#
-version: 0.7.1.{build}
+version: 0.7.3.{build}
 image: WMF 5
 skip_commits:
   files:
@@ -22,9 +22,8 @@ environment:
     secure: 7+DG4taP7Anz64lB7dSi/48xLAXJXL1d+auWI11pAUkEPccGRmFVlxi2w8RzW3Ol
 
 install:
-- ps: >-
-    Write-Verbose -Message "PowerShell version $($PSVersionTable.PSVersion)" -Verbose
-    (Import-PowerShellDataFile "$env:APPVEYOR_BUILD_FOLDER\src\VSTeamBuilder.psd1").RequiredModules | ForEach-Object { Install-Module $PSItem.moduleName -RequiredVersion $PSItem.ModuleVersion -Repository PSGallery -Scope CurrentUser -Force }
+- ps: Write-Verbose -Message "PowerShell version $($PSVersionTable.PSVersion)" -Verbose
+- ps: (Import-PowerShellDataFile "$($env:APPVEYOR_BUILD_FOLDER)\src\VSTeamBuilder.psd1").RequiredModules | ForEach-Object { Install-Module $PSItem.moduleName -RequiredVersion $PSItem.ModuleVersion -Repository PSGallery -Scope CurrentUser -Force }
 - cinst pester
 - cinst psake
 
@@ -39,14 +38,13 @@ build: false
 #---------------------------------#
 
 test_script:
-- ps: >-
-    Invoke-PSake $env:APPVEYOR_BUILD_FOLDER\build\build.psake.ps1 -taskList Test
-    if ($psake.build_success -eq $false) { throw "Psake Build Failed. $($psake.error_message)"}
-after_test:
-- ps: >-
-    (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $env:APPVEYOR_BUILD_FOLDER\release\PesterReport\Unit.TEST.xml))
+- ps: Invoke-PSake $env:APPVEYOR_BUILD_FOLDER\build\build.psake.ps1 -taskList Test
+- ps: if ($psake.build_success -eq $false) { throw "Psake Build Failed. $($psake.error_message)"}
+
 # after_test:
-#   - ps: |
+# - ps: >-
+#     (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $env:APPVEYOR_BUILD_FOLDER\release\PesterReport\Unit.TEST.xml))
+# - ps: |
 #       $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
 #       Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
 #       bash codecov.sh -f "$env:APPVEYOR_BUILD_FOLDER\release\PesterReport\coverage.xml" -t $env:codecovetoken
