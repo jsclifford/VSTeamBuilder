@@ -36,7 +36,9 @@ build: false
 #---------------------------------#
 
 test_script:
-- ps: Invoke-PSake .\build\build.psake.ps1 -taskList Test
+- ps: Write-Host "Current Directory. $pwd
+- ps: Write-Host "AppVeyor Build folder. $env:APPVEYOR_BUILD_FOLDER"
+- ps: Invoke-PSake build\build.psake.ps1 -taskList Test
 - ps: if ($psake.build_success -eq $false) { throw "Psake Build Failed. $($psake.error_message)"}
 
 after_test:
