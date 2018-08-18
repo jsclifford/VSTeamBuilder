@@ -19,9 +19,9 @@ New-TBOrg [-ProjectName] <String> [[-ProjectDescription] <String>] [-ImportFile]
 ```
 
 ## DESCRIPTION
-This function creates Teams with associated security groups, iterations, area, repos, and dashboards(future release). 
+This function creates Teams with associated security groups, iterations, area, repos, and dashboards(future release).
 By specifying
-a template file, TFS/VSTS admins can use automation to manage large projects. 
+a template file, TFS/VSTS admins can use automation to manage large projects.
 This function can be run to also reset permissions and
 settins on current projects created by this tool.
 Define your template and never manually create a team again.
@@ -33,7 +33,7 @@ Define your template and never manually create a team again.
 New-TBOrg -ProjectName "MyTestProject" -ProjectDescription "The best project ever." -ImportFile C:\MyTFSOrgImport.csv -NewProject
 ```
 
-This command creates a new Project named MyTestProject and creates teams defined in the CSV file name MyTFSOrgImport.csv. 
+This command creates a new Project named MyTestProject and creates teams defined in the CSV file name MyTFSOrgImport.csv.
 CSV File
 import will create groups based on TeamCode and no custom names.
 
@@ -42,7 +42,7 @@ import will create groups based on TeamCode and no custom names.
 New-TBOrg -ProjectName "MyTestProject" -ProjectDescription "The best project ever." -ImportFile C:\MyTFSOrgImport.xml -NewProject
 ```
 
-This command creates a new Project named MyTestProject and creates teams defined in the xml file name MyTFSOrgImport.xml. 
+This command creates a new Project named MyTestProject and creates teams defined in the xml file name MyTFSOrgImport.xml.
 The xml file can
 define advanced settings for permissions and custom group names.
 
@@ -156,6 +156,7 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+<<<<<<< HEAD
 ### -SkipExistingTeam
 Skip Existing Team Update```yaml
 Type: SwitchParameter
@@ -182,6 +183,8 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+=======
+>>>>>>> master
 ### -WhatIf
 Shows what would happen if the cmdlet runs.
 The cmdlet is not run.
