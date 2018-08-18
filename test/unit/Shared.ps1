@@ -2,7 +2,7 @@
 
 $ModuleRootDir = Split-Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
 $ModuleManifestName = 'VSTeamBuilder.psd1'
-$ModuleManifestPath = "$ModuleRootDir\src\$ModuleManifestName"
+$ModuleManifestPath = "$PSScriptRoot\..\..\src\$ModuleManifestName"
 
 if (!$SuppressImportModule) {
     # -Scope Global is needed when running tests from inside of psake, otherwise
