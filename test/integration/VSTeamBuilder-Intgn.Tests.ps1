@@ -6,8 +6,6 @@ if($usePAT -and $PATToken -eq $null){
     . $PSScriptRoot\SecureSettings.ps1
 }
 
-$VerbosePreference = "Continue"
-
 Describe 'VSTeamBuilder Integration Org Test'{
     BeforeAll {
         $projectName = $env:projectName
@@ -54,7 +52,7 @@ Describe 'VSTeamBuilder Integration Org Test'{
         # }
 
         It 'Creates new project and uses CSV as template - New-TBOrg' {
-            $result = New-TBOrg -ProjectName "$projectName-CSV" -ProjectDescription "The Best Project Ever" -ImportFile "$ResourceRootDir\VSTBImportFile.csv" -NewProject
+            $result = New-TBOrg -ProjectName "$projectName-CSV" -ProjectDescription "The Best Project Ever" -ImportFile "$ResourceRootDir\VSTBImportFile.csv" -NewProject -Verbose
             $success = $false
             if($result){
                 $success = $true
@@ -63,7 +61,7 @@ Describe 'VSTeamBuilder Integration Org Test'{
         }
 
         It 'Removes team project structure from csv file - Remove-TBOrg' {
-            $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$ResourceRootDir\VSTBImportFile.csv"
+            $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$ResourceRootDir\VSTBImportFile.csv" -Verbose
             $success = $false
             if($result){
                 $success = $true

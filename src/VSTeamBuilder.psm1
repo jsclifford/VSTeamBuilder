@@ -696,14 +696,6 @@ function New-TBTeam
     $result = $true
     #endregion
 
-    #region Get Version Control Type
-    # try {
-    #     $projectObject = Get-VSTeamProject -Name $projectNameLocal #Get-TFSTeamProject -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl) #FixNow
-    # }
-    # catch {
-    #     $projectObject = $null
-    # }
-
     #endregion
 
     #region Create Team Area
@@ -779,26 +771,32 @@ function New-TBTeam
                     $FullReponame = "$TeamCode"
                 }
                 $repoExists = $null
-                try
-                {
-                    $repoExists = Get-VSTeamGitRepository -ProjectName $ProjectName -Name "$FullRepoName"
-                }
-                catch
-                {
-                    $repoExists = $null
+                if($TFSVC){
+                    Write-Verbose "TFSVC not supported yet..."
+                    continue
+                }else{
+                    try
+                    {
+                        $repoExists = Get-VSTeamGitRepository -ProjectName $ProjectName -Name "$FullRepoName"
+                    }
+                    catch
+                    {
+                        $repoExists = $null
+                    }
+
+                    if ($null -eq $repoExists)
+                    {
+                        #Creating Repo
+                        $holder = Add-VSTeamGitRepository -Name "$FullRepoName" -ProjectName $projectNameLocal
+                        #$holder = New-TFSGitRepository -Name "$FullRepoName" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
+                        Write-Verbose "$FullReponame Repo Created."
+                    }
+                    else
+                    {
+                        Write-Verbose "$FullReponame Repo already exists.  "
+                    }
                 }
 
-                if ($null -eq $repoExists)
-                {
-                    #Creating Repo
-                    $holder = Add-VSTeamGitRepository -Name "$FullRepoName" -ProjectName $projectNameLocal
-                    #$holder = New-TFSGitRepository -Name "$FullRepoName" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
-                    Write-Verbose "$FullReponame Repo Created."
-                }
-                else
-                {
-                    Write-Verbose "$FullReponame Repo already exists.  "
-                }
                 $repoExists = $null
             }
         }
@@ -877,21 +875,28 @@ function New-TBTeam
             {
                 $FullReponame = "$TeamCode"
             }
-            try
-            {
-                $repo = Get-VSTeamGitRepository -Name $FullReponame -ProjectName $projectNameLocal
-            }
-            catch
-            {
-                $repo = $null
-            }
 
-            if ($null -eq $repo)
-            {
+            $repoToken = $null
+            if($TFSVC){
+                Write-Verbose "TFSVC not supported yet..."
                 continue
+            }else{
+                try
+                {
+                    $repo = Get-VSTeamGitRepository -Name $FullReponame -ProjectName $projectNameLocal
+                }
+                catch
+                {
+                    $repo = $null
+                }
+                if ($null -eq $repo)
+                {
+                    continue
+                }
+
+                $repoToken = Get-TBToken -ObjectId $repo.id -NsName "Git Repositories" -ProjectName $projectNameLocal
             }
 
-            $repoToken = Get-TBToken -ObjectId $repo.id -NsName "Git Repositories" -ProjectName $projectNameLocal
             try
             {
                 foreach($group in $TeamGroups){
@@ -1089,7 +1094,11 @@ function Remove-TBTeam
 
         # isCoded switch will make Version Control Repos if set.
         [switch]
-        $IsCoded
+        $IsCoded,
+
+        # Specifies if project is using TFSVC version control.
+        [switch]
+        $TFSVC
     )
 
     #region global connection Variables

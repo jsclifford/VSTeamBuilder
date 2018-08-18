@@ -479,11 +479,6 @@ InModuleScope VSTeamBuilder {
             Mock Remove-TBTeam { return $true }
             #endregion
 
-            It 'Creates csv file - _generateImportFile' {
-                _generateImportFile -ImportFile "$ResourceRootDir\generateImportTest.csv"
-                Test-Path("$ResourceRootDir\generateImportTest.csv") | Should Be True
-            }
-
             It 'Creates csv Template File - New-TBOrg' {
                 $result = New-TBOrg -ProjectName $projectName -ImportFile "$ResourceRootDir\VSTBImportTemplate.csv" -GenerateImportFile
                 $success = $false
@@ -497,6 +492,11 @@ InModuleScope VSTeamBuilder {
                 #$result = New-TBOrg -ProjectName $projectName -ImportFile "$ResourceRootDir\VSTBImportTemplate.xml" -GenerateImportFile
                 $true | Should Be True
             }
+
+            # It 'Creates csv file - _generateImportFile' {
+            #     _generateImportFile -ImportFile "$ResourceRootDir\VSTBGenFile.csv"
+            #     Test-Path("$ResourceRootDir\generateImportTest.csv") | Should Be True
+            # }
 
             It 'Creates new project and uses CSV as template - New-TBOrg' {
                 $result = New-TBOrg -ProjectName "$projectName-csv" -ProjectDescription "The Best Project Ever" -ImportFile "$ResourceRootDir\VSTBImportTemplate.csv" -NewProject
