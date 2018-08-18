@@ -7,8 +7,8 @@
 #---------------------------------#
 #      general configuration      #
 #---------------------------------#
-version: 2.0.0{build}
-
+version: 0.7.1.{build}
+image: WMF 5
 skip_commits:
   files:
    - '**/*.md'
@@ -19,8 +19,11 @@ skip_commits:
 #---------------------------------#
 
 install:
-- ps: Write-Verbose -Message "PowerShell version $($PSVersionTable.PSVersion)" -Verbose
-- ps: (Import-PowerShellDataFile "$env:APPVEYOR_BUILD_FOLDER\src\VSTeamBuilder.psd1").RequiredModules | ForEach-Object { Install-Module $PSItem.moduleName -RequiredVersion $PSItem.ModuleVersion -Repository PSGallery -Scope CurrentUser -Force }
+- ps: >-
+    Write-Verbose -Message "PowerShell version $($PSVersionTable.PSVersion)" -Verbose
+    (Import-PowerShellDataFile "$env:APPVEYOR_BUILD_FOLDER\src\VSTeamBuilder.psd1").RequiredModules | ForEach-Object { Install-Module $PSItem.moduleName -RequiredVersion $PSItem.ModuleVersion -Repository PSGallery -Scope CurrentUser -Force }
+- cinst pester
+- cinst psake
 
 #---------------------------------#
 #      build configuration        #
@@ -33,13 +36,40 @@ build: false
 #---------------------------------#
 
 test_script:
-- ps: build/build.ps1
-
+- ps: >-
+    Invoke-PSake $env:APPVEYOR_BUILD_FOLDER\build\build.psake.ps1 -taskList Test
+    if ($psake.build_success -eq $false) { throw "Psake Build Failed. $($psake.error_message)"}
+after_test:
+- ps: >-
+    (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $env:APPVEYOR_BUILD_FOLDER\release\PesterReport\Unit.TEST.xml))
+# after_test:
+#   - ps: |
+#       $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
+#       Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
+#       bash codecov.sh -f "coverage.xml" -t YourUploadToken
 branches:
   only:
   - dev
   - master
+skip_tags: true
 
-  skip_tags: true
 
-deploy: off
+#---------------------------------#
+#      deployment configuration   #
+#---------------------------------#
+
+# scripts to run before deployment
+# before_deploy:
+#   - ps: hostname
+
+# for:
+# -
+#   branches:
+#     only:
+#       - master
+
+#   deploy:
+#     - provider: Environment
+#       name: Test PS Gallery
+#       on:
+#         appveyor_repo_tag: true
