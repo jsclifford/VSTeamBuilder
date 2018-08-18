@@ -12,7 +12,7 @@
 RootModule = 'VSTeamBuilder.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.7.2'
+ModuleVersion = '0.7.3'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -137,6 +137,7 @@ Fixed progress bar.
 Made New/Remove-TBOrg TFSVC aware.
 Added Verbose reporting in New-TBTeam and Remove-TBTeam
 Added API Version aware on Area and Iteration functions
+Build Process Bug
 https://github.com/jsclifford/VSTeamBuilder/blob/master/ReleaseNotes.md'
 
         # TFS Client Version

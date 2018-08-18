@@ -1,5 +1,9 @@
 # Release Notes
 
+### 0.7.3
+
+Build Process Bug
+
 ### 0.7.1
 
 Made New/Remove-TBOrg TFSVC aware.
