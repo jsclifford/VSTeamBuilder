@@ -2,7 +2,7 @@
 $SuppressImportModule = $false
 . $PSScriptRoot\Shared.ps1
 
-$global:ModuleRootDir = $ModuleRootDir
+$global:PRootDir = $PRootDir
 
 Describe "Manifest & xml validation" {
     Context 'Module Manifest' {
@@ -343,7 +343,7 @@ InModuleScope VSTeamBuilder {
             $Global:VSTBConn = @{ "AccountUrl" = "https://myproject.visualstudio.com" }
             $TeamCode = "MTT"
             $TeamDescription = "The best Test of a new team"
-            $ResourceRootDir = "$global:ModuleRootDir\resources"
+            $ResourceRootDir = "$global:PRootDir\resources"
 
         }
 

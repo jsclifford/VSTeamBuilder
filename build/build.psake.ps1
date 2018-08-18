@@ -100,10 +100,10 @@ Task Clean -depends Init -requiredVariables OutDir {
 
 Task StageFiles -depends Init, Clean, BeforeStageFiles, CoreStageFiles {
     #Create resources folder and generate CSV file
-    if(Test-Path("$RootDir\resources")){
+    if(Test-Path("$PRootDir\resources")){
         Write-Verbose "Resources folder already created."
     }else{
-        mkdir "$RootDir\resources"
+        mkdir "$PRootDir\resources"
     }
 
     $CSVList = @(
@@ -127,7 +127,7 @@ Task StageFiles -depends Init, Clean, BeforeStageFiles, CoreStageFiles {
         }
     )
 
-    $CSVList | Export-Csv -NoTypeInformation -Path "$RootDir\resources\VSTBImportFile.csv" -Force
+    $CSVList | Export-Csv -NoTypeInformation -Path "$PRootDir\resources\VSTBImportFile.csv" -Force
 }
 
 Task CoreStageFiles -requiredVariables ModuleOutDir, SrcRootDir {
@@ -139,7 +139,7 @@ Task CoreStageFiles -requiredVariables ModuleOutDir, SrcRootDir {
     }
 
     Copy-Item -Path $SrcRootDir\* -Destination $ModuleOutDir -Recurse -Exclude $Exclude -Verbose:$VerbosePreference
-    Copy-Item -Path $RootDir\README.md -Destination $ModuleOutDir -Exclude $Exclude -Verbose:$VerbosePreference
+    Copy-Item -Path $PRootDir\README.md -Destination $ModuleOutDir -Exclude $Exclude -Verbose:$VerbosePreference
 }
 
 Task Build -depends Init, Clean, BeforeBuild, StageFiles, AfterStageFiles, Analyze, Sign, AfterBuild {

@@ -17,7 +17,7 @@ Describe 'VSTeamBuilder Integration Org Test'{
         $api = $env:API
         $searchGroup = $env:searchGroup
         $originalLocation = Get-Location
-        $ResourceRootDir = "$ModuleRootDir\resources"
+        $ResourceRootDir = "$PRootDir\resources"
 
         if($usePAT){
             Add-TBConnection -AcctUrl $acctUrl -PAT $pat -API $api
