@@ -22,15 +22,7 @@ environment:
     secure: 7+DG4taP7Anz64lB7dSi/48xLAXJXL1d+auWI11pAUkEPccGRmFVlxi2w8RzW3Ol
 
 install:
-# - ps: (Import-PowerShellDataFile "$($env:APPVEYOR_BUILD_FOLDER)\src\VSTeamBuilder.psd1").RequiredModules | ForEach-Object { Install-Module $PSItem.moduleName -RequiredVersion $PSItem.ModuleVersion -Repository PSGallery -Scope CurrentUser -Force }
-# - cinst pester
-# - cinst psake
-- ps: Install-PackageProvider -Name NuGet -Force
-- ps: |
-      Write-Verbose -Message "PowerShell version $($PSVersionTable.PSVersion)" -Verbose
-      $moduleData = Import-PowerShellDataFile "$($env:APPVEYOR_BUILD_FOLDER)\src\VSTeamBuilder.psd1"
-      $moduleData.RequiredModules | ForEach-Object { Install-Module $PSItem.moduleName -Repository PSGallery -Scope CurrentUser -Force }
-- ps: Install-Module pester,psake -Scope CurrentUser -Force
+- ps: . $($env:APPVEYOR_BUILD_FOLDER)\build\appveyor.install.ps1
 
 #---------------------------------#
 #      build configuration        #
