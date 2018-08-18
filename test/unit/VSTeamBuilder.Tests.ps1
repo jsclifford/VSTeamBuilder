@@ -4,6 +4,8 @@ $SuppressImportModule = $false
 
 $global:RootDir = $RootDir
 
+$Verbose = $false
+
 Describe "Manifest & xml validation" {
     Context 'Module Manifest' {
         It 'Passes Test-ModuleManifest' {
@@ -499,12 +501,12 @@ InModuleScope VSTeamBuilder {
             # }
 
             It 'Creates new project and uses CSV as template - New-TBOrg' {
-                $result = New-TBOrg -ProjectName "$projectName-csv" -ProjectDescription "The Best Project Ever" -ImportFile "$ResourceRootDir\VSTBImportTemplate.csv" -NewProject
+                $result = New-TBOrg -ProjectName "$projectName-csv" -ProjectDescription "The Best Project Ever" -ImportFile "$ResourceRootDir\VSTBImportTemplate.csv" -NewProject -Verbose:$Verbose
                 $result | Should Be True
             }
 
             It 'Removes team project structure from csv file - Remove-TBOrg' {
-                $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$ResourceRootDir\VSTBImportTemplate.csv"
+                $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$ResourceRootDir\VSTBImportTemplate.csv" -Verbose:$Verbose
                 $result | Should Be True
             }
 
@@ -548,7 +550,7 @@ InModuleScope VSTeamBuilder {
             }
 
             It 'Updates Existing project - Skip Existing Teams - New-TBOrg' {
-                $result = New-TBOrg -ProjectName "$projectName" -ProjectDescription "The Best Project Ever" -ImportFile "$ResourceRootDir\VSTBImportTemplate.csv" -SkipExistingTeam
+                $result = New-TBOrg -ProjectName "$projectName" -ProjectDescription "The Best Project Ever" -ImportFile "$ResourceRootDir\VSTBImportTemplate.csv" -SkipExistingTeam -Verbose:$Verbose
                 $result | Should Be True
             }
         }
@@ -644,7 +646,7 @@ InModuleScope VSTeamBuilder {
 
             It 'Creates new TFS Security Group - New-TBSecurityGroup' {
                 $Global:nullGroup = $true
-                $createIt = New-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName -Description $TeamDescription
+                $createIt = New-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName -Description $TeamDescription -Verbose:$Verbose
                 $Global:nullGroup = $false
                 $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
                 $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be True
@@ -659,12 +661,12 @@ InModuleScope VSTeamBuilder {
 
         Context 'Security Group Member' {
             It 'Adds a team to the new group - Add-TBSecurityGroupMember' {
-                $result = Add-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName
+                $result = Add-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName -Verbose:$Verbose
                 $result -eq "" | Should Be True
             }
 
             It 'Removes a team to the new group - Remove-TBSecurityGroupMember' {
-                $result = Remove-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName
+                $result = Remove-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName -Verbose:$Verbose
                 $result -eq "" | Should Be True
             }
 
@@ -672,7 +674,7 @@ InModuleScope VSTeamBuilder {
 
         Context 'Remove Security Group'{
             It 'Removes new TFS Security Group - Remove-TBSecurityGroup' {
-                $removeIt = Remove-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
+                $removeIt = Remove-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName -Verbose:$Verbose
                 $Global:nullGroup = $true
                 $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
                 $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be False
