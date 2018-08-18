@@ -4,7 +4,7 @@ $SuppressImportModule = $false
 
 $global:RootDir = $RootDir
 
-$Verbose = $false
+
 
 Describe "Manifest & xml validation" {
     Context 'Module Manifest' {
@@ -16,7 +16,7 @@ Describe "Manifest & xml validation" {
 }
 
 InModuleScope VSTeamBuilder {
-
+    $Verbose = $false
     Describe 'Team Area' {
         BeforeAll {
             $projectName = "VSTeamBuilderDemo"
