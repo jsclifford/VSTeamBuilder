@@ -56,5 +56,6 @@ Fixed progress bar.
 
 ### 0.7.1
 
+Made New/Remove-TBOrg TFSVC aware.
 Added Verbose reporting in New-TBTeam and Remove-TBTeam
 Added API Version aware on Area and Iteration functions

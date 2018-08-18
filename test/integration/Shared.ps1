@@ -1,6 +1,6 @@
 # Dot source this script in any Pester test script that requires the module to be imported.
 
-$RootDir = Split-Path (Split-Path -Parent $PSScriptRoot) -Parent
+$RootDir = Split-Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
 $ModuleManifestName = 'VSTeamBuilder.psd1'
 $ModuleManifestPath = "$RootDir\src\$ModuleManifestName"
 
