@@ -25,11 +25,12 @@ install:
 # - ps: (Import-PowerShellDataFile "$($env:APPVEYOR_BUILD_FOLDER)\src\VSTeamBuilder.psd1").RequiredModules | ForEach-Object { Install-Module $PSItem.moduleName -RequiredVersion $PSItem.ModuleVersion -Repository PSGallery -Scope CurrentUser -Force }
 # - cinst pester
 # - cinst psake
-- ps: Write-Verbose -Message "PowerShell version $($PSVersionTable.PSVersion)" -Verbose
-- ps: $moduleData = Import-PowerShellDataFile "$($env:APPVEYOR_BUILD_FOLDER)\src\VSTeamBuilder.psd1"
-- ps: $moduleData.RequiredModules | ForEach-Object { Install-Module $PSItem.moduleName -Repository PSGallery -Scope CurrentUser -Force }
-- ps: Install-Module pester -Scope CurrentUser -Force
-- ps: Install-Module psake -Scope CurrentUser -Force
+- ps: Install-PackageProvider -Name NuGet -Force
+- ps: |
+      Write-Verbose -Message "PowerShell version $($PSVersionTable.PSVersion)" -Verbose
+      $moduleData = Import-PowerShellDataFile "$($env:APPVEYOR_BUILD_FOLDER)\src\VSTeamBuilder.psd1"
+      $moduleData.RequiredModules | ForEach-Object { Install-Module $PSItem.moduleName -Repository PSGallery -Scope CurrentUser -Force }
+- ps: Install-Module pester,psake -Scope CurrentUser -Force
 
 #---------------------------------#
 #      build configuration        #
@@ -46,8 +47,7 @@ test_script:
 - ps: if ($psake.build_success -eq $false) { throw "Psake Build Failed. $($psake.error_message)"}
 
 after_test:
-- ps: >-
-    (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $env:APPVEYOR_BUILD_FOLDER\release\PesterReport\Unit.TEST.xml))
+- ps: (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $env:APPVEYOR_BUILD_FOLDER\release\PesterReport\Unit.TEST.xml))
 - ps: |
       $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
       Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
