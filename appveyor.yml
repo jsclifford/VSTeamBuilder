@@ -36,10 +36,7 @@ build: false
 #---------------------------------#
 
 test_script:
-# - ps: Write-Host "Current Directory. $pwd"
-# - ps: Add-AppveyorTest -Name "PSake Unitest" -Outcome Running -Framework NUnit
-# - ps: Invoke-Psake (Resolve-Path $env:APPVEYOR_BUILD_FOLDER\build\build.psake.ps1) -taskList Test
-- ps: . .\build\appveyor.psake.ps1
+- ps: .\build\appveyor.psake.ps1
 
 after_test:
 - ps: $testResultsPath = Join-Path $pwd -ChildPath "release\PesterReport"
