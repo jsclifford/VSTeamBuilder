@@ -10,6 +10,10 @@ The goal of this project is to automate management of VSTS/TFS big projects.  Th
 |master|![Build status](https://masterkey53.visualstudio.com/_apis/public/build/definitions/1faeb996-a9d4-4d7a-81f8-467fb14c974c/4/badge)|
 |dev|![Build status](https://masterkey53.visualstudio.com/VSTeamBuilder/_apis/build/status/VSTeamBuilder-CI-GH?branchName=dev)|
 
+### CodeCove Status
+
+[![Code Coverage](https://codecov.io/gh/jsclifford/VSTeamBuilder/settings/badge)](https://codecov.io/gh/jsclifford/VSTeamBuilder)
+
 ## Contributors
 
 To contribute to this project please follow the [code of conduct](https://github.com/jsclifford/VSTeamBuilder/blob/master/CODE_OF_CONDUCT.md), [contributing guide](https://github.com/jsclifford/VSTeamBuilder/blob/master/.github/CONTRIBUTING.md), and [pull request template](https://github.com/jsclifford/VSTeamBuilder/blob/master/.github/PULL_REQUEST_TEMPLATE.md).  Thank you for your help.

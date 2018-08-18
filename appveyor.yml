@@ -22,10 +22,14 @@ environment:
     secure: 7+DG4taP7Anz64lB7dSi/48xLAXJXL1d+auWI11pAUkEPccGRmFVlxi2w8RzW3Ol
 
 install:
+# - ps: (Import-PowerShellDataFile "$($env:APPVEYOR_BUILD_FOLDER)\src\VSTeamBuilder.psd1").RequiredModules | ForEach-Object { Install-Module $PSItem.moduleName -RequiredVersion $PSItem.ModuleVersion -Repository PSGallery -Scope CurrentUser -Force }
+# - cinst pester
+# - cinst psake
 - ps: Write-Verbose -Message "PowerShell version $($PSVersionTable.PSVersion)" -Verbose
-- ps: (Import-PowerShellDataFile "$($env:APPVEYOR_BUILD_FOLDER)\src\VSTeamBuilder.psd1").RequiredModules | ForEach-Object { Install-Module $PSItem.moduleName -RequiredVersion $PSItem.ModuleVersion -Repository PSGallery -Scope CurrentUser -Force }
-- cinst pester
-- cinst psake
+- ps: $moduleData = Import-PowerShellDataFile "$($env:APPVEYOR_BUILD_FOLDER)\src\VSTeamBuilder.psd1"
+- ps: $moduleData.RequiredModules | ForEach-Object { Install-Module $PSItem.moduleName -Repository PSGallery -Scope CurrentUser -Force }
+- ps: Install-Module pester -Scope CurrentUser -Force
+- ps: Install-Module psake -Scope CurrentUser -Force
 
 #---------------------------------#
 #      build configuration        #
@@ -41,13 +45,13 @@ test_script:
 - ps: Invoke-PSake $env:APPVEYOR_BUILD_FOLDER\build\build.psake.ps1 -taskList Test
 - ps: if ($psake.build_success -eq $false) { throw "Psake Build Failed. $($psake.error_message)"}
 
-# after_test:
-# - ps: >-
-#     (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $env:APPVEYOR_BUILD_FOLDER\release\PesterReport\Unit.TEST.xml))
-# - ps: |
-#       $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
-#       Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
-#       bash codecov.sh -f "$env:APPVEYOR_BUILD_FOLDER\release\PesterReport\coverage.xml" -t $env:codecovetoken
+after_test:
+- ps: >-
+    (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $env:APPVEYOR_BUILD_FOLDER\release\PesterReport\Unit.TEST.xml))
+- ps: |
+      $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
+      Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
+      bash codecov.sh -f "$($env:APPVEYOR_BUILD_FOLDER)\release\PesterReport\CodeCoverage.xml" -t $env:codecovetoken
 branches:
   only:
   - dev
