@@ -22,7 +22,7 @@ environment:
     secure: 7+DG4taP7Anz64lB7dSi/48xLAXJXL1d+auWI11pAUkEPccGRmFVlxi2w8RzW3Ol
 
 install:
-- ps: . $($env:APPVEYOR_BUILD_FOLDER)\build\appveyor.install.ps1
+- ps: .\build\appveyor.install.ps1
 
 #---------------------------------#
 #      build configuration        #

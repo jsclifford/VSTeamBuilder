@@ -7,8 +7,8 @@ The goal of this project is to automate management of VSTS/TFS big projects.  Th
 
 |Branch|Status|
 |------|------|
-|master|![Build status](https://masterkey53.visualstudio.com/_apis/public/build/definitions/1faeb996-a9d4-4d7a-81f8-467fb14c974c/4/badge)|
-|dev|![Build status](https://masterkey53.visualstudio.com/VSTeamBuilder/_apis/build/status/VSTeamBuilder-CI-GH?branchName=dev)|
+|master|[![Build status](https://ci.appveyor.com/api/projects/status/scmquvxicko0u23w/branch/master?svg=true)](https://ci.appveyor.com/project/jsclifford/vsteambuilder/branch/master)|
+|dev|[![Build status](https://ci.appveyor.com/api/projects/status/scmquvxicko0u23w/branch/dev?svg=true)](https://ci.appveyor.com/project/jsclifford/vsteambuilder/branch/dev)|
 
 ### CodeCove Status
 
