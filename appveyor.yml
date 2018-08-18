@@ -36,10 +36,11 @@ build: false
 #---------------------------------#
 
 test_script:
-- ps: Write-Host "Current Directory. $pwd
+- ps: Write-Host "Current Directory. $pwd"
 - ps: Write-Host "AppVeyor Build folder. $env:APPVEYOR_BUILD_FOLDER"
 - ps: Invoke-PSake build\build.psake.ps1 -taskList Test
-- ps: if ($psake.build_success -eq $false) { throw "Psake Build Failed. $($psake.error_message)"}
+- ps: if ($psake.build_success -eq $false) { Add-AppveyorMessage -Message "PSake Build Failed"; throw "Psake Build Failed. $($psake.error_message)"}
+- ps:
 
 after_test:
 - ps: (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $env:APPVEYOR_BUILD_FOLDER\release\PesterReport\Unit.TEST.xml))
