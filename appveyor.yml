@@ -1,0 +1,73 @@
+# Notes:
+#   - Minimal appveyor.yml file is an empty file. All sections are optional.
+#   - Indent each level of configuration with 2 spaces. Do not use tabs!
+#   - All section names are case-sensitive.
+#   - Section names should be unique on each level.
+
+#---------------------------------#
+#      general configuration      #
+#---------------------------------#
+version: 0.7.3.{build}
+image: Visual Studio 2017
+skip_commits:
+  files:
+   - '**/*.md'
+   - .github/*
+   - .vscode/*
+
+#---------------------------------#
+#      environment configuration  #
+#---------------------------------#
+environment:
+  codecovetoken:
+    secure: 7+DG4taP7Anz64lB7dSi/48xLAXJXL1d+auWI11pAUkEPccGRmFVlxi2w8RzW3Ol
+
+install:
+- ps: .\build\appveyor.install.ps1
+
+#---------------------------------#
+#      build configuration        #
+#---------------------------------#
+
+build: false
+
+#---------------------------------#
+#      test configuration         #
+#---------------------------------#
+
+test_script:
+- ps: .\build\appveyor.psake.ps1
+
+after_test:
+- ps: $testResultsPath = Join-Path $pwd -ChildPath "release\PesterReport"
+- ps: (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path $testResultsPath\Unit.TEST.xml))
+- ps: |
+      $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
+      Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
+      bash codecov.sh -f "$testResultsPath\CodeCoverage.xml" -t $env:codecovetoken
+branches:
+  only:
+  - dev
+  - master
+skip_tags: true
+
+
+#---------------------------------#
+#      deployment configuration   #
+#---------------------------------#
+
+# scripts to run before deployment
+# before_deploy:
+#   - ps: hostname
+
+# for:
+# -
+#   branches:
+#     only:
+#       - master
+
+#   deploy:
+#     - provider: Environment
+#       name: Test PS Gallery
+#       on:
+#         appveyor_repo_tag: true

@@ -43,7 +43,16 @@ function New-TBOrg
 
         # Disables progress bar.
         [switch]
-        $DisableProgressBar
+        $DisableProgressBar,
+
+        # Skip Existing Team Update
+        [switch]
+        $SkipExistingTeam,
+
+        # Create Team with TFVC Version Control
+        [switch]
+        $TFVC
+
     )
 
     #region global connection Variables
@@ -81,14 +90,13 @@ function New-TBOrg
     $isXML = $false
     $isReturned = $false
 
-    if (-not (Test-Path($ImportFile)))
+    if (-not (Test-Path($ImportFile)) -and $GenerateImportFile)
     {
-        if ($GenerateImportFile)
-        {
-            _generateImportFile -ImportFile $ImportFile
-            $isReturned = $true
-            return $true
-        }
+        _generateImportFile -ImportFile $ImportFile -Verbose:$VerbosePreference
+        $isReturned = $true
+        return $true
+    }elseif($GenerateImportFile){
+        return $true
     }
     if ($ImportFile -like '*.csv')
     {
@@ -141,7 +149,6 @@ function New-TBOrg
     #region Creating New Team Project
     if ($PSCmdlet.ShouldProcess("Creating New Team Project.") -and $NewProject)
     {
-        $TFVC = $false
         try{
             $projectExists = Get-VSTeamProject -Name $projectNameLocal
         }catch{
@@ -150,15 +157,7 @@ function New-TBOrg
 
         if ($null -eq $projectExists)
         {
-            if ($TFVC)
-            {
-                #$holder = Add-VSTeamProject -ProjectName $projectNameLocal -Description $ProjectDescription -ProcessTemplate $processTemplate -TFVC
-            }
-            else
-            {
-                $holder = Add-VSTeamProject -ProjectName $projectNameLocal -Description $ProjectDescription -ProcessTemplate $ProcessTemplate
-            }
-
+            $holder = Add-VSTeamProject -ProjectName $projectNameLocal -Description $ProjectDescription -ProcessTemplate $processTemplate -TFVC:$TFVC
         }
     }
     #endregion
@@ -166,23 +165,46 @@ function New-TBOrg
     #region Creating Teams
     if ($isXML)
     {
+        $teams = @()
         $i = 0
+        if(!$DisableProgressBar){
+            Write-Progress -Activity "Creating Teams" -Status "Starting Team Creation. Team Count: $($teams.Count)" -PercentComplete ($i/$teams.Count*100)
+        }
         foreach ($teamNode in $teams)
         {
             if(!$DisableProgressBar){
                 Write-Progress -Activity "Creating Teams" -Status "Creating Team: $($teamNode.TeamName)" -PercentComplete ($i/$teams.Count*100)
                 $i++
             }
+            if($SkipExistingTeam){
+                $teamExists = $null
+                try
+                {
+                    $teamExists = Get-VSTeam -Name $($teamNode.TeamName) -Project $ProjectName
+                }
+                catch
+                {
+                    $teamExists = $null
+                }
+                if ($null -ne $teamExists)
+                {
+                    if(!$DisableProgressBar){
+                        Write-Progress -Activity "Creating Teams" -Status "Skipping Existing Team: $($teamNode.TeamName)" -PercentComplete ($i/$teams.Count*100)
+                        $i++
+                    }
+                    continue
+                }
+            }
             if ($PSCmdlet.ShouldProcess("Creating Team: $($teamNode.TeamName). Advanced Config"))
             {
+                $isCoded = $false
                 if ($teamNode.iscoded -eq 'y')
                 {
-                    $result = New-TBTeam -Name $($teamNode.TeamName) -Description $($teamNode.TeamDescription) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal -IsCoded
+                    $isCoded = $true
                 }
-                else
-                {
-                    $result = New-TBTeam -Name $($teamNode.TeamName) -Description $($teamNode.TeamDescription) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal
-                }
+
+                $result = New-TBTeam -Name $($teamNode.TeamName) -Description $($teamNode.TeamDescription) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal -IsCoded:$isCoded -Verbose:$VerbosePreference
+
                 if ($result)
                 {
                     Write-Verbose "------------ Successfully Created Team $($teamNode.TeamName) ------------------"
@@ -198,11 +220,34 @@ function New-TBOrg
     {
         $CSVImportSorted = $CSVImport| Sort-Object -Property ProcessOrder
         $i = 0
+        if(!$DisableProgressBar){
+            Write-Progress -Activity "Creating Teams" -Status "Starting Team Creation. Team Count: $($CSVImportSorted.Count)" -PercentComplete ($i/$CSVImportSorted.Count*100)
+        }
+
         foreach ($row in $CSVImportSorted)
         {
             if($row.TeamName -eq $null -or $row.TeamName -eq ""){
                 Write-Verbose "Row is empty.  Skipping record."
                 continue
+            }
+            if($SkipExistingTeam){
+                $teamExists = $null
+                try
+                {
+                    $teamExists = Get-VSTeam -Name $($row.TeamName) -Project $ProjectName
+                }
+                catch
+                {
+                    $teamExists = $null
+                }
+                if ($null -ne $teamExists)
+                {
+                    if(!$DisableProgressBar){
+                        Write-Progress -Activity "Creating Teams" -Status "Skipping Existing Team: $($row.TeamName)" -PercentComplete ($i/$CSVImportSorted.Count*100)
+                        $i++
+                    }
+                    continue
+                }
             }
             if(!$DisableProgressBar){
                 Write-Progress -Activity "Creating Teams" -Status "Creating Team: $($row.TeamName)" -PercentComplete ($i/$CSVImportSorted.Count*100)
@@ -210,14 +255,14 @@ function New-TBOrg
             }
             if ($PSCmdlet.ShouldProcess("Creating Team: $($row.TeamName). Basic Config"))
             {
+                $isCoded = $false
                 if ($row.iscoded -eq 'y')
                 {
-                    $result = New-TBTeam -Name $($row.TeamName) -Description $($row.TeamDescription) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal -IsCoded
+                    $isCoded = $true
                 }
-                else
-                {
-                    $result = New-TBTeam -Name $($row.TeamName) -Description $($row.TeamDescription) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal
-                }
+
+                $result = New-TBTeam -Name $($row.TeamName) -Description $($row.TeamDescription) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal -IsCoded:$isCoded -Verbose:$VerbosePreference
+
                 if ($result)
                 {
                     Write-Verbose "------------ Successfully Created Team $($row.TeamName) ------------------"
@@ -372,11 +417,11 @@ function Remove-TBOrg
             {
                 if ($teamNode.iscoded -eq 'y')
                 {
-                    $result = Remove-TBTeam -Name $($teamNode.TeamName) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal -IsCoded
+                    $result = Remove-TBTeam -Name $($teamNode.TeamName) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal -IsCoded -Verbose:$VerbosePreference
                 }
                 else
                 {
-                    $result = Remove-TBTeam -Name $($teamNode.TeamName) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal
+                    $result = Remove-TBTeam -Name $($teamNode.TeamName) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal -Verbose:$VerbosePreference
                 }
                 if ($result)
                 {
@@ -407,11 +452,11 @@ function Remove-TBOrg
             {
                 if ($row.iscoded -eq 'y')
                 {
-                    $result = Remove-TBTeam -Name $($row.TeamName) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal -IsCoded
+                    $result = Remove-TBTeam -Name $($row.TeamName) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal -IsCoded -Verbose:$VerbosePreference
                 }
                 else
                 {
-                    $result = Remove-TBTeam -Name $($row.TeamName) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal
+                    $result = Remove-TBTeam -Name $($row.TeamName) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal -Verbose:$VerbosePreference
                 }
                 if ($result)
                 {
@@ -537,10 +582,70 @@ function New-TBTeam
         [string[]]
         $IterationList = @('{TeamCode}'),
 
-        # TFS Team Security Groups - List of Application Security Groups to create.  Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers"
+        <# TFS Team Security Groups - List of Application Security Groups to create.
+        Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers".
+        Permission Numbers with categories:  Array of Hastables example below
+        $TeamGroups = @(
+            @{
+                Name = "CodeReviewers"
+                Permissions = @{
+                    Git = 126
+                    Iteration = 7
+                    Area = 49
+                    Project = 513
+                }
+            },
+            @{
+                Name = "Contributors"
+                Permissions = @{
+                    Git = 118
+                    Iteration = 7
+                    Area = 49
+                    Project = 513
+                }
+            },
+            @{
+                Name = "Readers"
+                Permissions = @{
+                    Git = 2
+                    Iteration = 1
+                    Area = 49
+                    Project = 513
+                }
+            }
+        )
+        #>
         [Parameter(Mandatory = $false)]
-        [string[]]
-        $TeamGroups = @("Contributors", "CodeReviewers", "Readers"),
+        [hashtable[]]
+        $TeamGroups = @(
+            @{
+                Name = "CodeReviewers"
+                Permissions = @{
+                    Git = 126
+                    Iteration = 7
+                    Area = 49
+                    Project = 513
+                }
+            },
+            @{
+                Name = "Contributors"
+                Permissions = @{
+                    Git = 118
+                    Iteration = 7
+                    Area = 49
+                    Project = 513
+                }
+            },
+            @{
+                Name = "Readers"
+                Permissions = @{
+                    Git = 2
+                    Iteration = 1
+                    Area = 49
+                    Project = 513
+                }
+            }
+        ),
 
         # TFS TeamCode - Used for Repo, Area, and Iteration Names
         [Parameter(Mandatory = $false)]
@@ -549,12 +654,23 @@ function New-TBTeam
 
         # isCoded switch will make Version Control Repos if set.
         [switch]
-        $IsCoded
+        $IsCoded,
+
+        # Specifies if project is using TFSVC version control.
+        [switch]
+        $TFSVC,
+
+        # Disables progress bar.
+        [switch]
+        $DisableProgressBar
+
+
     )
 
     #region global connection Variables
     $projectNameLocal = $null
     $VSTBConn = $Global:VSTBConn
+
     if (! (_testConnection))
     {
         Write-Verbose "There is no connection made to the server.  Run Add-TBConnection to connect."
@@ -580,6 +696,8 @@ function New-TBTeam
     $result = $true
     #endregion
 
+    #endregion
+
     #region Create Team Area
     if ($PSCmdlet.ShouldProcess("Create Team Area."))
     {
@@ -601,8 +719,9 @@ function New-TBTeam
     {
         foreach ($group in $TeamGroups)
         {
-            $holder = New-TBSecurityGroup -Name "$TeamCode-$group" -Description "$TeamCode-$group" -ProjectName $projectNameLocal
-            Write-Verbose "Created TFS Application Security Group: $TeamCode-$group"
+            $groupName = $group.Name
+            $holder = New-TBSecurityGroup -Name "$TeamCode-$groupName" -Description "$TeamCode-$groupName" -ProjectName $projectNameLocal -Verbose:$VerbosePreference
+            Write-Verbose "Created TFS Application Security Group: $TeamCode-$groupName"
         }
     }
     #endregion
@@ -626,7 +745,7 @@ function New-TBTeam
         }
 
         #Setting Default Area.
-        $holder = Set-TBTeamAreaSetting -TeamName $Name -AreaPath "$TeamPath\$TeamCode" -ProjectName $projectNameLocal
+        $holder = Set-TBTeamAreaSetting -TeamName $Name -AreaPath "$TeamPath\$TeamCode" -ProjectName $projectNameLocal -Verbose:$VerbosePreference
         Write-Verbose "Set team Area $TeamPath\$TeamCode to team $Name"
     }
     #endregion
@@ -652,26 +771,32 @@ function New-TBTeam
                     $FullReponame = "$TeamCode"
                 }
                 $repoExists = $null
-                try
-                {
-                    $repoExists = Get-VSTeamGitRepository -ProjectName $ProjectName -Name "$FullRepoName"
-                }
-                catch
-                {
-                    $repoExists = $null
+                if($TFSVC){
+                    Write-Verbose "TFSVC not supported yet..."
+                    continue
+                }else{
+                    try
+                    {
+                        $repoExists = Get-VSTeamGitRepository -ProjectName $ProjectName -Name "$FullRepoName"
+                    }
+                    catch
+                    {
+                        $repoExists = $null
+                    }
+
+                    if ($null -eq $repoExists)
+                    {
+                        #Creating Repo
+                        $holder = Add-VSTeamGitRepository -Name "$FullRepoName" -ProjectName $projectNameLocal
+                        #$holder = New-TFSGitRepository -Name "$FullRepoName" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
+                        Write-Verbose "$FullReponame Repo Created."
+                    }
+                    else
+                    {
+                        Write-Verbose "$FullReponame Repo already exists.  "
+                    }
                 }
 
-                if ($null -eq $repoExists)
-                {
-                    #Creating Repo
-                    $holder = Add-VSTeamGitRepository -Name "$FullRepoName" -ProjectName $projectNameLocal
-                    #$holder = New-TFSGitRepository -Name "$FullRepoName" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
-                    Write-Verbose "$FullReponame Repo Created."
-                }
-                else
-                {
-                    Write-Verbose "$FullReponame Repo already exists.  "
-                }
                 $repoExists = $null
             }
         }
@@ -750,26 +875,37 @@ function New-TBTeam
             {
                 $FullReponame = "$TeamCode"
             }
-            try
-            {
-                $repo = Get-VSTeamGitRepository -Name $FullReponame -ProjectName $projectNameLocal
-            }
-            catch
-            {
-                $repo = $null
-            }
 
-            if ($null -eq $repo)
-            {
+            $repoToken = $null
+            if($TFSVC){
+                Write-Verbose "TFSVC not supported yet..."
                 continue
+            }else{
+                try
+                {
+                    $repo = Get-VSTeamGitRepository -Name $FullReponame -ProjectName $projectNameLocal
+                }
+                catch
+                {
+                    $repo = $null
+                }
+                if ($null -eq $repo)
+                {
+                    continue
+                }
+
+                $repoToken = Get-TBToken -ObjectId $repo.id -NsName "Git Repositories" -ProjectName $projectNameLocal
             }
 
-            $repoToken = Get-TBToken -ObjectId $repo.id -NsName "Git Repositories" -ProjectName $projectNameLocal
             try
             {
+                foreach($group in $TeamGroups){
+                    $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-$($group.Name)" -AllowValue $($group.Permissions.Git) -ProjectName $projectNameLocal
+                }
                 #TODO Need to add foreach loop to process through TeamGroups Variable.
-                $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-Contributors" -AllowValue 118 -ProjectName $projectNameLocal
-                $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-Readers" -AllowValue 2 -ProjectName $projectNameLocal
+                # $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-CodeReviewers" -AllowValue 126 -ProjectName $projectNameLocal
+                # $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-Contributors" -AllowValue 118 -ProjectName $projectNameLocal
+                # $holder = Set-TBPermission -TokenObject $repoToken -GroupName "$TeamCode-Readers" -AllowValue 2 -ProjectName $projectNameLocal
             }
             catch
             {
@@ -790,9 +926,13 @@ function New-TBTeam
         $iterationToken = Get-TBToken -ObjectId $iterationId -NsName "Iteration" -ProjectName $projectNameLocal
         try
         {
+            foreach($group in $TeamGroups){
+                $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-$($group.Name)" -AllowValue $($group.Permissions.Iteration) -ProjectName $projectNameLocal
+            }
             #TODO Need to add foreach loop to process through TeamGroups Variable.
-            $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-Contributors" -AllowValue 7 -ProjectName $projectNameLocal
-            $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-Readers" -AllowValue 1 -ProjectName $projectNameLocal
+            # $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-CodeReviewers" -AllowValue 7 -ProjectName $projectNameLocal
+            # $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-Contributors" -AllowValue 7 -ProjectName $projectNameLocal
+            # $holder = Set-TBPermission -TokenObject $iterationToken -GroupName "$TeamCode-Readers" -AllowValue 1 -ProjectName $projectNameLocal
         }
         catch
         {
@@ -812,9 +952,13 @@ function New-TBTeam
         $areaToken = Get-TBToken -ObjectId $areaId -NsName "CSS" -ProjectName $projectNameLocal
         try
         {
+            foreach($group in $TeamGroups){
+                $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-$($group.Name)" -AllowValue $($group.Permissions.Area) -ProjectName $projectNameLocal
+            }
             #TODO Need to add foreach loop to process through TeamGroups Variable.
-            $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-Contributors" -AllowValue 49 -ProjectName $projectNameLocal
-            $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-Readers" -AllowValue 17 -ProjectName $projectNameLocal
+            # $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-CodeReviewers" -AllowValue 49 -ProjectName $projectNameLocal
+            # $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-Contributors" -AllowValue 49 -ProjectName $projectNameLocal
+            # $holder = Set-TBPermission -TokenObject $areaToken -GroupName "$TeamCode-Readers" -AllowValue 17 -ProjectName $projectNameLocal
         }
         catch
         {
@@ -844,9 +988,13 @@ function New-TBTeam
             $projectTokenObject = New-Object -TypeName PSObject -Property $props
             try
             {
+                foreach($group in $TeamGroups){
+                    $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-$($group.Name)" -AllowValue $($group.Permissions.Project) -ProjectName $projectNameLocal
+                }
                 #TODO Need to add foreach loop to process through TeamGroups Variable.
-                $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-Contributors" -AllowValue 513 -ProjectName $projectNameLocal
-                $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-Readers" -AllowValue 513 -ProjectName $projectNameLocal
+                # $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-CodeReviewers" -AllowValue 513 -ProjectName $projectNameLocal
+                # $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-Contributors" -AllowValue 513 -ProjectName $projectNameLocal
+                # $holder = Set-TBPermission -TokenObject $projectTokenObject -GroupName "$TeamCode-Readers" -AllowValue 513 -ProjectName $projectNameLocal
             }
             catch
             {
@@ -910,10 +1058,34 @@ function Remove-TBTeam
         [string[]]
         $IterationList = @('{TeamCode}'),
 
-        # TFS Team Security Groups - List of Application Security Groups to remove.  Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers"
+        <# TFS Team Security Groups -
+        List of Application Security Groups to remove.
+        Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers"
+        $TeamGroups = @(
+            @{
+                Name = "CodeReviewers"
+            },
+            @{
+                Name = "Contributors"
+            },
+            @{
+                Name = "Readers"
+            }
+        )
+        #>
         [Parameter(Mandatory = $false)]
-        [string[]]
-        $TeamGroups = @("Contributors", "CodeReviewers", "Readers"),
+        [hashtable[]]
+        $TeamGroups = @(
+            @{
+                Name = "CodeReviewers"
+            },
+            @{
+                Name = "Contributors"
+            },
+            @{
+                Name = "Readers"
+            }
+        ),
 
         # TFS TeamCode - Used for Repo, Area, and Iteration Names
         [Parameter(Mandatory = $false)]
@@ -922,7 +1094,11 @@ function Remove-TBTeam
 
         # isCoded switch will make Version Control Repos if set.
         [switch]
-        $IsCoded
+        $IsCoded,
+
+        # Specifies if project is using TFSVC version control.
+        [switch]
+        $TFSVC
     )
 
     #region global connection Variables
@@ -1011,7 +1187,7 @@ function Remove-TBTeam
                 if ($PSCmdlet.ShouldProcess("Remove Team Iteration. Iteration Name: $iteration"))
                 {
                     #Creating Repo
-                    $holder = Remove-TFSIteration -Iteration "$iteration" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
+                    $holder = Remove-TFSIteration -Iteration "$iteration" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl) -Confirm:$false
                     Write-Verbose "$iteration Iteration Created."
                 }
             }
@@ -1030,7 +1206,7 @@ function Remove-TBTeam
             $areaExists = Get-TFSArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
             if ($null -ne $areaExists)
             {
-                $holder = Remove-TfsArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl)
+                $holder = Remove-TfsArea -Area "$TeamPath\$TeamCode" -Project $projectNameLocal -Collection $($VSTBConn.AccountUrl) -Confirm:$false
                 Write-Verbose "Removed Area: $TeamPath\$TeamCode"
             }
             else
@@ -1045,7 +1221,7 @@ function Remove-TBTeam
         {
             foreach ($group in $TeamGroups)
             {
-                $holder = Remove-TBSecurityGroup -Name "$TeamCode-$group" -ProjectName $projectNameLocal
+                $holder = Remove-TBSecurityGroup -Name "$TeamCode-$($group.Name)" -ProjectName $projectNameLocal
                 Write-Verbose "Removed TFS Application Security Group: $TeamCode-$group"
             }
         }
@@ -1659,12 +1835,17 @@ function Set-TBTeamAreaSetting
     $JSONObject = New-Object -TypeName PSObject -Property $props
     $JSON = ConvertTo-Json $JSONObject
 
+    if($VSTBConn.API -eq 'VSTS'){
+        $APIVer = "4.1"
+    }else{
+        $APIVer = "3.0"
+    }
     try
     {
         if ($PSCmdlet.ShouldProcess("Adding IterationID: $AreaPath to team: $TeamName"))
         {
             #$result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$TeamName" -resource "_apis/work/teamsettings/teamfieldvalues" -method Patch -body $JSON -ContentType "application/json" -version 2.0-preview.1
-            $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings/teamfieldvalues?api-version=3.0"
+            $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings/teamfieldvalues?api-version=$APIVer"
             $result = Invoke-VSTeamRequest -Url $Url -method Patch -body $JSON -ContentType "application/json"
         }
     }
@@ -1728,10 +1909,15 @@ function Get-TBTeamAreaSetting
     $result = $null
     #endregion
 
+    if($VSTBConn.API -eq 'VSTS'){
+        $APIVer = "4.1"
+    }else{
+        $APIVer = "3.0"
+    }
     try
     {
         #$result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings/teamfieldvalues" -method Get -version 2.0-preview.1
-        $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings/teamfieldvalues?api-version=3.0"
+        $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings/teamfieldvalues?api-version=$APIVer"
         $result = Invoke-VSTeamRequest -Url $Url -method Get
     }
     catch
@@ -1821,12 +2007,17 @@ function Set-TBTeamIterationSetting
     $JSONObject = New-Object -TypeName PSObject -Property $props
     $JSON = ConvertTo-Json $JSONObject
 
+    if($VSTBConn.API -eq 'VSTS'){
+        $APIVer = "4.1"
+    }else{
+        $APIVer = "3.0"
+    }
     try
     {
         if ($PSCmdlet.ShouldProcess("Adding IterationID: $iterationId to team: $TeamName"))
         {
             #$result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings" -method Patch -body $JSON -ContentType "application/json" -version 2.0-preview.1
-            $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings?api-version=3.0"
+            $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings?api-version=$APIVer"
             $result = Invoke-VSTeamRequest -Url $Url -method Patch -body $JSON -ContentType "application/json"
         }
     }
@@ -1890,10 +2081,15 @@ function Get-TBTeamIterationSetting
     $result = $null
     #endregion
 
+    if($VSTBConn.API -eq 'VSTS'){
+        $APIVer = "4.1"
+    }else{
+        $APIVer = "3.0"
+    }
     try
     {
         #$result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings" -method Get -version 2.0-preview.1
-        $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings?api-version=3.0"
+        $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings?api-version=$APIVer"
         $result = Invoke-VSTeamRequest -Url $Url -method Get
     }
     catch
@@ -1974,12 +2170,18 @@ function Add-TBTeamIteration
     $JSONObject = New-Object -TypeName PSObject -Property $props
     $JSON = ConvertTo-Json $JSONObject
 
+    if($VSTBConn.API -eq 'VSTS'){
+        $APIVer = "4.1"
+    }else{
+        $APIVer = "3.0"
+    }
     try
     {
         if ($PSCmdlet.ShouldProcess("Adding IterationID: $iterationId to team: $TeamName"))
         {
             #$result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings/iterations" -method Post -body $JSON -ContentType "application/json" -version 2.0-preview.1
-            $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings/iterations?api-version=3.0"
+
+            $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings/iterations?api-version=$APIVer"
             $result = Invoke-VSTeamRequest -Url $Url -method Post -body $JSON -ContentType "application/json"
         }
     }
@@ -2043,10 +2245,15 @@ function Get-TBTeamIteration
     $result = $null
     #endregion
 
+    if($VSTBConn.API -eq 'VSTS'){
+        $APIVer = "4.1"
+    }else{
+        $APIVer = "3.0"
+    }
     try
     {
         #$result = Invoke-VSTeamRequest -ProjectName $projectNameLocal -area "$Teamname" -resource "_apis/work/teamsettings/iterations" -method Get -version 2.0-preview.1
-        $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings/iterations?api-version=3.0"
+        $Url = "$($VSTBConn.AccountUrl)/$projectNameLocal/$TeamName/_apis/work/teamsettings/iterations?api-version=$APIVer"
         $result = Invoke-VSTeamRequest -Url $Url -method Get
     }
     catch
@@ -2447,6 +2654,7 @@ function Add-TBConnection
             "DefaultProjectName"     = $null
             "VSTeamAccount"          = $false
             "TFSCmdletsConnection"   = $false
+            "API"                    = $API
         }
 
         $VSTBConn = New-Object -TypeName psobject -Property $props
@@ -2647,6 +2855,7 @@ function Set-TBDefaultProject
             "DefaultProjectName"     = $ProjectName
             "VSTeamAccount"          = $false
             "TFSCmdletsConnection"   = $false
+            "API"                    = $null
         }
 
         $VSTBConn = New-Object -TypeName psobject -Property $props

@@ -2,6 +2,8 @@
 $SuppressImportModule = $false
 . $PSScriptRoot\Shared.ps1
 
+$global:RootDir = $RootDir
+
 Describe "Manifest & xml validation" {
     Context 'Module Manifest' {
         It 'Passes Test-ModuleManifest' {
@@ -12,7 +14,7 @@ Describe "Manifest & xml validation" {
 }
 
 InModuleScope VSTeamBuilder {
-
+    $Verbose = $false
     Describe 'Team Area' {
         BeforeAll {
             $projectName = "VSTeamBuilderDemo"
@@ -306,8 +308,30 @@ InModuleScope VSTeamBuilder {
             }
         }
 
-        AfterAll {
+        Context 'Set-Default Project' {
+            It 'Create VSTBConn object' {
+                $Global:VSTBConn = $null
+                Set-TBDefaultProject -ProjectName $projectName
+                $Global:VSTBConn.DefaultProjectName -eq $projectName | Should Be True
+            }
 
+            It 'Updates VSTBConn object' {
+                $props = @{
+                    "AccountUrl"             = $null
+                    "TeamExplorerConnection" = $null
+                    "DefaultProjectName"     = $null
+                    "VSTeamAccount"          = $false
+                    "TFSCmdletsConnection"   = $false
+                }
+
+                $VSTBConn = New-Object -TypeName psobject -Property $props
+                $Global:VSTBConn = $VSTBConn
+                Set-TBDefaultProject -ProjectName $projectName
+                $Global:VSTBConn.DefaultProjectName -eq $projectName | Should Be True
+            }
+        }
+        AfterAll {
+            $Global:VSTBConn = $null
         }
     }
 
@@ -319,6 +343,7 @@ InModuleScope VSTeamBuilder {
             $Global:VSTBConn = @{ "AccountUrl" = "https://myproject.visualstudio.com" }
             $TeamCode = "MTT"
             $TeamDescription = "The best Test of a new team"
+            $ResourceRootDir = "$global:RootDir\resources"
 
         }
 
@@ -453,29 +478,9 @@ InModuleScope VSTeamBuilder {
             Mock New-TBTeam { return $true }
             Mock Remove-TBTeam { return $true }
             #endregion
-            It 'Creates new project and uses CSV as template - New-TBOrg' {
-                $result = New-TBOrg -ProjectName "$projectName-csv" -ProjectDescription "The Best Project Ever" -ImportFile "$PSScriptRoot\..\resources\VSTBImportFile.csv" -NewProject
-                $result | Should Be True
-            }
-
-            It 'Removes team project structure from csv file - Remove-TBOrg' {
-                $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$PSScriptRoot\..\resources\VSTBImportFile.csv"
-                $result | Should Be True
-            }
-
-            #Not implemented yet.
-            # It 'Creates new project from xml file - New-TBOrg' {
-            #     #$result = New-TBOrg -ProjectName "$projectName-xml" -ProjectDescription "The Best Project Ever" -ImportFile "$PSScriptRoot\VSTBImportFile.xml" -NewProject
-            #     $result | Should Be True
-            # }
-
-            # It 'Removes team project structure from xml file - Remove-TBOrg' {
-            #     #$result = Remove-TBOrg -ProjectName "$projectName-xml" -ImportFile "$PSScriptRoot\VSTBImportFile.xml"
-            #     $result | Should Be True
-            # }
 
             It 'Creates csv Template File - New-TBOrg' {
-                $result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\..\resources\VSTBImportTemplate.csv" -GenerateImportFile
+                $result = New-TBOrg -ProjectName $projectName -ImportFile "$ResourceRootDir\VSTBImportTemplate.csv" -GenerateImportFile
                 $success = $false
                 if($result){
                     $success = $true
@@ -484,8 +489,67 @@ InModuleScope VSTeamBuilder {
             }
 
             It 'Creates xml Template File - New-TBOrg' {
-                #$result = New-TBOrg -ProjectName $projectName -ImportFile "$PSScriptRoot\VSTBImportTemplate.xml" -GenerateImportFile
+                #$result = New-TBOrg -ProjectName $projectName -ImportFile "$ResourceRootDir\VSTBImportTemplate.xml" -GenerateImportFile
                 $true | Should Be True
+            }
+
+            # It 'Creates csv file - _generateImportFile' {
+            #     _generateImportFile -ImportFile "$ResourceRootDir\VSTBGenFile.csv"
+            #     Test-Path("$ResourceRootDir\generateImportTest.csv") | Should Be True
+            # }
+
+            It 'Creates new project and uses CSV as template - New-TBOrg' {
+                $result = New-TBOrg -ProjectName "$projectName-csv" -ProjectDescription "The Best Project Ever" -ImportFile "$ResourceRootDir\VSTBImportTemplate.csv" -NewProject -Verbose:$Verbose
+                $result | Should Be True
+            }
+
+            It 'Removes team project structure from csv file - Remove-TBOrg' {
+                $result = Remove-TBOrg -ProjectName "$projectName-csv" -ImportFile "$ResourceRootDir\VSTBImportTemplate.csv" -Verbose:$Verbose
+                $result | Should Be True
+            }
+
+            #Not implemented yet.
+            # It 'Creates new project from xml file - New-TBOrg' {
+            #     #$result = New-TBOrg -ProjectName "$projectName-xml" -ProjectDescription "The Best Project Ever" -ImportFile "$ResourceRootDir\VSTBImportFile.xml" -NewProject
+            #     $result | Should Be True
+            # }
+
+            # It 'Removes team project structure from xml file - Remove-TBOrg' {
+            #     #$result = Remove-TBOrg -ProjectName "$projectName-xml" -ImportFile "$ResourceRootDir\VSTBImportFile.xml"
+            #     $result | Should Be True
+            # }
+        }
+
+        Context 'Update Existing TBOrg' {
+            #region Mock Functions
+            $Global:g = 0
+            Mock Get-VSTeam {
+                $Global:g += 1
+                switch($Global:g){
+                    1 { return "TeamExists" }
+                    2 { throw "Team Doesn't exist" }
+                    2 { return $null }
+                    default { return "TeamExists" }
+                }
+            }
+            Mock Get-VSTeamProject { return $null }
+            Mock Add-VSTeamProject { return $ProjectName }
+            Mock New-TBTeam { return $true }
+            Mock Remove-TBTeam { return $true }
+            #endregion
+
+            It 'Creates csv Template File - New-TBOrg' {
+                $result = New-TBOrg -ProjectName $projectName -ImportFile "$ResourceRootDir\VSTBImportTemplate.csv" -GenerateImportFile
+                $success = $false
+                if($result){
+                    $success = $true
+                }
+                $success | Should Be True
+            }
+
+            It 'Updates Existing project - Skip Existing Teams - New-TBOrg' {
+                $result = New-TBOrg -ProjectName "$projectName" -ProjectDescription "The Best Project Ever" -ImportFile "$ResourceRootDir\VSTBImportTemplate.csv" -SkipExistingTeam -Verbose:$Verbose
+                $result | Should Be True
             }
         }
     }
@@ -580,7 +644,7 @@ InModuleScope VSTeamBuilder {
 
             It 'Creates new TFS Security Group - New-TBSecurityGroup' {
                 $Global:nullGroup = $true
-                $createIt = New-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName -Description $TeamDescription
+                $createIt = New-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName -Description $TeamDescription -Verbose:$Verbose
                 $Global:nullGroup = $false
                 $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
                 $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be True
@@ -595,12 +659,12 @@ InModuleScope VSTeamBuilder {
 
         Context 'Security Group Member' {
             It 'Adds a team to the new group - Add-TBSecurityGroupMember' {
-                $result = Add-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName
+                $result = Add-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName -Verbose:$Verbose
                 $result -eq "" | Should Be True
             }
 
             It 'Removes a team to the new group - Remove-TBSecurityGroupMember' {
-                $result = Remove-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName
+                $result = Remove-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName -Verbose:$Verbose
                 $result -eq "" | Should Be True
             }
 
@@ -608,7 +672,7 @@ InModuleScope VSTeamBuilder {
 
         Context 'Remove Security Group'{
             It 'Removes new TFS Security Group - Remove-TBSecurityGroup' {
-                $removeIt = Remove-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
+                $removeIt = Remove-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName -Verbose:$Verbose
                 $Global:nullGroup = $true
                 $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
                 $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be False

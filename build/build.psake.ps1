@@ -1,4 +1,3 @@
-#1234Requiresz -Modulesz psake
 
 ##############################################################################
 # DO NOT MODIFY THIS FILE!  Modify build.settings.ps1 instead.
@@ -101,10 +100,10 @@ Task Clean -depends Init -requiredVariables OutDir {
 
 Task StageFiles -depends Init, Clean, BeforeStageFiles, CoreStageFiles {
     #Create resources folder and generate CSV file
-    if(Test-Path("$PSScriptRoot\resources")){
+    if(Test-Path("$RootDir\resources")){
         Write-Verbose "Resources folder already created."
     }else{
-        mkdir "$PSScriptRoot\resources"
+        mkdir "$RootDir\resources"
     }
 
     $CSVList = @(
@@ -128,49 +127,7 @@ Task StageFiles -depends Init, Clean, BeforeStageFiles, CoreStageFiles {
         }
     )
 
-    $CSVList | Export-Csv -NoTypeInformation -Path "$PSScriptRoot\resources\VSTBImportFile.csv" -Force
-
-
-    #Getting TFS dlls from nuget.
-    # Write-Verbose "Restoring Microsoft.TeamFoundationServer.ExtendedClient Nuget package (if needed)"
-
-    # if (-not (Test-Path (Join-Path $NugetPackagesDir 'Microsoft.TeamFoundationServer.ExtendedClient') -PathType Container))
-    # {
-    #     Write-Verbose "Microsoft.TeamFoundationServer.ExtendedClient not found. Downloading from Nuget.org"
-    #     & $NugetExePath Install Microsoft.TeamFoundationServer.ExtendedClient -ExcludeVersion -OutputDirectory packages -Verbosity Detailed *>&1 | Write-Verbose
-    # }
-    # else
-    # {
-    #     Write-Verbose "FOUND! Skipping..."
-    # }
-
-    # $TargetDir = (Join-Path $SrcRootDir 'lib\')
-
-    # if (-not (Test-Path $TargetDir -PathType Container)) { New-Item $TargetDir -ItemType Directory -Force | Out-Null }
-
-    # Write-Verbose "Copying TFS Client Object Model assemblies to output folder"
-
-    # foreach($d in (Get-ChildItem net4*, native -Directory -Recurse))
-    # {
-    #     try
-    #     {
-    #         foreach ($f in (Get-ChildItem $d\*.dll -Recurse -Exclude *.resources.dll))
-    #         {
-    #             if($f.Name -eq 'Microsoft.TeamFoundation.Common.dll' -or $f.name -eq 'Microsoft.TeamFoundation.Client.dll'){
-    #                 $SrcPath = $f.FullName
-    #                 $DstPath = Join-Path $TargetDir $f.Name
-
-    #                 if (-not (Test-Path $DstPath))
-    #                 {
-    #                     Write-Verbose $DstPath
-    #                     Copy-Item $SrcPath $DstPath
-    #                 }
-    #             }
-    #         }
-    #     }
-    #     finally
-    #     {}
-    # }
+    $CSVList | Export-Csv -NoTypeInformation -Path "$RootDir\resources\VSTBImportFile.csv" -Force
 }
 
 Task CoreStageFiles -requiredVariables ModuleOutDir, SrcRootDir {
@@ -182,7 +139,7 @@ Task CoreStageFiles -requiredVariables ModuleOutDir, SrcRootDir {
     }
 
     Copy-Item -Path $SrcRootDir\* -Destination $ModuleOutDir -Recurse -Exclude $Exclude -Verbose:$VerbosePreference
-    Copy-Item -Path .\README.md -Destination $ModuleOutDir -Exclude $Exclude -Verbose:$VerbosePreference
+    Copy-Item -Path $RootDir\README.md -Destination $ModuleOutDir -Exclude $Exclude -Verbose:$VerbosePreference
 }
 
 Task Build -depends Init, Clean, BeforeBuild, StageFiles, AfterStageFiles, Analyze, Sign, AfterBuild {
@@ -461,7 +418,7 @@ Task Test -depends Build -requiredVariables TestRootDir, ModuleName, CodeCoverag
     Import-Module Pester
 
     try {
-        Microsoft.PowerShell.Management\Push-Location -LiteralPath $TestRootDir
+        Microsoft.PowerShell.Management\Push-Location -LiteralPath "$TestRootDir\unit"
 
         if ($TestOutputFile) {
             $testing = @{

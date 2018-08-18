@@ -38,7 +38,7 @@
             "suppressTaskName": true,
             "showOutput": "always",
             "args": [
-                "Write-Host 'Invoking psake on build.psake.ps1 -taskList Clean'; Invoke-psake build.psake.ps1 -taskList Clean;",
+                "Write-Host 'Invoking psake on build.psake.ps1 -taskList Clean'; Invoke-psake ${workspaceRoot}\\build\\build.psake.ps1 -taskList Clean;",
                 "Invoke-Command { Write-Host 'Completed Clean task in task runner.' }"
             ]
         },
@@ -48,7 +48,7 @@
             "isBuildCommand": true,
             "showOutput": "always",
             "args": [
-                "Write-Host 'Invoking psake on build.psake.ps1 -taskList Build'; Invoke-psake build.psake.ps1 -taskList Build;",
+                "Write-Host 'Invoking psake on build.psake.ps1 -taskList Build'; Invoke-psake ${workspaceRoot}\\build\\build.psake.ps1 -taskList Build;",
                 "Invoke-Command { Write-Host 'Completed Build task in task runner.' }"
             ]
         },
@@ -57,7 +57,7 @@
             "suppressTaskName": true,
             "showOutput": "always",
             "args": [
-                "Write-Host 'Invoking psake on build.psake.ps1 -taskList BuildHelp'; Invoke-psake build.psake.ps1 -taskList BuildHelp;",
+                "Write-Host 'Invoking psake on build.psake.ps1 -taskList BuildHelp'; Invoke-psake ${workspaceRoot}\\build\\build.psake.ps1 -taskList BuildHelp;",
                 "Invoke-Command { Write-Host 'Completed BuildHelp task in task runner.' }"
             ]
         },
@@ -66,7 +66,7 @@
             "suppressTaskName": true,
             "showOutput": "always",
             "args": [
-                "Write-Host 'Invoking psake on build.psake.ps1 -taskList Analyze'; Invoke-psake build.psake.ps1 -taskList Analyze;",
+                "Write-Host 'Invoking psake on build.psake.ps1 -taskList Analyze'; Invoke-psake ${workspaceRoot}\\build\\build.psake.ps1 -taskList Analyze;",
                 "Invoke-Command { Write-Host 'Completed Analyze task in task runner.' }"
             ]
         },
@@ -75,7 +75,7 @@
             "suppressTaskName": true,
             "showOutput": "always",
             "args": [
-                "Write-Host 'Invoking psake on build.psake.ps1 -taskList Install'; Invoke-psake build.psake.ps1 -taskList Install;",
+                "Write-Host 'Invoking psake on build.psake.ps1 -taskList Install'; Invoke-psake ${workspaceRoot}\\build\\build.psake.ps1 -taskList Install;",
                 "Invoke-Command { Write-Host 'Completed Install task in task runner.' }"
             ]
         },
@@ -84,7 +84,7 @@
             "suppressTaskName": true,
             "showOutput": "always",
             "args": [
-                "Write-Host 'Invoking psake on build.psake.ps1 -taskList Publish'; Invoke-psake build.psake.ps1 -taskList Publish;",
+                "Write-Host 'Invoking psake on build.psake.ps1 -taskList Publish'; Invoke-psake ${workspaceRoot}\\build\\build.psake.ps1 -taskList Publish;",
                 "Invoke-Command { Write-Host 'Completed Publish task in task runner.' }"
             ]
         },
@@ -93,7 +93,7 @@
             "suppressTaskName": true,
             "showOutput": "always",
             "args": [
-                "Write-Host 'Invoking psake on build.psake.ps1 -taskList Test'; Invoke-psake build.psake.ps1 -taskList Test;",
+                "Write-Host 'Invoking psake on build.psake.ps1 -taskList Test'; Invoke-psake ${workspaceRoot}\\build\\build.psake.ps1 -taskList Test;",
                 "Invoke-Command { Write-Host 'Completed BuildHelp task in task runner.' }"
             ]
         },
@@ -103,26 +103,8 @@
             "isTestCommand": true,
             "showOutput": "always",
             "args": [
-                "Write-Host 'Invoking Pester'; Invoke-Pester -Script ${workspaceRoot}\\test -PesterOption @{IncludeVSCodeMarker=$true};",
+                "Write-Host 'Invoking Pester'; Invoke-Pester -Script ${workspaceRoot}\\test\\unit -PesterOption @{IncludeVSCodeMarker=$true};",
                 "Invoke-Command { Write-Host 'Completed Test task in task runner.' }"
-            ],
-            "problemMatcher": [
-                {
-                    "owner": "powershell",
-                    "fileLocation": ["absolute"],
-                    "severity": "error",
-                    "pattern": [
-                        {
-                            "regexp": "^\\s*(\\[-\\]\\s*.*?)(\\d+)ms\\s*$",
-                            "message": 1
-                        },
-                        {
-                            "regexp": "^\\s+at\\s+[^,]+,\\s*(.*?):\\s+line\\s+(\\d+)$",
-                            "file": 1,
-                            "line": 2
-                        }
-                    ]
-                }
             ]
         },
         {
@@ -131,7 +113,7 @@
             "isTestCommand": true,
             "showOutput": "always",
             "args": [
-                "Write-Host 'Invoking Pester'; Invoke-Pester -Script ${workspaceRoot}\\test -CodeCoverage ${workspaceRoot}\\src\\VSTeamBuilder.psm1 -PesterOption @{IncludeVSCodeMarker=$true};",
+                "Write-Host 'Invoking Pester'; Invoke-Pester -Script ${workspaceRoot}\\test\\unit -CodeCoverage ${workspaceRoot}\\src\\VSTeamBuilder.psm1 -PesterOption @{IncludeVSCodeMarker=$true};",
                 "Invoke-Command { Write-Host 'Completed Test task in task runner.' }"
             ],
             "problemMatcher": [
@@ -159,7 +141,7 @@
             "isTestCommand": true,
             "showOutput": "always",
             "args": [
-                "Write-Host 'Invoking Pester'; $thedate = Get-Date -Format 'dd-MM-yyyy_H-mm-ss'; Invoke-Pester -Script ${workspaceRoot}\\test -CodeCoverage ${workspaceRoot}\\src\\VSTeamBuilder.psm1 -PesterOption @{IncludeVSCodeMarker=$true} -OutPutFile ${workspaceRoot}\\Release\\TestResults_${thedate}.xml -OutPutFormat NUnitXml;",
+                "Write-Host 'Invoking Pester'; $thedate = Get-Date -Format 'dd-MM-yyyy_H-mm-ss'; Invoke-Pester -Script ${workspaceRoot}\\test\\unit -CodeCoverage ${workspaceRoot}\\src\\VSTeamBuilder.psm1 -PesterOption @{IncludeVSCodeMarker=$true} -OutPutFile ${workspaceRoot}\\Release\\TestResults_${thedate}.xml -OutPutFormat NUnitXml;",
                 "Invoke-Command { Write-Host 'Completed Test task in task runner.' }"
             ],
             "problemMatcher": [
@@ -187,7 +169,7 @@
             "isTestCommand": true,
             "showOutput": "always",
             "args": [
-                "Write-Host 'Invoking Pester'; Invoke-Pester -Script ${workspaceRoot}\\integration\\test -PesterOption @{IncludeVSCodeMarker=$true};",
+                "Write-Host 'Invoking Pester'; Invoke-Pester -Script ${workspaceRoot}\\test\\integration -PesterOption @{IncludeVSCodeMarker=$true};",
                 "Invoke-Command { Write-Host 'Completed Test task in task runner.' }"
             ],
             "problemMatcher": [
@@ -215,7 +197,7 @@
             "isTestCommand": true,
             "showOutput": "always",
             "args": [
-                "Write-Host 'Invoking Pester'; Invoke-Pester -Script ${workspaceRoot}\\integration\\test -CodeCoverage ${workspaceRoot}\\src\\VSTeamBuilder.psm1 -PesterOption @{IncludeVSCodeMarker=$true};",
+                "Write-Host 'Invoking Pester'; Invoke-Pester -Script ${workspaceRoot}\\test\\integration -CodeCoverage ${workspaceRoot}\\src\\VSTeamBuilder.psm1 -PesterOption @{IncludeVSCodeMarker=$true};",
                 "Invoke-Command { Write-Host 'Completed Test task in task runner.' }"
             ],
             "problemMatcher": [
@@ -243,7 +225,7 @@
             "isTestCommand": true,
             "showOutput": "always",
             "args": [
-                "Write-Host 'Invoking Pester'; $thedate = Get-Date -Format 'dd-MM-yyyy_H-mm-ss'; Invoke-Pester -Script ${workspaceRoot}\\integration\\test -CodeCoverage ${workspaceRoot}\\src\\VSTeamBuilder.psm1 -PesterOption @{IncludeVSCodeMarker=$true} -OutPutFile ${workspaceRoot}\\Release\\TestResults_${thedate}.xml -OutPutFormat NUnitXml;",
+                "Write-Host 'Invoking Pester'; $thedate = Get-Date -Format 'dd-MM-yyyy_H-mm-ss'; Invoke-Pester -Script ${workspaceRoot}\\test\\integration -CodeCoverage ${workspaceRoot}\\src\\VSTeamBuilder.psm1 -PesterOption @{IncludeVSCodeMarker=$true} -OutPutFile ${workspaceRoot}\\release\\TestResults_${thedate}.xml -OutPutFormat NUnitXml;",
                 "Invoke-Command { Write-Host 'Completed Test task in task runner.' }"
             ],
             "problemMatcher": [

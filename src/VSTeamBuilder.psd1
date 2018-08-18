@@ -12,7 +12,7 @@
 RootModule = 'VSTeamBuilder.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.5.1'
+ModuleVersion = '0.7.3'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -51,7 +51,10 @@ Description = 'Powershell Module that automates VSTS/TFS project creation and co
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @('VSTeam','TFSCmdlets')
+RequiredModules = @(
+    @{ModuleName = 'VSTeam'; ModuleVersion = '3.0.0'},
+    @{ModuleName = 'TFSCmdlets'; ModuleVersion = '1.0.0.894'}
+)
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
@@ -131,8 +134,13 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = 'Alpha Release
-Added Validation for AcctUrl variable on Add-TBConnection.
-Added progress bar on New-TBOrg.
+Added SkipExistingTeam to New-TBOrg
+Changed TeamGroups parameter to include ability to specify group permissions on New-TBTeam
+Fixed progress bar.
+Made New/Remove-TBOrg TFSVC aware.
+Added Verbose reporting in New-TBTeam and Remove-TBTeam
+Added API Version aware on Area and Iteration functions
+Build Process Bug
 https://github.com/jsclifford/VSTeamBuilder/blob/master/ReleaseNotes.md'
 
         # TFS Client Version
