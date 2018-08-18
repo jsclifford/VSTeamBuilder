@@ -17,6 +17,9 @@ skip_commits:
 #---------------------------------#
 #      environment configuration  #
 #---------------------------------#
+environment:
+  codecovetoken:
+    secure: 7+DG4taP7Anz64lB7dSi/48xLAXJXL1d+auWI11pAUkEPccGRmFVlxi2w8RzW3Ol
 
 install:
 - ps: >-
@@ -46,7 +49,7 @@ after_test:
 #   - ps: |
 #       $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
 #       Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
-#       bash codecov.sh -f "coverage.xml" -t YourUploadToken
+#       bash codecov.sh -f "$env:APPVEYOR_BUILD_FOLDER\release\PesterReport\coverage.xml" -t $env:codecovetoken
 branches:
   only:
   - dev
