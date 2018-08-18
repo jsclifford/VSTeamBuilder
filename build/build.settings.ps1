@@ -7,15 +7,15 @@ Properties {
 
     # The root directories for the module's docs, src and test.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $PRootDir = Split-Path -Parent $PSScriptRoot
+    $RootDir = Split-Path -Parent $PSScriptRoot
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $DocsRootDir = "$PRootDir\docs"
+    $DocsRootDir = "$RootDir\docs"
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $SrcRootDir  = "$PRootDir\src"
+    $SrcRootDir  = "$RootDir\src"
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $TestRootDir = "$PRootDir\test"
+    $TestRootDir = "$RootDir\test"
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $BuildRootDir = "$PRootDir\build"
+    $BuildRootDir = "$RootDir\build"
 
     # The name of your module should match the basename of the PSD1 file.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
@@ -25,7 +25,7 @@ Properties {
 
     # The $OutDir is where module files and updatable help files are staged for signing, install and publishing.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $OutDir = "$PRootDir\release"
+    $OutDir = "$RootDir\release"
 
     # The local installation directory for the install task. Defaults to your home Modules location.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
@@ -150,7 +150,7 @@ Properties {
     # Path to the release notes file.  Set to $null if the release notes reside in the manifest file.
     # The contents of this file are used during publishing for the ReleaseNotes parameter.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $ReleaseNotesPath = "$PRootDir\ReleaseNotes.md"
+    $ReleaseNotesPath = "$RootDir\ReleaseNotes.md"
 
     # ----------------------- Misc properties ---------------------------------
 
