@@ -116,7 +116,7 @@ Describe "Testing Team Creation and Settings" {
         Set-TBDefaultProject -ProjectName $projectName
     }
 
-    Context 'Add/Remove and Test Team Settings CSV Basic Version' {
+    Context 'Add and Test Team Settings CSV Basic Version' {
         $TeamName = "MyTestTeam"
         $TeamCode = "MTT"
         $TeamDescription = "The best Test of a new team"
@@ -163,12 +163,6 @@ Describe "Testing Team Creation and Settings" {
             $iteration = Get-TfsIteration -Iteration "$TeamCode" -Project $projectName -Collection $acctUrl
             $iteration -ne $null | Should Be True
         }
-
-        It 'Remove Teams - New-TBTeam' {
-            $result1 = Remove-TBTeam -Name $TeamName -TeamCode $TeamCode -TeamPath $TeamRootPath -isCoded -ProjectName $projectName -Verbose:$Verbose
-            $result2 = Remove-TBTeam -Name "$TeamName-Sub" -TeamCode "$TeamCode-Sub" -TeamPath "MTT" -isCoded -ProjectName $projectName -Verbose:$Verbose
-            $result1 -and $result2 | Should Be True
-        }
     }
 
     Context 'TFS Security Group' {
@@ -177,30 +171,30 @@ Describe "Testing Team Creation and Settings" {
         $TeamDescription = "The best Test of a new team"
 
         It 'Creates new TFS Security Group - New-TBSecurityGroup' {
-            $createIt = New-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName -Description $TeamDescription -Verbose:$Verbose
-            $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
-            $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be True
+            $createIt = New-TBSecurityGroup -Name "$Teamcode-Contributors2" -ProjectName $projectName -Description $TeamDescription -Verbose:$Verbose
+            $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors2" -ProjectName $projectName
+            $($result.DisplayName) -like "*$Teamcode-Contributors2" | Should Be True
         }
 
         It 'Gets TFS Security Group Get-TBSecurityGroup' {
-            $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
-            $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be True
+            $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors2" -ProjectName $projectName
+            $($result.DisplayName) -like "*$Teamcode-Contributors2" | Should Be True
         }
 
         It 'Adds a team to the new group - Add-TBSecurityGroupMember' {
-            $result = Add-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName -Verbose:$Verbose
+            $result = Add-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors2" -ProjectName $projectName -Verbose:$Verbose
             $result -eq $null | Should Be True
         }
 
         It 'Removes a team to the new group - Remove-TBSecurityGroupMember' {
-            $result = Remove-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName -Verbose:$Verbose
+            $result = Remove-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors2" -ProjectName $projectName -Verbose:$Verbose
             $result -eq $null | Should Be True
         }
 
         It 'Removes new TFS Security Group - Remove-TBSecurityGroup' {
-            $removeIt = Remove-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName -Verbose:$Verbose
-            $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors" -ProjectName $projectName
-            $($result.DisplayName) -like "*$Teamcode-Contributors" | Should Be False
+            $removeIt = Remove-TBSecurityGroup -Name "$Teamcode-Contributors2" -ProjectName $projectName -Verbose:$Verbose
+            $result = Get-TBSecurityGroup -Name "$Teamcode-Contributors2" -ProjectName $projectName
+            $($result.DisplayName) -like "*$Teamcode-Contributors2" | Should Be False
         }
     }
 
@@ -233,7 +227,7 @@ Describe "Testing Team Creation and Settings" {
 
         It 'Adds Team Iterations - Add-TBTeamIteration' {
             #$IterationSub = "$IterationName\MTT-Iteration1"
-            $result = Add-TBTeamIteration -IterationName $IterationName -TeamName $TeamName -ProjectName $projectName -Verbose:$Verbose
+            $result = Add-TBTeamIteration -IterationName "$IterationName-Sub" -TeamName $TeamName -ProjectName $projectName -Verbose:$Verbose
             $($result.path) -like "*$IterationName" | Should Be True
         }
 
@@ -277,6 +271,19 @@ Describe "Testing Team Creation and Settings" {
             $token = Get-TBToken -ObjectId $iterationId -NSName "Iteration" -ProjectName $projectName
             $result = Set-TBPermission -TokenObject $token -GroupName "$TeamCode-Contributors" -AllowValue 7 -ProjectName $projectName -Verbose:$Verbose
             $result.count -gt 0 | Should Be True
+        }
+    }
+
+    Context 'Remove TBTeam - Remove-TBTeam' {
+        $TeamName = "MyTestTeam"
+        $TeamCode = "MTT"
+        $TeamDescription = "The best Test of a new team"
+        $TeamRootPath = ""
+
+        It 'Remove Teams - New-TBTeam' {
+            $result1 = Remove-TBTeam -Name $TeamName -TeamCode $TeamCode -TeamPath $TeamRootPath -isCoded -ProjectName $projectName -Verbose:$Verbose
+            $result2 = Remove-TBTeam -Name "$TeamName-Sub" -TeamCode "$TeamCode-Sub" -TeamPath "MTT" -isCoded -ProjectName $projectName -Verbose:$Verbose
+            $result1 -and $result2 | Should Be True
         }
     }
 
