@@ -15,7 +15,7 @@ New-TBTeam will create a TFS Team with associated Repos, Areas, Iterations, and 
 ```
 New-TBTeam [-Name] <String> [-Description] <String> [-TeamCode] <String> [[-TeamPath] <String>]
  [[-RepoList] <String[]>] [[-IterationList] <String[]>] [[-TeamGroups] <Hashtable[]>] [[-ProjectName] <String>]
- [-IsCoded] [-DisableProgressBar] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-IsCoded] [-TFSVC] [-DisableProgressBar] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -158,6 +158,19 @@ Accept wildcard characters: False
 isCoded switch will make Version Control Repos if set.
 
 ```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -TFSVC
+Specifies if project is using TFSVC version control.```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
 Aliases:

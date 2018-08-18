@@ -15,7 +15,7 @@ New-TBOrg will create TFS/VSTS Project and Team structure from an associated CSV
 ```
 New-TBOrg [-ProjectName] <String> [[-ProjectDescription] <String>] [-ImportFile] <String>
  [[-ProcessTemplate] <String>] [-NewProject] [-GenerateImportFile] [-DisableProgressBar] [-SkipExistingTeam]
- [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-TFVC] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -158,6 +158,19 @@ Accept wildcard characters: False
 
 ### -SkipExistingTeam
 Skip Existing Team Update```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -TFVC
+Create Team with TFVC Version Control```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
 Aliases:

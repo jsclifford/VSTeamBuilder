@@ -134,6 +134,7 @@ PrivateData = @{
 Added SkipExistingTeam to New-TBOrg
 Changed TeamGroups parameter to include ability to specify group permissions on New-TBTeam
 Fixed progress bar.
+Made New/Remove-TBOrg TFSVC aware.
 Added Verbose reporting in New-TBTeam and Remove-TBTeam
 Added API Version aware on Area and Iteration functions
 https://github.com/jsclifford/VSTeamBuilder/blob/master/ReleaseNotes.md'
