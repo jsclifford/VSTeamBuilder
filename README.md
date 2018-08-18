@@ -53,3 +53,8 @@ Added progress bar on New-TBOrg.
 Added SkipExistingTeam to New-TBOrg
 Changed TeamGroups parameter to include ability to specify group permissions on New-TBTeam
 Fixed progress bar.
+
+### 0.7.1
+
+Added Verbose reporting in New-TBTeam and Remove-TBTeam
+Added API Version aware on Area and Iteration functions
