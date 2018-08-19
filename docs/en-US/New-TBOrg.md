@@ -156,7 +156,6 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-<<<<<<< HEAD
 ### -SkipExistingTeam
 Skip Existing Team Update```yaml
 Type: SwitchParameter
@@ -183,8 +182,6 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-=======
->>>>>>> master
 ### -WhatIf
 Shows what would happen if the cmdlet runs.
 The cmdlet is not run.
