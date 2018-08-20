@@ -9,7 +9,7 @@ if($null -ne $env:APPVEYOR_BUILD_FOLDER){
     $buildfolder = $Env:BUILD_SOURCESDIRECTORY
     Write-Verbose "This is an VSTS Build"
 }
-Install-PackageProvider -Name NuGet -Force -Scope CurrentUser -
+Install-PackageProvider -Name NuGet -Force -Scope CurrentUser
 Write-Verbose -Message "PowerShell version $($PSVersionTable.PSVersion)" -Verbose
 $moduleData = Import-PowerShellDataFile "$($buildfolder)\src\VSTeamBuilder.psd1"
 #$moduleData.RequiredModules | ForEach-Object { Install-Module $PSItem.ModuleName -RequiredVersion $PSItem.ModuleVersion -Repository PSGallery -Scope CurrentUser -Force -SkipPublisherCheck }
