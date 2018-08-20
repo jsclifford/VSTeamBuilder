@@ -24,9 +24,8 @@ environment:
 
 install:
 - ps: .\build\appveyor.install.ps1
-# - ps: Import-Module "$env:APPVEYOR_BUILD_FOLDER\tfscmdlets\out\module\TfsCmdlets.psd1"
-- ps: Import-Module SHiPS -MaximumVersion '0.7.5'
-- ps: Import-Module VSTeam -MaximumVersion '3.0.6'
+# - ps: Import-Module SHiPS -MaximumVersion '0.7.5'
+# - ps: Import-Module VSTeam -MaximumVersion '3.0.6'
 
 #---------------------------------#
 #      build configuration        #
