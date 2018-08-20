@@ -53,7 +53,8 @@ Description = 'Powershell Module that automates VSTS/TFS project creation and co
 # Modules that must be imported into the global environment prior to importing this module
 RequiredModules = @(
     @{ModuleName = 'VSTeam'; ModuleVersion = '3.0.0'},
-    @{ModuleName = 'TFSCmdlets'; ModuleVersion = '1.0.0.894'}
+    # @{ModuleName = 'TFSCmdlets'; ModuleVersion = '1.0.0.894'}
+    @{ModuleName = 'TFSCmdlets'; ModuleVersion = '1.0.184'}
 )
 
 # Assemblies that must be loaded prior to importing this module
