@@ -7,15 +7,15 @@ Properties {
 
     # The root directories for the module's docs, src and test.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $RootDir = Split-Path $PSScriptRoot -Parent
+    $SolutionDir = Split-Path $PSScriptRoot -Parent
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $DocsRootDir = "$RootDir\docs"
+    $DocsRootDir = "$SolutionDir\docs"
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $SrcRootDir  = "$RootDir\src"
+    $SrcRootDir  = "$SolutionDir\src"
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $TestRootDir = "$RootDir\test"
+    $TestRootDir = "$SolutionDir\test"
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $BuildRootDir = "$RootDir\build"
+    $BuildRootDir = "$SolutionDir\build"
 
     # The name of your module should match the basename of the PSD1 file.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
@@ -25,7 +25,7 @@ Properties {
 
     # The $OutDir is where module files and updatable help files are staged for signing, install and publishing.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $OutDir = "$RootDir\release"
+    $OutDir = "$SolutionDir\release"
 
     # The local installation directory for the install task. Defaults to your home Modules location.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
@@ -50,8 +50,8 @@ Properties {
     $ProjectMetadataInfo = "$(Get-Date -Format 'yyyyMMdd').$ProjectBuildNumber"
 
     # Nuget packaging
-    $NugetExePath = Join-Path $PSScriptRoot 'nuget.exe'
-    $NugetPackagesDir = Join-Path $PSScriptRoot 'packages'
+    $NugetExePath = Join-Path $SolutionDir 'nuget.exe'
+    $NugetPackagesDir = Join-Path $SolutionDir 'packages'
     $NugetSpecPath = Join-Path $OutDir "VSTeamBuilder.nuspec"
     #$NugetPackageVersion = $VersionMetadata.LegacySemVer.Replace('-', ".$ProjectBuildNumber-")
 
@@ -150,7 +150,7 @@ Properties {
     # Path to the release notes file.  Set to $null if the release notes reside in the manifest file.
     # The contents of this file are used during publishing for the ReleaseNotes parameter.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $ReleaseNotesPath = "$RootDir\ReleaseNotes.md"
+    $ReleaseNotesPath = "$SolutionDir\ReleaseNotes.md"
 
     # ----------------------- Misc properties ---------------------------------
 

@@ -7,3 +7,4 @@ Install-Module pester -SkipPublisherCheck -Force -Scope CurrentUser
 Install-Module psake,psscriptanalyzer,platyPS -Scope CurrentUser -Force
 
 Import-Module Pester,Psake,PSScriptAnalyzer
+

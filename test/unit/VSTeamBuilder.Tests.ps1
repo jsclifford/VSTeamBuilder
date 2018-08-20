@@ -2,7 +2,7 @@
 $SuppressImportModule = $false
 . $PSScriptRoot\Shared.ps1
 
-$global:RootDir = $RootDir
+$global:RootDir = $SolutionDir
 
 Describe "Manifest & xml validation" {
     Context 'Module Manifest' {

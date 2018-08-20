@@ -100,10 +100,10 @@ Task Clean -depends Init -requiredVariables OutDir {
 
 Task StageFiles -depends Init, Clean, BeforeStageFiles, CoreStageFiles {
     #Create resources folder and generate CSV file
-    if(Test-Path("$RootDir\resources")){
+    if(Test-Path("$SolutionDir\resources")){
         Write-Verbose "Resources folder already created."
     }else{
-        mkdir "$RootDir\resources"
+        mkdir "$SolutionDir\resources"
     }
 
     $CSVList = @(
@@ -127,7 +127,7 @@ Task StageFiles -depends Init, Clean, BeforeStageFiles, CoreStageFiles {
         }
     )
 
-    $CSVList | Export-Csv -NoTypeInformation -Path "$RootDir\resources\VSTBImportFile.csv" -Force
+    $CSVList | Export-Csv -NoTypeInformation -Path "$SolutionDir\resources\VSTBImportFile.csv" -Force
 }
 
 Task CoreStageFiles -requiredVariables ModuleOutDir, SrcRootDir {
@@ -139,7 +139,7 @@ Task CoreStageFiles -requiredVariables ModuleOutDir, SrcRootDir {
     }
 
     Copy-Item -Path $SrcRootDir\* -Destination $ModuleOutDir -Recurse -Exclude $Exclude -Verbose:$VerbosePreference
-    Copy-Item -Path $RootDir\README.md -Destination $ModuleOutDir -Exclude $Exclude -Verbose:$VerbosePreference
+    Copy-Item -Path $SolutionDir\README.md -Destination $ModuleOutDir -Exclude $Exclude -Verbose:$VerbosePreference
 }
 
 Task Build -depends Init, Clean, BeforeBuild, StageFiles, AfterStageFiles, Analyze, Sign, AfterBuild {
@@ -511,6 +511,74 @@ Task CorePublish -requiredVariables SettingsPath, ModuleOutDir {
     Publish-Module @publishParams
 }
 
+Task StageNuget -requiredVariables NugetPackagesDir, NugetExePath {
+    # Restore/install Nuget
+
+    Write-Verbose "Restoring Nuget client (if needed)"
+
+    Write-Verbose "PackagesDir: $NugetPackagesDir"
+    Write-Verbose "NugetExePath: $NugetExePath"
+
+    if (-not (Test-Path $NugetPackagesDir -PathType Container))
+    {
+        Write-Verbose "Folder $NugetPackagesDir not found. Creating folder."
+        md $NugetPackagesDir -Force | Write-Verbose
+    }
+
+    if (-not (Test-Path $NugetExePath -PathType Leaf))
+    {
+        Write-Verbose "Nuget.exe not found. Downloading from https://dist.nuget.org"
+        Invoke-WebRequest -Uri https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -OutFile $NugetExePath | Write-Verbose
+    }
+}
+
+Task CleanTFSNugetPackages -requiredVariables NugetPackagesDir {
+    if (Test-Path $NugetPackagesDir -PathType Container)
+    {
+        Write-Verbose "Removing $NugetPackagesDir..."
+        Remove-Item $NugetPackagesDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+Task DownloadTfsNugetPackage -depends CleanTFSNugetPackages -requiredVariables NugetExePath, NugetPackagesDir {
+
+    Write-Verbose "Restoring Microsoft.TeamFoundationServer.ExtendedClient Nuget package (if needed)"
+
+    if (-not (Test-Path (Join-Path $NugetPackagesDir 'Microsoft.TeamFoundationServer.ExtendedClient') -PathType Container))
+    {
+        Write-Verbose "Microsoft.TeamFoundationServer.ExtendedClient not found. Downloading from Nuget.org"
+        & $NugetExePath Install Microsoft.TeamFoundationServer.ExtendedClient -ExcludeVersion -OutputDirectory packages -Verbosity Detailed *>&1 | Write-Verbose
+    }
+    else
+    {
+        Write-Verbose "FOUND! Skipping..."
+    }
+
+    $TargetDir = (Join-Path $ModuleDir 'Lib\')
+
+    if (-not (Test-Path $TargetDir -PathType Container)) { New-Item $TargetDir -ItemType Directory -Force | Out-Null }
+
+    Write-Verbose "Copying TFS Client Object Model assemblies to output folder"
+
+    foreach($d in (Get-ChildItem net4*, native -Directory -Recurse))
+    {
+        try
+        {
+            foreach ($f in (Get-ChildItem $d\*.dll -Recurse -Exclude *.resources.dll))
+            {
+                $SrcPath = $f.FullName
+                $DstPath = Join-Path $TargetDir $f.Name
+
+                if (-not (Test-Path $DstPath))
+                {
+                    Write-Verbose $DstPath
+                    Copy-Item $SrcPath $DstPath
+                }
+            }
+        }
+        finally
+        {}
+    }
+}
 ###############################################################################
 # Secondary/utility tasks - typically used to manage stored build settings.
 ###############################################################################

@@ -24,6 +24,12 @@ environment:
 
 install:
 - ps: .\build\appveyor.install.ps1
+- git clone https://github.com/jsclifford/tfscmdlets.git
+- ps: Push-Location tfscmdlets
+- git checkout dev
+- ps: .\Build.ps1
+- ps: Pop-Location
+- ps: Import-Module "$env:APPVEYOR_BUILD_FOLDER\tfscmdlets\out\module\TfsCmdlets.psd1"
 
 #---------------------------------#
 #      build configuration        #
