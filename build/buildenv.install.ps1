@@ -1,6 +1,8 @@
 #Installs all required modules for appveyor build.
 if($null -ne $env:APPVEYOR_BUILD_FOLDER){
     $buildfolder = $env:APPVEYOR_BUILD_FOLDER
+}else{
+    $buildfolder = $Env:BUILD_SOURCESDIRECTORY
 }
 Install-PackageProvider -Name NuGet -Force
 Write-Verbose -Message "PowerShell version $($PSVersionTable.PSVersion)" -Verbose
@@ -12,5 +14,5 @@ Install-Module psake,psscriptanalyzer,platyPS -Scope CurrentUser -Force
 
 Import-Module Pester,Psake,PSScriptAnalyzer
 
-. $PSScriptRoot\appveyor.install-dotnet.ps1 -Version '2.0.0.0'
+ . $PSScriptRoot\buildenv.install-dotnet.ps1 -Version '2.0.0.0'
 

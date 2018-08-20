@@ -24,6 +24,7 @@ environment:
 
 install:
 - ps: .\build\buildenv.install.ps1
+- ps: .\build\appveyor.install-dotnet.ps1 -Version '2.0.0.0'
 # - ps: Import-Module SHiPS -MaximumVersion '0.7.5'
 # - ps: Import-Module VSTeam -MaximumVersion '3.0.6'
 
