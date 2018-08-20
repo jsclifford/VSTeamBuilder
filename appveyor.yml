@@ -24,14 +24,9 @@ environment:
 
 install:
 - ps: .\build\appveyor.install.ps1
-# - git clone https://github.com/jsclifford/tfscmdlets.git
-# - git clone -b dev https://github.com/jsclifford/tfscmdlets.git
-# - ps: Push-Location tfscmdlets
-# - git checkout dev
-# - ps: .\tfscmdlets\Build.ps1
-# - ps: Pop-Location
-# - ps: $tfscmdlets_meta = Import-PowerShellDataFile "$env:APPVEYOR_BUILD_FOLDER\tfscmdlets\out\module\TfsCmdlets.psd1"
 # - ps: Import-Module "$env:APPVEYOR_BUILD_FOLDER\tfscmdlets\out\module\TfsCmdlets.psd1"
+- ps: Import-Module SHiPS -MaximumVersion '0.7.5'
+- ps: Import-Module VSTeam -MaximumVersion '3.0.6'
 
 #---------------------------------#
 #      build configuration        #
@@ -44,8 +39,8 @@ build: false
 #---------------------------------#
 
 test_script:
-# - ps: .\build\appveyor.psake.ps1
-- ps: import-module "$env:APPVEYOR_BUILD_FOLDER\src\VSTeamBuilder.psd1"
+- ps: .\build\appveyor.psake.ps1
+# - ps: import-module "$env:APPVEYOR_BUILD_FOLDER\src\VSTeamBuilder.psd1"
 
 after_test:
 - ps: $testResultsPath = Join-Path $pwd -ChildPath "release\PesterReport"
