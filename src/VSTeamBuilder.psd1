@@ -134,21 +134,21 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'Alpha Release
-Added SkipExistingTeam to New-TBOrg
-Changed TeamGroups parameter to include ability to specify group permissions on New-TBTeam
-Fixed progress bar.
-Made New/Remove-TBOrg TFSVC aware.
-Added Verbose reporting in New-TBTeam and Remove-TBTeam
-Added API Version aware on Area and Iteration functions
-Build Process Bug
-https://github.com/jsclifford/VSTeamBuilder/blob/master/ReleaseNotes.md'
+#         ReleaseNotes = 'Alpha Release
+# Added SkipExistingTeam to New-TBOrg
+# Changed TeamGroups parameter to include ability to specify group permissions on New-TBTeam
+# Fixed progress bar.
+# Made New/Remove-TBOrg TFSVC aware.
+# Added Verbose reporting in New-TBTeam and Remove-TBTeam
+# Added API Version aware on Area and Iteration functions
+# Build Process Bug
+# https://github.com/jsclifford/VSTeamBuilder/blob/master/ReleaseNotes.md'
 
         # TFS Client Version
         #TfsClientVersion = '${TfsOmNugetVersion}'
 
         #External dependent modules of this module
-        ExternalModuleDependencies = 'VSTeam,TFSCmdlets'
+        # ExternalModuleDependencies = 'VSTeam,TFSCmdlets'
 
     } # End of PSData hashtable
 

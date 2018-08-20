@@ -489,7 +489,7 @@ function _generateImportFile
 
         # Project Name
         [Parameter(Mandatory = $true)]
-        # [ValidateScript( {-not (Test-Path -Path $_ -PathType Leaf)})]
+        [ValidateScript( {-not (Test-Path -Path $_ -PathType Leaf)})]
         [ValidatePattern('(\.csv|\.xml)$')]
         [string]
         $ImportFile
