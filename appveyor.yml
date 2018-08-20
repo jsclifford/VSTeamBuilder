@@ -26,6 +26,8 @@ install:
 - ps: .\build\appveyor.install.ps1
 # - ps: Import-Module SHiPS -MaximumVersion '0.7.5'
 # - ps: Import-Module VSTeam -MaximumVersion '3.0.6'
+- ps: Add-Type -Path "c:\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.netcore.app\2.0.0\ref\netcoreapp2.0\net
+standard.dll"
 
 #---------------------------------#
 #      build configuration        #
@@ -39,7 +41,6 @@ build: false
 
 test_script:
 - ps: .\build\appveyor.psake.ps1
-# - ps: import-module "$env:APPVEYOR_BUILD_FOLDER\src\VSTeamBuilder.psd1"
 
 after_test:
 - ps: $testResultsPath = Join-Path $pwd -ChildPath "release\PesterReport"
