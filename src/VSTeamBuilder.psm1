@@ -1,5 +1,3 @@
-#1234Requires -Modules TfsCmdlets
-#12345Requires -Modules VSTeam
 <#          License
     GNU GENERAL PUBLIC LICENSE
      Version 3, 29 June 2007
@@ -491,7 +489,7 @@ function _generateImportFile
 
         # Project Name
         [Parameter(Mandatory = $true)]
-        [ValidateScript( {-not (Test-Path -Path $_ -PathType Leaf)})]
+        # [ValidateScript( {-not (Test-Path -Path $_ -PathType Leaf)})]
         [ValidatePattern('(\.csv|\.xml)$')]
         [string]
         $ImportFile
