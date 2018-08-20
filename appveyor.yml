@@ -8,7 +8,7 @@
 #      general configuration      #
 #---------------------------------#
 version: 0.7.3.{build}
-image: Visual Studio 2017
+image: WMF 5
 skip_commits:
   files:
    - '**/*.md'
@@ -44,7 +44,8 @@ build: false
 #---------------------------------#
 
 test_script:
-- ps: .\build\appveyor.psake.ps1
+# - ps: .\build\appveyor.psake.ps1
+- ps: import-module "$env:APPVEYOR_BUILD_FOLDER\src\VSTeamBuilder.psd1"
 
 after_test:
 - ps: $testResultsPath = Join-Path $pwd -ChildPath "release\PesterReport"
