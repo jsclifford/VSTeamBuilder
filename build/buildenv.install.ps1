@@ -14,7 +14,7 @@ Write-Verbose -Message "PowerShell version $($PSVersionTable.PSVersion)" -Verbos
 $moduleData = Import-PowerShellDataFile "$($buildfolder)\src\VSTeamBuilder.psd1"
 #$moduleData.RequiredModules | ForEach-Object { Install-Module $PSItem.ModuleName -RequiredVersion $PSItem.ModuleVersion -Repository PSGallery -Scope CurrentUser -Force -SkipPublisherCheck }
 $moduleData.RequiredModules | ForEach-Object { Install-Module $PSItem -Repository PSGallery -Scope CurrentUser -Force }
-Install-Module pester -Force -Scope CurrentUser
+Install-Module pester -Force -Scope CurrentUser -SkipPublisherCheck
 Install-Module psake,psscriptanalyzer,platyPS -Scope CurrentUser -Force
 
 Import-Module Pester,Psake,PSScriptAnalyzer
