@@ -25,6 +25,7 @@ environment:
 
 install:
 - ps: .\build\buildenv.install.ps1
+- ps: .\build\buildenv.install-dotnet.ps1
 
 #---------------------------------#
 #      build configuration        #
