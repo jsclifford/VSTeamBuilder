@@ -7,7 +7,7 @@ $global:RootDir = $SolutionDir
 Describe "Manifest & xml validation" {
     Context 'Module Manifest' {
         It 'Passes Test-ModuleManifest' {
-            Test-ModuleManifest -Path $ModuleManifestPath
+            Test-ModuleManifest -Path $ModuleManifestPath -ErrorAction SilentlyContinue
             $? | Should Be $true
         }
     }
