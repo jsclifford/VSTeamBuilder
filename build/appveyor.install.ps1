@@ -9,3 +9,5 @@ Install-Module psake,psscriptanalyzer,platyPS -Scope CurrentUser -Force
 
 Import-Module Pester,Psake,PSScriptAnalyzer
 
+# ./appveyor.install-dotnet.ps1 -Version '2.0.0.0'
+
