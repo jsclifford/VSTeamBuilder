@@ -1,3 +1,6 @@
+[cmdletbinding()]
+param()
+
 #Installs all required modules for appveyor build.
 if($null -ne $env:APPVEYOR_BUILD_FOLDER){
     $buildfolder = $env:APPVEYOR_BUILD_FOLDER
@@ -15,5 +18,5 @@ $moduleData.RequiredModules | ForEach-Object { Install-Module $PSItem -Repositor
 Install-Module pester -SkipPublisherCheck -Force -Scope CurrentUser
 Install-Module psake,psscriptanalyzer,platyPS -Scope CurrentUser -Force
 
-Import-Module Pester,Psake,PSScriptAnalyzer
+Import-Module Pester,Psake,PSScriptAnalyzer -Scope CurrentUser
 
