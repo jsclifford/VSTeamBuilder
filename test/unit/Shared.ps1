@@ -4,6 +4,7 @@ $SolutionDir = Split-Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
 $ModuleManifestName = 'VSTeamBuilder.psd1'
 $ModuleManifestPath = "$SolutionDir\src\$ModuleManifestName"
 
+Write-Verbose "Module Manifest Path: $ModuleManifestPath"
 
 if (!$SuppressImportModule) {
     # -Scope Global is needed when running tests from inside of psake, otherwise

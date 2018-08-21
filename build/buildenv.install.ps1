@@ -44,11 +44,11 @@ Write-Verbose $seperator
 
 Import-Module Pester,Psake
 
-Write-Verbose $seperator
+# Write-Verbose $seperator
 
-Write-Verbose "Loading Required Modules."
+# Write-Verbose "Importing Required Modules."
 
-Import-Module $($moduleData.RequiredModules)
+# Import-Module $($moduleData.RequiredModules)
 
-Write-Verbose $seperator
+# Write-Verbose $seperator
 
