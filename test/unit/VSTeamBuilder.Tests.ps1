@@ -546,15 +546,11 @@ InModuleScope VSTeamBuilder {
                 }
                 $success | Should Be True
             }
-            return $resultObject
-        }
-    }
 
             It 'Updates Existing project - Skip Existing Teams - New-TBOrg' {
                 $result = New-TBOrg -ProjectName "$projectName" -ProjectDescription "The Best Project Ever" -ImportFile "$ResourceRootDir\VSTBImportTemplate.csv" -SkipExistingTeam -Verbose:$Verbose
                 $result | Should Be True
             }
-            return $projectObject
         }
     }
 
@@ -669,7 +665,9 @@ InModuleScope VSTeamBuilder {
 
             It 'Removes a team to the new group - Remove-TBSecurityGroupMember' {
                 $result = Remove-TBSecurityGroupMember -MemberName "$searchGroup" -GroupName "$Teamcode-Contributors" -ProjectName $projectName -Verbose:$Verbose
+                $result -eq "" | Should Be True
             }
+
         }
 
         Context 'Remove Security Group'{
