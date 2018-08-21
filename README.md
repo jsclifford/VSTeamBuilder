@@ -20,6 +20,11 @@ To contribute to this project please follow the [code of conduct](https://github
 
 ## Versions
 
+### 0.8.1
+
+Added TeamGroups to New-TBOrg and Remove-TBOrg.  Creates
+ability to customize project wide security groups and permissions.
+
 ### 0.7.3
 
 Build Process Bug

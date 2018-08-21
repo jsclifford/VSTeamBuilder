@@ -12,7 +12,7 @@
 RootModule = 'VSTeamBuilder.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.7.3'
+ModuleVersion = '0.8.1'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -136,13 +136,8 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = 'Alpha Release
-Added SkipExistingTeam to New-TBOrg
-Changed TeamGroups parameter to include ability to specify group permissions on New-TBTeam
-Fixed progress bar.
-Made New/Remove-TBOrg TFSVC aware.
-Added Verbose reporting in New-TBTeam and Remove-TBTeam
-Added API Version aware on Area and Iteration functions
-Build Process Bug
+Added TeamGroups to New-TBOrg and Remove-TBOrg to allow customization
+of groups and permissions project wide.
 https://github.com/jsclifford/VSTeamBuilder/blob/master/ReleaseNotes.md'
 
         # TFS Client Version

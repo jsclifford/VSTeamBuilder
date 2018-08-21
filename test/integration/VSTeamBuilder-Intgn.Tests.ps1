@@ -6,7 +6,7 @@ if($usePAT -and $PATToken -eq $null){
     . $PSScriptRoot\SecureSettings.ps1
 }
 
-$Verbose = $false
+$Verbose = $true
 
 Describe 'VSTeamBuilder Integration Org Test'{
     BeforeAll {
