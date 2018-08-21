@@ -140,6 +140,7 @@ Task CoreStageFiles -requiredVariables ModuleOutDir, SrcRootDir {
 
     Copy-Item -Path $SrcRootDir\* -Destination $ModuleOutDir -Recurse -Exclude $Exclude -Verbose:$VerbosePreference
     Copy-Item -Path $SolutionDir\README.md -Destination $ModuleOutDir -Exclude $Exclude -Verbose:$VerbosePreference
+    Copy-Item -Path $SolutionDir\LICENSE -Destination $ModuleOutDir -Exclude $Exclude -Verbose:$VerbosePreference
 }
 
 Task Build -depends Init, Clean, BeforeBuild, StageFiles, AfterStageFiles, Analyze, Sign, AfterBuild {
