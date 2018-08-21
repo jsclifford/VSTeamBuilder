@@ -38,9 +38,17 @@ if($null -ne $env:APPVEYOR_BUILD_FOLDER){
 
 Write-Verbose $seperator
 Write-Verbose "Getting current module versions."
-Get-InstalledModule | Select Name,Version,Type,InstalledLocation | Format-Table -AutoSize
+Get-InstalledModule | Where Name -notlike '*Azure*' | Select Name,Version,Type,InstalledLocation | Format-Table -AutoSize
 
 Write-Verbose $seperator
 
 Import-Module Pester,Psake
+
+Write-Verbose $seperator
+
+Write-Verbose "Loading Required Modules."
+
+Import-Module $($moduleData.RequiredModules)
+
+Write-Verbose $seperator
 
