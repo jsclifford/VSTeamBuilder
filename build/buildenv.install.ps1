@@ -1,6 +1,12 @@
 [cmdletbinding()]
 param()
 
+$seperator = @'
+
+------------------------------------
+
+'@
+
 #Installs all required modules for appveyor build.
 if($null -ne $env:APPVEYOR_BUILD_FOLDER){
     $buildfolder = $env:APPVEYOR_BUILD_FOLDER
@@ -9,24 +15,32 @@ if($null -ne $env:APPVEYOR_BUILD_FOLDER){
     $buildfolder = $Env:BUILD_SOURCESDIRECTORY
     Write-Verbose "This is an VSTS Build"
 }
-Install-PackageProvider -Name NuGet -Force -Scope CurrentUser
+
 Write-Verbose -Message "PowerShell version $($PSVersionTable.PSVersion)" -Verbose
+
+Write-Verbose $seperator
+
+Install-PackageProvider -Name NuGet -Force -Scope CurrentUser
+
 $moduleData = Import-PowerShellDataFile "$($buildfolder)\src\VSTeamBuilder.psd1"
 #$moduleData.RequiredModules | ForEach-Object { Install-Module $PSItem.ModuleName -RequiredVersion $PSItem.ModuleVersion -Repository PSGallery -Scope CurrentUser -Force -SkipPublisherCheck }
+Write-Verbose "Installing Required Modules in psd1 file."
 $moduleData.RequiredModules | ForEach-Object { Install-Module $PSItem -Repository PSGallery -Scope CurrentUser -Force }
-Install-Module pester -Force -Scope CurrentUser -SkipPublisherCheck
+
+
 Install-Module psake,psscriptanalyzer,platyPS -Scope CurrentUser -Force
-$seperator = @'
 
-------------------------------------
-
-'@
+if($null -ne $env:APPVEYOR_BUILD_FOLDER){
+    Install-Module pester -Scope CurrentUser -Force -SkipPublisherCheck
+}else{
+    Install-Module pester -Scope CurrentUser -Force
+}
 
 Write-Verbose $seperator
 Write-Verbose "Getting current module versions."
-Get-InstalledModule
+Get-InstalledModule | Select Name,Version,Type,InstalledLocation | Format-Table -AutoSize
 
 Write-Verbose $seperator
 
-Import-Module Pester,Psake,PSScriptAnalyzer
+Import-Module Pester,Psake
 
