@@ -1,7 +1,10 @@
 # Dot source this script in any Pester test script that requires the module to be imported.
 
+$SolutionDir = Split-Path (Split-Path -Path $PSScriptRoot -Parent) -Parent
 $ModuleManifestName = 'VSTeamBuilder.psd1'
-$ModuleManifestPath = "$PSScriptRoot\..\..\src\$ModuleManifestName"
+$ModuleManifestPath = "$SolutionDir\src\$ModuleManifestName"
+
+Write-Verbose "Module Manifest Path: $ModuleManifestPath"
 
 if (!$SuppressImportModule) {
     # -Scope Global is needed when running tests from inside of psake, otherwise
