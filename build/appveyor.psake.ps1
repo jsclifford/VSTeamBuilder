@@ -5,7 +5,7 @@ if($null -ne $env:APPVEYOR_BUILD_FOLDER){
     $defaultTests = $env:default_tests
     Write-Verbose "This is an Appveyor Build"
 }else{
-    $defaultTests = $default_tests
+    $defaultTests = $env:default_tests
     Write-Verbose "This is an VSTS Build"
 }
 
