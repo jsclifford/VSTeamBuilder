@@ -60,5 +60,5 @@ if($env:default_tests -eq 'y'){
 
 Write-Verbose $seperator
 
-Write-Verbose "Trying to import VSTeamBuilder" -Verbose
-Import-Module $($buildfolder)\src\VSTeamBuilder.psd1
+Write-Verbose "Trying to import VSTeamBuilder in path $($buildfolder)\src\VSTeamBuilder.psd1" -Verbose
+Import-Module "$($buildfolder)\src\VSTeamBuilder.psd1" -Scope Global -Force
