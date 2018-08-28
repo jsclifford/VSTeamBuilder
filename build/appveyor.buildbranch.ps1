@@ -1,4 +1,4 @@
-$commitId = Read-Host -Prompt "Commit ID for build:"
+$commitId = Read-Host -Prompt "Commit ID for build"
 $token = $env:AppVeyorApiToken
 
 $headers = @{

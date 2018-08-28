@@ -18,6 +18,8 @@ if($null -ne $env:APPVEYOR_BUILD_FOLDER){
     Write-Verbose "This is an VSTS Build"
 }
 
+Write-Verbose "Default test value is: $defaultTests"
+
 Write-Verbose -Message "PowerShell version $($PSVersionTable.PSVersion)" -Verbose
 
 Write-Verbose $seperator
@@ -26,7 +28,6 @@ Install-PackageProvider -Name NuGet -Force -Scope CurrentUser
 
 $moduleData = Import-PowerShellDataFile "$($buildfolder)\src\VSTeamBuilder.psd1"
 
-Write-Verbose "Default test value is: $defaultTests"
 if($defaultTests -ne 'y'){
     #$moduleData.RequiredModules | ForEach-Object { Install-Module $PSItem.ModuleName -RequiredVersion $PSItem.ModuleVersion -Repository PSGallery -Scope CurrentUser -Force -SkipPublisherCheck }
     Write-Verbose "Installing Required Modules in psd1 file."
