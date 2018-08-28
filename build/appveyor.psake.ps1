@@ -1,7 +1,22 @@
 Import-Module PSake
 
-# Builds the module by invoking psake on the build.psake.ps1 script.
-Invoke-psake $PSScriptRoot\build.psake.ps1 -taskList TestDefault -Verbose
+#Installs all required modules for appveyor build.
+if($null -ne $env:APPVEYOR_BUILD_FOLDER){
+    $defaultTests = $env:default_tests
+    Write-Verbose "This is an Appveyor Build"
+}else{
+    $defaultTests = $default_tests
+    Write-Verbose "This is an VSTS Build"
+}
+
+if($defaultTests -eq 'y'){
+    # Builds the module by invoking psake on the build.psake.ps1 script.
+    Invoke-psake $PSScriptRoot\build.psake.ps1 -taskList TestDefault -Verbose
+}else{
+    # Builds the module by invoking psake on the build.psake.ps1 script.
+    Invoke-psake $PSScriptRoot\build.psake.ps1 -taskList Test -Verbose
+}
+
 
 if ($psake.build_success -eq $false){
     Add-AppveyorMessage -Message "Unit Test Failed"
