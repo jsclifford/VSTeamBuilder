@@ -61,9 +61,12 @@ if($env:default_tests -eq 'y'){
 Write-Verbose $seperator
 
 Write-Verbose "Getting Module Name"
+$SolutionDir = Split-Path $PSScriptRoot -Parent
+$SrcRootDir  = "$SolutionDir\src"
 $ModuleName = Get-Item $SrcRootDir/*.psd1 |
                       Where-Object { $null -ne (Test-ModuleManifest -Path $_ -ErrorAction SilentlyContinue) } |
                       Select-Object -First 1 | Foreach-Object BaseName
+$ModuleName
 
 
 
