@@ -25,7 +25,7 @@ environment:
   default_tests: y
 
 install:
-- ps: .\build\buildenv.install.ps1 -verbose
+- ps: .\build\buildenv.install.ps1
 #- ps: .\build\buildenv.install-dotnet.ps1
 
 #---------------------------------#
