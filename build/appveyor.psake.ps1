@@ -7,7 +7,7 @@ if($env:default_tests -eq 'y'){
 }else{
     # Builds the module by invoking psake on the build.psake.ps1 script.
     Write-Verbose "Running Psake task Test"
-    Invoke-psake $PSScriptRoot\build.psake.ps1 -taskList Test -Verbose
+    Invoke-psake $PSScriptRoot\build.psake.ps1 -taskList TestDefault -Verbose
 }
 
 
