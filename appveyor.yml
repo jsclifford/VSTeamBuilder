@@ -42,7 +42,7 @@ before_test:
 - cmd: dotnet --version
 
 test_script:
-- ps: .\build\appveyor.psake.ps1 -verbose
+- ps: .\build\appveyor.psake.ps1
 
 after_test:
 - ps: $testResultsPath = Join-Path $pwd -ChildPath "release\PesterReport"
