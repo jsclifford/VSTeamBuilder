@@ -48,11 +48,22 @@ Write-Verbose $seperator
 
 Import-Module Pester,Psake
 
-# Write-Verbose $seperator
+Write-Verbose $seperator
 
-# Write-Verbose "Importing Required Modules."
+if($env:default_tests -eq 'y'){
+    Write-Verbose "Skipping Importing Required Modules." -Verbose
+}else{
+    Write-Verbose "Importing Required Modules." -Verbose
 
-# Import-Module $($moduleData.RequiredModules)
+    Import-Module $($moduleData.RequiredModules)
+}
 
-# Write-Verbose $seperator
+Write-Verbose $seperator
+
+Write-Verbose "Getting Module Name"
+$ModuleName = Get-Item $SrcRootDir/*.psd1 |
+                      Where-Object { $null -ne (Test-ModuleManifest -Path $_ -ErrorAction SilentlyContinue) } |
+                      Select-Object -First 1 | Foreach-Object BaseName
+
+
 
