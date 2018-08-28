@@ -1,4 +1,3 @@
-
 Describe "Random Tests" {
     It 'Tests PS Version1' {
         $true | Should Be True
