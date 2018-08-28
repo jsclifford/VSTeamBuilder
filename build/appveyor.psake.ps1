@@ -1,15 +1,6 @@
 Import-Module PSake
 
-#Installs all required modules for appveyor build.
-if($null -ne $env:APPVEYOR_BUILD_FOLDER){
-    $defaultTests = $env:default_tests
-    Write-Verbose "This is an Appveyor Build"
-}else{
-    $defaultTests = $env:default_tests
-    Write-Verbose "This is an VSTS Build"
-}
-
-if($defaultTests -eq 'y'){
+if($env:default_tests -eq 'y'){
     # Builds the module by invoking psake on the build.psake.ps1 script.
     Write-Verbose "Running Psake task TestDefault"
     Invoke-psake $PSScriptRoot\build.psake.ps1 -taskList TestDefault -Verbose
