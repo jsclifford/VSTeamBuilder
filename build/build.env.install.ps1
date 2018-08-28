@@ -10,15 +10,15 @@ $seperator = @'
 #Installs all required modules for appveyor build.
 if($null -ne $env:APPVEYOR_BUILD_FOLDER){
     $buildfolder = $env:APPVEYOR_BUILD_FOLDER
-    Write-Verbose "This is an Appveyor Build"
+    Write-Verbose "This is an Appveyor Build" -Verbose
 }else{
     $buildfolder = $Env:BUILD_SOURCESDIRECTORY
-    Write-Verbose "This is an VSTS Build"
+    Write-Verbose "This is an VSTS Build" -Verbose
 }
 
 Write-Verbose -Message "PowerShell version $($PSVersionTable.PSVersion)" -Verbose
 
-Write-Verbose $seperator
+Write-Verbose $seperator -Verbose
 
 Install-PackageProvider -Name NuGet -Force -Scope CurrentUser
 
