@@ -10,9 +10,11 @@ $seperator = @'
 #Installs all required modules for appveyor build.
 if($null -ne $env:APPVEYOR_BUILD_FOLDER){
     $buildfolder = $env:APPVEYOR_BUILD_FOLDER
+    $defaultTests = $env:default_tests
     Write-Verbose "This is an Appveyor Build"
 }else{
     $buildfolder = $Env:BUILD_SOURCESDIRECTORY
+    $defaultTests = $default_tests
     Write-Verbose "This is an VSTS Build"
 }
 
@@ -23,10 +25,13 @@ Write-Verbose $seperator
 Install-PackageProvider -Name NuGet -Force -Scope CurrentUser
 
 $moduleData = Import-PowerShellDataFile "$($buildfolder)\src\VSTeamBuilder.psd1"
-#$moduleData.RequiredModules | ForEach-Object { Install-Module $PSItem.ModuleName -RequiredVersion $PSItem.ModuleVersion -Repository PSGallery -Scope CurrentUser -Force -SkipPublisherCheck }
-Write-Verbose "Installing Required Modules in psd1 file."
-$moduleData.RequiredModules | ForEach-Object { Install-Module $PSItem -Repository PSGallery -Scope CurrentUser -Force }
 
+Write-Verbose "Default test value is: $defaultTests"
+if($defaultTests -ne 'y'){
+    #$moduleData.RequiredModules | ForEach-Object { Install-Module $PSItem.ModuleName -RequiredVersion $PSItem.ModuleVersion -Repository PSGallery -Scope CurrentUser -Force -SkipPublisherCheck }
+    Write-Verbose "Installing Required Modules in psd1 file."
+    $moduleData.RequiredModules | ForEach-Object { Install-Module $PSItem -Repository PSGallery -Scope CurrentUser -Force }
+}
 
 Install-Module psake,psscriptanalyzer,platyPS -Scope CurrentUser -Force
 
