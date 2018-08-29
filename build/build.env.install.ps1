@@ -24,13 +24,13 @@ Install-PackageProvider -Name NuGet -Force -Scope CurrentUser
 
 $moduleData = Import-PowerShellDataFile "$($buildfolder)\src\VSTeamBuilder.psd1"
 
-# if($env:default_tests -eq 'y'){
-#     Write-Verbose "Skipping Required Modules installation." -Verbose
-# }else{
+if($env:default_tests -eq 'y'){
+    Write-Verbose "Skipping Required Modules installation." -Verbose
+}else{
     #$moduleData.RequiredModules | ForEach-Object { Install-Module $PSItem.ModuleName -RequiredVersion $PSItem.ModuleVersion -Repository PSGallery -Scope CurrentUser -Force -SkipPublisherCheck }
     Write-Verbose "Installing Required Modules in psd1 file." -Verbose
     $moduleData.RequiredModules | ForEach-Object { Install-Module $PSItem -Repository PSGallery -Scope CurrentUser -Force }
-# }
+}
 
 Install-Module psake,psscriptanalyzer,platyPS -Scope CurrentUser -Force
 
@@ -60,5 +60,5 @@ if($env:default_tests -eq 'y'){
 
 Write-Verbose $seperator
 
-Write-Verbose "Trying to import VSTeamBuilder in path $($buildfolder)\src\VSTeamBuilder.psd1" -Verbose
-Import-Module "$($buildfolder)\src\VSTeamBuilder.psd1" -Scope Global -Force
+# Write-Verbose "Trying to import VSTeamBuilder in path $($buildfolder)\src\VSTeamBuilder.psd1" -Verbose
+# Import-Module "$($buildfolder)\src\VSTeamBuilder.psd1" -Scope Global -Force

@@ -146,6 +146,9 @@ Task CoreStageFiles -requiredVariables ModuleOutDir, SrcRootDir {
 Task Build -depends Init, Clean, BeforeBuild, StageFiles, AfterStageFiles, Analyze, Sign, AfterBuild {
 }
 
+Task BuildSimple -depends Init, Clean, BeforeBuild, StageFiles, AfterStageFiles, AfterBuild {
+}
+
 Task Analyze -depends StageFiles `
              -requiredVariables ModuleOutDir, ScriptAnalysisEnabled, ScriptAnalysisFailBuildOnSeverityLevel, ScriptAnalyzerSettingsPath {
     if (!$ScriptAnalysisEnabled) {
@@ -465,7 +468,7 @@ Task Test -depends Build -requiredVariables TestRootDir, ModuleName, CodeCoverag
     }
 }
 
-Task TestDefault -depends Build -requiredVariables TestRootDir, ModuleName, CodeCoverageEnabled, CodeCoverageFiles,CodeCoverageOutPutFile,CodeCoverageOutputFileFormat,PesterReportFolder  {
+Task TestDefault -depends BuildSimple -requiredVariables TestRootDir, ModuleName, CodeCoverageEnabled, CodeCoverageFiles,CodeCoverageOutPutFile,CodeCoverageOutputFileFormat,PesterReportFolder  {
     if (!(Get-Module Pester -ListAvailable)) {
         "Pester module is not installed. Skipping $($psake.context.currentTaskName) task."
         return
