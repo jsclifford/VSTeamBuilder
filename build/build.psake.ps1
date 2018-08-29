@@ -275,7 +275,7 @@ Task GenerateMarkdown -requiredVariables DefaultLocale, DocsRootDir, ModuleName,
     }
 
     $moduleInfo = Import-Module $ModuleOutDir\$ModuleName.psd1 -Global -Force -PassThru
-
+    #$moduleInfo = Import-PowerShellDataFile $ModuleOutDir\$ModuleName.psd1
     try {
         if ($moduleInfo.ExportedCommands.Count -eq 0) {
             "No commands have been exported. Skipping $($psake.context.currentTaskName) task."

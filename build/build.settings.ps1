@@ -187,8 +187,8 @@ Task AfterStageFiles {
     #Generate Nuspecfile
     if(-not (Test-Path $OutDir)) { New-Item $OutDir -ItemType Directory | Out-Null }
 
-    #$SourceManifest = Test-ModuleManifest -Path "$SrcRootDir/$ModuleName.psd1"
-    $SourceManifest = Import-PowerShellDataFile "$SrcRootDir/$ModuleName.psd1"
+    $SourceManifest = Test-ModuleManifest -Path "$SrcRootDir/$ModuleName.psd1"
+    #$SourceManifest = Import-PowerShellDataFile "$SrcRootDir/$ModuleName.psd1"
 
     $nuspec = @"
 <?xml version="1.0"?>

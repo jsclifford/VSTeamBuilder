@@ -31,7 +31,7 @@ function New-TBOrg
         [string]
         $ProcessTemplate = "Agile",
 
-        <# TFS Team Security Groups - List of Application Security Groups to create for each team.
+        <# TFS Team Security Groups - List of Application Security Groups to create.
         Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers".
         Permission Numbers with categories:  Array of Hastables example below
         $TeamGroups = @(
