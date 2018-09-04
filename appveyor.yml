@@ -50,7 +50,7 @@ after_test:
 - ps: |
       $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
       Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
-      bash codecov.sh -f "$testResultsPath\CodeCoverage.xml" -t $env:codecovetoken
+      bash codecov.sh -f '*.xml' -t $env:codecovetoken -n VSTeamBuilder -F unittests
 branches:
   only:
   - dev
