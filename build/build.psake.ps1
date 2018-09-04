@@ -146,6 +146,9 @@ Task CoreStageFiles -requiredVariables ModuleOutDir, SrcRootDir {
 Task Build -depends Init, Clean, BeforeBuild, StageFiles, AfterStageFiles, Analyze, Sign, AfterBuild {
 }
 
+Task BuildSimple -depends Init, Clean, BeforeBuild, StageFiles, AfterStageFiles, AfterBuild {
+}
+
 Task Analyze -depends StageFiles `
              -requiredVariables ModuleOutDir, ScriptAnalysisEnabled, ScriptAnalysisFailBuildOnSeverityLevel, ScriptAnalyzerSettingsPath {
     if (!$ScriptAnalysisEnabled) {
@@ -272,7 +275,7 @@ Task GenerateMarkdown -requiredVariables DefaultLocale, DocsRootDir, ModuleName,
     }
 
     $moduleInfo = Import-Module $ModuleOutDir\$ModuleName.psd1 -Global -Force -PassThru
-
+    #$moduleInfo = Import-PowerShellDataFile $ModuleOutDir\$ModuleName.psd1
     try {
         if ($moduleInfo.ExportedCommands.Count -eq 0) {
             "No commands have been exported. Skipping $($psake.context.currentTaskName) task."
@@ -420,6 +423,61 @@ Task Test -depends Build -requiredVariables TestRootDir, ModuleName, CodeCoverag
 
     try {
         Microsoft.PowerShell.Management\Push-Location -LiteralPath "$TestRootDir\unit"
+
+        if ($TestOutputFile) {
+            $testing = @{
+                OutputFile   = $TestOutputFile
+                OutputFormat = $TestOutputFormat
+                PassThru     = $true
+                Verbose      = $VerbosePreference
+            }
+        }
+        else {
+            $testing = @{
+                PassThru     = $true
+                Verbose      = $VerbosePreference
+            }
+        }
+
+        if(-not (Test-Path($PesterReportFolder))){
+            mkdir $PesterReportFolder
+        }
+
+        # To control the Pester code coverage, a boolean $CodeCoverageEnabled is used.
+        if ($CodeCoverageEnabled) {
+            $testing.CodeCoverage = $CodeCoverageFiles
+            $testing.CodeCoverageOutPutFile = $CodeCoverageOutPutFile
+            $testing.CodeCoverageOutputFileFormat = $CodeCoverageOutputFileFormat
+        }
+
+        $testResult = Invoke-Pester @testing
+
+        Assert -conditionToCheck (
+            $testResult.FailedCount -eq 0
+        ) -failureMessage "One or more Pester tests failed, build cannot continue."
+
+        if ($CodeCoverageEnabled) {
+            $testCoverage = [int]($testResult.CodeCoverage.NumberOfCommandsExecuted /
+                                  $testResult.CodeCoverage.NumberOfCommandsAnalyzed * 100)
+            "Pester code coverage on specified files: ${testCoverage}%"
+        }
+    }
+    finally {
+        Microsoft.PowerShell.Management\Pop-Location
+        Remove-Module $ModuleName -ErrorAction SilentlyContinue
+    }
+}
+
+Task TestDefault -depends BuildSimple -requiredVariables TestRootDir, ModuleName, CodeCoverageEnabled, CodeCoverageFiles,CodeCoverageOutPutFile,CodeCoverageOutputFileFormat,PesterReportFolder  {
+    if (!(Get-Module Pester -ListAvailable)) {
+        "Pester module is not installed. Skipping $($psake.context.currentTaskName) task."
+        return
+    }
+
+    Import-Module Pester
+
+    try {
+        Microsoft.PowerShell.Management\Push-Location -LiteralPath "$TestRootDir\default"
 
         if ($TestOutputFile) {
             $testing = @{

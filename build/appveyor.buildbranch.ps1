@@ -1,3 +1,4 @@
+#$commitId = Read-Host -Prompt "Commit ID for build"
 $token = $env:AppVeyorApiToken
 
 $headers = @{
@@ -9,7 +10,7 @@ $body = @{
     accountName="jsclifford"
     projectSlug="VSTeamBuilder"
     branch="experimental"
-    commitId="<Your_commit_id>"
+    #commitId="$commitId"
 }
 $body = $body | ConvertTo-Json
 
