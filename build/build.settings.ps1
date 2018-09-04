@@ -184,37 +184,6 @@ Task BeforeStageFiles {
 # Executes after the StageFiles task.
 Task AfterStageFiles {
 
-    #Generate Nuspecfile
-    if(-not (Test-Path $OutDir)) { New-Item $OutDir -ItemType Directory | Out-Null }
-
-    $SourceManifest = Test-ModuleManifest -Path "$SrcRootDir/$ModuleName.psd1"
-    #$SourceManifest = Import-PowerShellDataFile "$SrcRootDir/$ModuleName.psd1"
-
-    $nuspec = @"
-<?xml version="1.0"?>
-<package>
-    <metadata>
-        <id>$($SourceManifest.Name)</id>
-        <title>$($SourceManifest.Name)</title>
-        <version>$NugetPackageVersion</version>
-        <authors>$($SourceManifest.Author)</authors>
-        <owners>$($SourceManifest.Author)</owners>
-        <licenseUrl>$($SourceManifest.PrivateData.PSData.LicenseUri)</licenseUrl>
-        <projectUrl>$($SourceManifest.PrivateData.PSData.ProjectUri)</projectUrl>
-        <iconUrl>$($SourceManifest.PrivateData.PSData.IconUri)</iconUrl>
-        <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>$($SourceManifest.Description)</description>
-        <releaseNotes><![CDATA[$($SourceManifest.ReleaseNotes)]]></releaseNotes>
-        <copyright>$($SourceManifest.Copyright)</copyright>
-        <tags>$($SourceManifest.PrivateData.PSData.Tags -Join ' ')</tags>
-    </metadata>
-</package>
-"@
-
-    Set-Content -Path $NugetSpecPath -Value $nuspec
-
-    #Copying lib folder
-    # Copy-Item -Path $SrcRootDir\lib -Destination $ModuleOutDir -Recurse -Exclude $Exclude -Verbose:$VerbosePreference -Force
 }
 
 ###############################################################################
@@ -223,34 +192,12 @@ Task AfterStageFiles {
 
 # Executes before the BeforeStageFiles phase of the Build task.
 Task BeforeBuild {
-    # Restore/install Nuget
 
-    # Write-Verbose "Restoring Nuget client (if needed)"
-
-    # $PackagesDir = Join-Path $PSScriptRoot 'packages'
-    # $NugetExePath = Join-Path $PSScriptRoot 'nuget.exe'
-
-    # Write-Verbose "PackagesDir: $PackagesDir"
-    # Write-Verbose "NugetExePath: $NugetExePath"
-
-    # if (-not (Test-Path $PackagesDir -PathType Container))
-    # {
-    #     Write-Verbose "Folder $PackagesDir not found. Creating folder."
-    #     md $PackagesDir -Force | Write-Verbose
-    # }
-
-    # if (-not (Test-Path $NugetExePath -PathType Leaf))
-    # {
-    #     Write-Verbose "Nuget.exe not found. Downloading from https://dist.nuget.org"
-    #     Invoke-WebRequest -Uri https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -OutFile $NugetExePath | Write-Verbose
-    # }
 }
 
 # Executes after the Build task.
 Task AfterBuild {
-    # $TfsOmNugetVersion = (& $NugetExePath list -Source (Join-Path $NugetPackagesDir 'Microsoft.TeamFoundationServer.ExtendedClient'))
 
-    # (Get-Content "$OutDir\$ModuleName\$ModuleName.psd1").Replace('${TfsOmNugetVersion}',$TfsOmNugetVersion) | Set-content "$OutDir\$ModuleName\$ModuleName.psd1"
 }
 
 ###############################################################################
