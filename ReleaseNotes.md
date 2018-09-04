@@ -1,5 +1,10 @@
 # Release Notes
 
+### 0.8.25
+
+Fixed Build process.  InstallPath Variable in build.settings.ps1 caused build to fail.
+Added appveyor as build service.
+
 ### 0.8.1
 
 Added TeamGroups to New-TBOrg and Remove-TBOrg.  Creates

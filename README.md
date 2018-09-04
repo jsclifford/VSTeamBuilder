@@ -12,13 +12,18 @@ The goal of this project is to automate management of VSTS/TFS big projects.  Th
 
 ### CodeCove Status
 
-[![Code Coverage](https://codecov.io/gh/jsclifford/VSTeamBuilder/settings/badge)](https://codecov.io/gh/jsclifford/VSTeamBuilder)
+[![codecov](https://codecov.io/gh/jsclifford/VSTeamBuilder/branch/master/graph/badge.svg)](https://codecov.io/gh/jsclifford/VSTeamBuilder)
 
 ## Contributors
 
 To contribute to this project please follow the [code of conduct](https://github.com/jsclifford/VSTeamBuilder/blob/master/CODE_OF_CONDUCT.md), [contributing guide](https://github.com/jsclifford/VSTeamBuilder/blob/master/.github/CONTRIBUTING.md), and [pull request template](https://github.com/jsclifford/VSTeamBuilder/blob/master/.github/PULL_REQUEST_TEMPLATE.md).  Thank you for your help.
 
 ## Versions
+
+### 0.8.25
+
+Fixed Build process.  InstallPath Variable in build.settings.ps1 caused build to fail.
+Added appveyor as build service.
 
 ### 0.8.1
 

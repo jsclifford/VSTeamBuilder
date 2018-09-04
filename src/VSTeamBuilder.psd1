@@ -12,7 +12,7 @@
 RootModule = 'VSTeamBuilder.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.8.1'
+ModuleVersion = '0.8.25'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -136,8 +136,8 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = 'Alpha Release
-Added TeamGroups to New-TBOrg and Remove-TBOrg to allow customization
-of groups and permissions project wide.
+Build Process fix.
+Added appveyor as build service.
 https://github.com/jsclifford/VSTeamBuilder/blob/master/ReleaseNotes.md'
 
         # TFS Client Version
