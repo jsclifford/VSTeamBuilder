@@ -77,7 +77,7 @@ Accept wildcard characters: False
 ```
 
 ### -RepoList
-TFS RepoList - List of repo names to remove. 
+TFS RepoList - List of repo names to remove.
 Default is the TeamCode
 
 ```yaml
@@ -93,7 +93,7 @@ Accept wildcard characters: False
 ```
 
 ### -IterationList
-TFS IterationList - List of iteration names to remove. 
+TFS IterationList - List of iteration names to remove.
 Default is the TeamCode
 
 ```yaml
@@ -109,7 +109,7 @@ Accept wildcard characters: False
 ```
 
 ### -TeamGroups
-TFS Team Security Groups - List of Application Security Groups to remove. 
+TFS Team Security Groups - List of Application Security Groups to remove.
 Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers"
 
 ```yaml

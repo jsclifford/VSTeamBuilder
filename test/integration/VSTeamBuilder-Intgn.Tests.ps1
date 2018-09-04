@@ -6,7 +6,7 @@ if($usePAT -and $PATToken -eq $null){
     . $PSScriptRoot\SecureSettings.ps1
 }
 
-$Verbose = $false
+$Verbose = $true
 
 Describe 'VSTeamBuilder Integration Org Test'{
     BeforeAll {
@@ -17,7 +17,7 @@ Describe 'VSTeamBuilder Integration Org Test'{
         $api = $env:API
         $searchGroup = $env:searchGroup
         $originalLocation = Get-Location
-        $ResourceRootDir = "$RootDir\resources"
+        $ResourceRootDir = "$SolutionDir\resources"
 
         if($usePAT){
             Add-TBConnection -AcctUrl $acctUrl -PAT $pat -API $api

@@ -103,7 +103,7 @@
             "isTestCommand": true,
             "showOutput": "always",
             "args": [
-                "Write-Host 'Invoking Pester'; Invoke-Pester -Script ${workspaceRoot}\\test\\unit -PesterOption @{IncludeVSCodeMarker=$true};",
+                "Write-Host 'Invoking Pester'; $ProgressPreference = 'SilentlyContinue'; Invoke-Pester -Script ${workspaceRoot}\\test\\unit -PesterOption @{IncludeVSCodeMarker=$true};",
                 "Invoke-Command { Write-Host 'Completed Test task in task runner.' }"
             ]
         },
@@ -113,7 +113,7 @@
             "isTestCommand": true,
             "showOutput": "always",
             "args": [
-                "Write-Host 'Invoking Pester'; Invoke-Pester -Script ${workspaceRoot}\\test\\unit -CodeCoverage ${workspaceRoot}\\src\\VSTeamBuilder.psm1 -PesterOption @{IncludeVSCodeMarker=$true};",
+                "Write-Host 'Invoking Pester'; $ProgressPreference = 'SilentlyContinue'; Invoke-Pester -Script ${workspaceRoot}\\test\\unit -CodeCoverage ${workspaceRoot}\\src\\VSTeamBuilder.psm1 -PesterOption @{IncludeVSCodeMarker=$true};",
                 "Invoke-Command { Write-Host 'Completed Test task in task runner.' }"
             ],
             "problemMatcher": [
@@ -141,7 +141,7 @@
             "isTestCommand": true,
             "showOutput": "always",
             "args": [
-                "Write-Host 'Invoking Pester'; $thedate = Get-Date -Format 'dd-MM-yyyy_H-mm-ss'; Invoke-Pester -Script ${workspaceRoot}\\test\\unit -CodeCoverage ${workspaceRoot}\\src\\VSTeamBuilder.psm1 -PesterOption @{IncludeVSCodeMarker=$true} -OutPutFile ${workspaceRoot}\\Release\\TestResults_${thedate}.xml -OutPutFormat NUnitXml;",
+                "Write-Host 'Invoking Pester'; $thedate = Get-Date -Format 'dd-MM-yyyy_H-mm-ss'; $ProgressPreference = 'SilentlyContinue'; Invoke-Pester -Script ${workspaceRoot}\\test\\unit -CodeCoverage ${workspaceRoot}\\src\\VSTeamBuilder.psm1 -PesterOption @{IncludeVSCodeMarker=$true} -OutPutFile ${workspaceRoot}\\Release\\TestResults_${thedate}.xml -OutPutFormat NUnitXml;",
                 "Invoke-Command { Write-Host 'Completed Test task in task runner.' }"
             ],
             "problemMatcher": [
@@ -169,7 +169,7 @@
             "isTestCommand": true,
             "showOutput": "always",
             "args": [
-                "Write-Host 'Invoking Pester'; Invoke-Pester -Script ${workspaceRoot}\\test\\integration -PesterOption @{IncludeVSCodeMarker=$true};",
+                "Write-Host 'Invoking Pester'; $ProgressPreference = 'SilentlyContinue'; Invoke-Pester -Script ${workspaceRoot}\\test\\integration -PesterOption @{IncludeVSCodeMarker=$true};",
                 "Invoke-Command { Write-Host 'Completed Test task in task runner.' }"
             ],
             "problemMatcher": [
@@ -197,7 +197,7 @@
             "isTestCommand": true,
             "showOutput": "always",
             "args": [
-                "Write-Host 'Invoking Pester'; Invoke-Pester -Script ${workspaceRoot}\\test\\integration -CodeCoverage ${workspaceRoot}\\src\\VSTeamBuilder.psm1 -PesterOption @{IncludeVSCodeMarker=$true};",
+                "Write-Host 'Invoking Pester'; $ProgressPreference = 'SilentlyContinue'; Invoke-Pester -Script ${workspaceRoot}\\test\\integration -CodeCoverage ${workspaceRoot}\\src\\VSTeamBuilder.psm1 -PesterOption @{IncludeVSCodeMarker=$true};",
                 "Invoke-Command { Write-Host 'Completed Test task in task runner.' }"
             ],
             "problemMatcher": [
@@ -225,7 +225,7 @@
             "isTestCommand": true,
             "showOutput": "always",
             "args": [
-                "Write-Host 'Invoking Pester'; $thedate = Get-Date -Format 'dd-MM-yyyy_H-mm-ss'; Invoke-Pester -Script ${workspaceRoot}\\test\\integration -CodeCoverage ${workspaceRoot}\\src\\VSTeamBuilder.psm1 -PesterOption @{IncludeVSCodeMarker=$true} -OutPutFile ${workspaceRoot}\\release\\TestResults_${thedate}.xml -OutPutFormat NUnitXml;",
+                "Write-Host 'Invoking Pester'; $thedate = Get-Date -Format 'dd-MM-yyyy_H-mm-ss'; $ProgressPreference = 'SilentlyContinue'; Invoke-Pester -Script ${workspaceRoot}\\test\\integration -CodeCoverage ${workspaceRoot}\\src\\VSTeamBuilder.psm1 -PesterOption @{IncludeVSCodeMarker=$true} -OutPutFile ${workspaceRoot}\\release\\TestResults_${thedate}.xml -OutPutFormat NUnitXml;",
                 "Invoke-Command { Write-Host 'Completed Test task in task runner.' }"
             ],
             "problemMatcher": [

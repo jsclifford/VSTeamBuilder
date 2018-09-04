@@ -92,7 +92,7 @@ Accept wildcard characters: False
 ```
 
 ### -RepoList
-TFS RepoList - List of repo names to generate. 
+TFS RepoList - List of repo names to generate.
 Default is the TeamCode
 
 ```yaml
@@ -108,7 +108,7 @@ Accept wildcard characters: False
 ```
 
 ### -IterationList
-TFS IterationList - List of iteration names to generate. 
+TFS IterationList - List of iteration names to generate.
 Default is the TeamCode
 
 ```yaml
@@ -124,7 +124,7 @@ Accept wildcard characters: False
 ```
 
 ### -TeamGroups
-TFS Team Security Groups - List of Application Security Groups to create. 
+TFS Team Security Groups - List of Application Security Groups to create.
 Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers"
 
 ```yaml

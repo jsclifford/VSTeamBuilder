@@ -1,5 +1,3 @@
-#Requires -Modules TfsCmdlets
-#Requires -Modules VSTeam
 <#          License
     GNU GENERAL PUBLIC LICENSE
      Version 3, 29 June 2007
@@ -32,6 +30,71 @@ function New-TBOrg
         [Parameter(Mandatory = $false)]
         [string]
         $ProcessTemplate = "Agile",
+
+        <# TFS Team Security Groups - List of Application Security Groups to create.
+        Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers".
+        Permission Numbers with categories:  Array of Hastables example below
+        $TeamGroups = @(
+            @{
+                Name = "CodeReviewers"
+                Permissions = @{
+                    Git = 126
+                    Iteration = 7
+                    Area = 49
+                    Project = 513
+                }
+            },
+            @{
+                Name = "Contributors"
+                Permissions = @{
+                    Git = 118
+                    Iteration = 7
+                    Area = 49
+                    Project = 513
+                }
+            },
+            @{
+                Name = "Readers"
+                Permissions = @{
+                    Git = 2
+                    Iteration = 1
+                    Area = 49
+                    Project = 513
+                }
+            }
+        )
+        #>
+        [Parameter(Mandatory = $false)]
+        [hashtable[]]
+        $TeamGroups = @(
+            @{
+                Name = "CodeReviewers"
+                Permissions = @{
+                    Git = 126
+                    Iteration = 7
+                    Area = 49
+                    Project = 513
+                }
+            },
+            @{
+                Name = "Contributors"
+                Permissions = @{
+                    Git = 118
+                    Iteration = 7
+                    Area = 49
+                    Project = 513
+                }
+            },
+            @{
+                Name = "Readers"
+                Permissions = @{
+                    Git = 2
+                    Iteration = 1
+                    Area = 49
+                    Project = 513
+                }
+            }
+        ),
 
         # Create new project when set.
         [switch]
@@ -203,7 +266,7 @@ function New-TBOrg
                     $isCoded = $true
                 }
 
-                $result = New-TBTeam -Name $($teamNode.TeamName) -Description $($teamNode.TeamDescription) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal -IsCoded:$isCoded -Verbose:$VerbosePreference
+                $result = New-TBTeam -Name $($teamNode.TeamName) -Description $($teamNode.TeamDescription) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -TeamGroups $TeamGroups -ProjectName $projectNameLocal -IsCoded:$isCoded -Verbose:$VerbosePreference
 
                 if ($result)
                 {
@@ -261,7 +324,7 @@ function New-TBOrg
                     $isCoded = $true
                 }
 
-                $result = New-TBTeam -Name $($row.TeamName) -Description $($row.TeamDescription) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal -IsCoded:$isCoded -Verbose:$VerbosePreference
+                $result = New-TBTeam -Name $($row.TeamName) -Description $($row.TeamDescription) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -TeamGroups $TeamGroups -ProjectName $projectNameLocal -IsCoded:$isCoded -Verbose:$VerbosePreference
 
                 if ($result)
                 {
@@ -308,6 +371,71 @@ function Remove-TBOrg
         [Parameter(Mandatory = $true)]
         [string]
         $ProjectName,
+
+        <# TFS Team Security Groups - List of Application Security Groups to create.
+        Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers".
+        Permission Numbers with categories:  Array of Hastables example below
+        $TeamGroups = @(
+            @{
+                Name = "CodeReviewers"
+                Permissions = @{
+                    Git = 126
+                    Iteration = 7
+                    Area = 49
+                    Project = 513
+                }
+            },
+            @{
+                Name = "Contributors"
+                Permissions = @{
+                    Git = 118
+                    Iteration = 7
+                    Area = 49
+                    Project = 513
+                }
+            },
+            @{
+                Name = "Readers"
+                Permissions = @{
+                    Git = 2
+                    Iteration = 1
+                    Area = 49
+                    Project = 513
+                }
+            }
+        )
+        #>
+        [Parameter(Mandatory = $false)]
+        [hashtable[]]
+        $TeamGroups = @(
+            @{
+                Name = "CodeReviewers"
+                Permissions = @{
+                    Git = 126
+                    Iteration = 7
+                    Area = 49
+                    Project = 513
+                }
+            },
+            @{
+                Name = "Contributors"
+                Permissions = @{
+                    Git = 118
+                    Iteration = 7
+                    Area = 49
+                    Project = 513
+                }
+            },
+            @{
+                Name = "Readers"
+                Permissions = @{
+                    Git = 2
+                    Iteration = 1
+                    Area = 49
+                    Project = 513
+                }
+            }
+        ),
 
         # Import File path.
         [Parameter(Mandatory = $true)]
@@ -407,6 +535,10 @@ function Remove-TBOrg
     if ($isXML)
     {
         $i = 0
+        if(!$DisableProgressBar){
+            Write-Progress -Activity "Removing Teams" -Status "Starting Removal" -PercentComplete ($i/$teams.Count*100)
+            $i++
+        }
         foreach ($teamNode in $teams)
         {
             if(!$DisableProgressBar){
@@ -415,17 +547,17 @@ function Remove-TBOrg
             }
             if ($PSCmdlet.ShouldProcess("Removing Team: $($teamNode.TeamName). Advanced Config"))
             {
+                $isCoded = $false
                 if ($teamNode.iscoded -eq 'y')
                 {
-                    $result = Remove-TBTeam -Name $($teamNode.TeamName) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal -IsCoded -Verbose:$VerbosePreference
+                    $isCoded = $true
                 }
-                else
-                {
-                    $result = Remove-TBTeam -Name $($teamNode.TeamName) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -ProjectName $projectNameLocal -Verbose:$VerbosePreference
-                }
+
+                $result = Remove-TBTeam -Name $($teamNode.TeamName) -TeamCode $($teamNode.TeamCode) -TeamPath $($teamNode.TeamPath) -TeamGroups $TeamGroups -ProjectName $projectNameLocal -IsCoded:$isCoded -Verbose:$VerbosePreference
+
                 if ($result)
                 {
-                    Write-Verbose "------------ Successfully Created Team $($teamNode.TeamName) ------------------"
+                    Write-Verbose "------------ Successfully Removed Team $($teamNode.TeamName) ------------------"
                 }
                 else
                 {
@@ -438,6 +570,10 @@ function Remove-TBOrg
     {
         $CSVImportSorted = $CSVImport| Sort-Object -Property ProcessOrder
         $i = 0
+        if(!$DisableProgressBar){
+            Write-Progress -Activity "Removing Teams" -Status "Starting Removal of teams" -PercentComplete ($i/$CSVImportSorted.Count*100)
+            $i++
+        }
         foreach ($row in $CSVImportSorted)
         {
             if($row.TeamName -eq $null -or $row.TeamName -eq ""){
@@ -450,14 +586,14 @@ function Remove-TBOrg
             }
             if ($PSCmdlet.ShouldProcess("Removing Team: $($teamNode.TeamName). Basic Config"))
             {
+                $isCoded = $false
                 if ($row.iscoded -eq 'y')
                 {
-                    $result = Remove-TBTeam -Name $($row.TeamName) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal -IsCoded -Verbose:$VerbosePreference
+                    $isCoded = $true
                 }
-                else
-                {
-                    $result = Remove-TBTeam -Name $($row.TeamName) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -ProjectName $projectNameLocal -Verbose:$VerbosePreference
-                }
+
+                $result = Remove-TBTeam -Name $($row.TeamName) -TeamCode $($row.TeamCode) -TeamPath $($row.TeamPath) -TeamGroups $TeamGroups -ProjectName $projectNameLocal -IsCoded:$isCoded -Verbose:$VerbosePreference
+
                 if ($result)
                 {
                     Write-Verbose "------------ Successfully Removed Team $($row.TeamName) ------------------"

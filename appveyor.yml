@@ -7,8 +7,9 @@
 #---------------------------------#
 #      general configuration      #
 #---------------------------------#
-version: 0.7.3.{build}
+version: 0.8.25.{build}
 image: Visual Studio 2017
+clone_depth: 1
 skip_commits:
   files:
    - '**/*.md'
@@ -21,9 +22,11 @@ skip_commits:
 environment:
   codecovetoken:
     secure: 7+DG4taP7Anz64lB7dSi/48xLAXJXL1d+auWI11pAUkEPccGRmFVlxi2w8RzW3Ol
+  default_tests: y
 
 install:
-- ps: .\build\appveyor.install.ps1
+- ps: .\build\build.env.install.ps1
+#- ps: .\build\build.env.install-dotnet.ps1
 
 #---------------------------------#
 #      build configuration        #
@@ -34,6 +37,9 @@ build: false
 #---------------------------------#
 #      test configuration         #
 #---------------------------------#
+before_test:
+# Display .NET Core version
+- cmd: dotnet --version
 
 test_script:
 - ps: .\build\appveyor.psake.ps1
@@ -44,7 +50,7 @@ after_test:
 - ps: |
       $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
       Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
-      bash codecov.sh -f "$testResultsPath\CodeCoverage.xml" -t $env:codecovetoken
+      bash codecov.sh -f '*.xml' -t $env:codecovetoken -n VSTeamBuilder -F unittests
 branches:
   only:
   - dev

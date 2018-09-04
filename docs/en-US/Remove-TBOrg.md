@@ -13,8 +13,8 @@ Remove-TBOrg will remove TFS/VSTS Project structure define in associated templat
 ## SYNTAX
 
 ```
-Remove-TBOrg [-ProjectName] <String> [-ImportFile] <String> [-DisableProgressBar] [-WhatIf] [-Confirm]
- [<CommonParameters>]
+Remove-TBOrg [-ProjectName] <String> [[-TeamGroups] <Hashtable[]>] [-ImportFile] <String> [-DisableProgressBar]
+ [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -49,6 +49,80 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -TeamGroups
+TFS Team Security Groups - List of Application Security Groups to create.
+       Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers".
+       Permission Numbers with categories:  Array of Hastables example below
+       $TeamGroups = @(
+           @{
+               Name = "CodeReviewers"
+               Permissions = @{
+                   Git = 126
+                   Iteration = 7
+                   Area = 49
+                   Project = 513
+               }
+           },
+           @{
+               Name = "Contributors"
+               Permissions = @{
+                   Git = 118
+                   Iteration = 7
+                   Area = 49
+                   Project = 513
+               }
+           },
+           @{
+               Name = "Readers"
+               Permissions = @{
+                   Git = 2
+                   Iteration = 1
+                   Area = 49
+                   Project = 513
+               }
+           }
+       )
+
+```yaml
+Type: Hashtable[]
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 2
+Default value: @(
+            @{
+                Name = "CodeReviewers"
+                Permissions = @{
+                    Git = 126
+                    Iteration = 7
+                    Area = 49
+                    Project = 513
+                }
+            },
+            @{
+                Name = "Contributors"
+                Permissions = @{
+                    Git = 118
+                    Iteration = 7
+                    Area = 49
+                    Project = 513
+                }
+            },
+            @{
+                Name = "Readers"
+                Permissions = @{
+                    Git = 2
+                    Iteration = 1
+                    Area = 49
+                    Project = 513
+                }
+            }
+        )
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -ImportFile
 Import File path.
 
@@ -58,14 +132,16 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 2
+Position: 3
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
 ### -DisableProgressBar
-Disables progress bar.```yaml
+Disables progress bar.
+
+```yaml
 Type: SwitchParameter
 Parameter Sets: (All)
 Aliases:
@@ -109,7 +185,8 @@ Accept wildcard characters: False
 ```
 
 ### CommonParameters
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable.
+For more information, see about_CommonParameters (http://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
