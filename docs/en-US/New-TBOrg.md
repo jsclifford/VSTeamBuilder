@@ -19,9 +19,9 @@ New-TBOrg [-ProjectName] <String> [[-ProjectDescription] <String>] [-ImportFile]
 ```
 
 ## DESCRIPTION
-This function creates Teams with associated security groups, iterations, area, repos, and dashboards(future release). 
+This function creates Teams with associated security groups, iterations, area, repos, and dashboards(future release).
 By specifying
-a template file, TFS/VSTS admins can use automation to manage large projects. 
+a template file, TFS/VSTS admins can use automation to manage large projects.
 This function can be run to also reset permissions and
 settins on current projects created by this tool.
 Define your template and never manually create a team again.
@@ -33,7 +33,7 @@ Define your template and never manually create a team again.
 New-TBOrg -ProjectName "MyTestProject" -ProjectDescription "The best project ever." -ImportFile C:\MyTFSOrgImport.csv -NewProject
 ```
 
-This command creates a new Project named MyTestProject and creates teams defined in the CSV file name MyTFSOrgImport.csv. 
+This command creates a new Project named MyTestProject and creates teams defined in the CSV file name MyTFSOrgImport.csv.
 CSV File
 import will create groups based on TeamCode and no custom names.
 
@@ -42,16 +42,48 @@ import will create groups based on TeamCode and no custom names.
 New-TBOrg -ProjectName "MyTestProject" -ProjectDescription "The best project ever." -ImportFile C:\MyTFSOrgImport.xml -NewProject
 ```
 
-This command creates a new Project named MyTestProject and creates teams defined in the xml file name MyTFSOrgImport.xml. 
+This command creates a new Project named MyTestProject and creates teams defined in the xml file name MyTFSOrgImport.xml.
 The xml file can
 define advanced settings for permissions and custom group names.
 
 ### EXAMPLE 3
 ```
-New-TBOrg -ProjectName "MyTestProject" -XMLAdvancedImportFile C:\MyTFSOrgImport.xml -GenerateImportFile
+
+TeamGroups Parameter Example
+$TeamGroups = @(
+    @{
+        Name = "CodeReviewers"
+        Permissions = @{
+            Git = 126
+            Iteration = 7
+            Area = 49
+            Project = 513
+        }
+    },
+    @{
+        Name = "Contributors"
+        Permissions = @{
+            Git = 118
+            Iteration = 7
+            Area = 49
+            Project = 513
+        }
+    },
+    @{
+        Name = "Readers"
+        Permissions = @{
+            Git = 2
+            Iteration = 1
+            Area = 49
+            Project = 513
+        }
+    }
+)
+New-TBOrg -ProjectName "MyTestProject" -XMLAdvancedImportFile C:\MyTFSOrgImport.xml -GenerateImportFile -TeamGroups $TeamGroups
 ```
 
-This command creates a new Project named MyTestProject and creates teams defined in the CSV file name MyTFSOrgImport.csv
+This command creates a new Project named MyTestProject and creates teams defined in the CSV file name MyTFSOrgImport.csv.  It also
+creates the custom team groups and assigns permissions accordingly.
 
 ## PARAMETERS
 
@@ -116,38 +148,10 @@ Accept wildcard characters: False
 ```
 
 ### -TeamGroups
+
 TFS Team Security Groups - List of Application Security Groups to create for each team.
-       Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers".
-       Permission Numbers with categories:  Array of Hastables example below
-       $TeamGroups = @(
-           @{
-               Name = "CodeReviewers"
-               Permissions = @{
-                   Git = 126
-                   Iteration = 7
-                   Area = 49
-                   Project = 513
-               }
-           },
-           @{
-               Name = "Contributors"
-               Permissions = @{
-                   Git = 118
-                   Iteration = 7
-                   Area = 49
-                   Project = 513
-               }
-           },
-           @{
-               Name = "Readers"
-               Permissions = @{
-                   Git = 2
-                   Iteration = 1
-                   Area = 49
-                   Project = 513
-               }
-           }
-       )
+Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers".
+Permission Numbers with categories.
 
 ```yaml
 Type: Hashtable[]
