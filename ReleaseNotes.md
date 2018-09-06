@@ -1,5 +1,9 @@
 # Release Notes
 
+### 0.8.30
+
+Update to documentation and buildhelp task.
+
 ### 0.8.25
 
 Fixed Build process.  InstallPath Variable in build.settings.ps1 caused build to fail.

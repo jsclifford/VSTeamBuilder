@@ -136,6 +136,7 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = 'Alpha Release
+Updated documentation.  Fixed build task.
 Build Process fix.
 Added appveyor as build service.
 https://github.com/jsclifford/VSTeamBuilder/blob/master/ReleaseNotes.md'
