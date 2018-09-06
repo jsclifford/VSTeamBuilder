@@ -295,6 +295,8 @@ Task GenerateMarkdown -requiredVariables DefaultLocale, DocsRootDir, ModuleName,
         # ErrorAction set to SilentlyContinue so this command will not overwrite an existing MD file.
         New-MarkdownHelp -Module $ModuleName -Locale $DefaultLocale -OutputFolder $DocsRootDir\$DefaultLocale `
                          -WithModulePage -ErrorAction SilentlyContinue -Verbose:$VerbosePreference > $null
+    }catch{
+        Write-Information "Error message. $_" -InformationAction Continue
     }
     finally {
         Remove-Module $ModuleName
@@ -316,8 +318,14 @@ Task GenerateHelpFiles -requiredVariables DocsRootDir, ModuleName, ModuleOutDir,
 
     # Generate the module's primary MAML help file.
     foreach ($locale in $helpLocales) {
-        New-ExternalHelp -Path $DocsRootDir\$locale -OutputPath $ModuleOutDir\$locale -Force `
+        try {
+            New-ExternalHelp -Path $DocsRootDir\$locale -OutputPath $ModuleOutDir\$locale -Force `
                          -ErrorAction SilentlyContinue -Verbose:$VerbosePreference > $null
+        }
+        catch {
+            Write-Information "Error message. $_" -InformationAction Continue
+        }
+
     }
 }
 

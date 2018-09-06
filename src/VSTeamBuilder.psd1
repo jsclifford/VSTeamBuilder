@@ -12,7 +12,7 @@
 RootModule = 'VSTeamBuilder.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.8.25'
+ModuleVersion = '0.8.30'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -136,6 +136,7 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = 'Alpha Release
+Updated documentation.  Fixed build task.
 Build Process fix.
 Added appveyor as build service.
 https://github.com/jsclifford/VSTeamBuilder/blob/master/ReleaseNotes.md'

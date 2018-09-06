@@ -31,39 +31,9 @@ function New-TBOrg
         [string]
         $ProcessTemplate = "Agile",
 
-        <# TFS Team Security Groups - List of Application Security Groups to create.
-        Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers".
-        Permission Numbers with categories:  Array of Hastables example below
-        $TeamGroups = @(
-            @{
-                Name = "CodeReviewers"
-                Permissions = @{
-                    Git = 126
-                    Iteration = 7
-                    Area = 49
-                    Project = 513
-                }
-            },
-            @{
-                Name = "Contributors"
-                Permissions = @{
-                    Git = 118
-                    Iteration = 7
-                    Area = 49
-                    Project = 513
-                }
-            },
-            @{
-                Name = "Readers"
-                Permissions = @{
-                    Git = 2
-                    Iteration = 1
-                    Area = 49
-                    Project = 513
-                }
-            }
-        )
-        #>
+        # TFS Team Security Groups - List of Application Security Groups to create.
+        # Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers".
+        # Permission Numbers with categories:  Array of Hastables example in extended help.
         [Parameter(Mandatory = $false)]
         [hashtable[]]
         $TeamGroups = @(
@@ -348,7 +318,7 @@ function New-TBOrg
         .DESCRIPTION
             This function creates Teams with associated security groups, iterations, area, repos, and dashboards(future release).  By specifying
             a template file, TFS/VSTS admins can use automation to manage large projects.  This function can be run to also reset permissions and
-            settins on current projects created by this tool. Define your template and never manually create a team again.
+            settings on current projects created by this tool. Define your template and never manually create a team again.
         .EXAMPLE
             New-TBOrg -ProjectName "MyTestProject" -ProjectDescription "The best project ever." -ImportFile C:\MyTFSOrgImport.csv -NewProject
             This command creates a new Project named MyTestProject and creates teams defined in the CSV file name MyTFSOrgImport.csv.  CSV File
@@ -358,8 +328,39 @@ function New-TBOrg
             This command creates a new Project named MyTestProject and creates teams defined in the xml file name MyTFSOrgImport.xml.  The xml file can
             define advanced settings for permissions and custom group names.
         .EXAMPLE
-            New-TBOrg -ProjectName "MyTestProject" -XMLAdvancedImportFile C:\MyTFSOrgImport.xml -GenerateImportFile
-            This command creates a new Project named MyTestProject and creates teams defined in the CSV file name MyTFSOrgImport.csv
+            TeamGroups Parameter Example
+            $TeamGroups = @(
+                @{
+                    Name = "CodeReviewers"
+                    Permissions = @{
+                        Git = 126
+                        Iteration = 7
+                        Area = 49
+                        Project = 513
+                    }
+                },
+                @{
+                    Name = "Contributors"
+                    Permissions = @{
+                        Git = 118
+                        Iteration = 7
+                        Area = 49
+                        Project = 513
+                    }
+                },
+                @{
+                    Name = "Readers"
+                    Permissions = @{
+                        Git = 2
+                        Iteration = 1
+                        Area = 49
+                        Project = 513
+                    }
+                }
+            )
+            New-TBOrg -ProjectName "MyTestProject" -XMLAdvancedImportFile C:\MyTFSOrgImport.xml -GenerateImportFile -TeamGroups $TeamGroups
+            This command creates a new Project named MyTestProject and creates teams defined in the CSV file name MyTFSOrgImport.csv.  It also
+            creates the custom team groups and assigns permissions accordingly.
     #>
 }
 function Remove-TBOrg
@@ -372,39 +373,9 @@ function Remove-TBOrg
         [string]
         $ProjectName,
 
-        <# TFS Team Security Groups - List of Application Security Groups to create.
-        Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers".
-        Permission Numbers with categories:  Array of Hastables example below
-        $TeamGroups = @(
-            @{
-                Name = "CodeReviewers"
-                Permissions = @{
-                    Git = 126
-                    Iteration = 7
-                    Area = 49
-                    Project = 513
-                }
-            },
-            @{
-                Name = "Contributors"
-                Permissions = @{
-                    Git = 118
-                    Iteration = 7
-                    Area = 49
-                    Project = 513
-                }
-            },
-            @{
-                Name = "Readers"
-                Permissions = @{
-                    Git = 2
-                    Iteration = 1
-                    Area = 49
-                    Project = 513
-                }
-            }
-        )
-        #>
+        # TFS Team Security Groups - List of Application Security Groups to create.
+        # Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers".
+        # Permission Numbers with categories:  Array of Hastables example in extended help.
         [Parameter(Mandatory = $false)]
         [hashtable[]]
         $TeamGroups = @(
@@ -613,6 +584,37 @@ function Remove-TBOrg
             Remove-TBOrg will remove TFS/VSTS Project structure define in associated template file.
         .DESCRIPTION
             Remove-TBOrg will remove TFS/VSTS Project structure define in associated template file.
+
+            TeamGroups Parameter Example:
+            $TeamGroups = @(
+            @{
+                Name = "CodeReviewers"
+                Permissions = @{
+                    Git = 126
+                    Iteration = 7
+                    Area = 49
+                    Project = 513
+                }
+            },
+            @{
+                Name = "Contributors"
+                Permissions = @{
+                    Git = 118
+                    Iteration = 7
+                    Area = 49
+                    Project = 513
+                }
+            },
+            @{
+                Name = "Readers"
+                Permissions = @{
+                    Git = 2
+                    Iteration = 1
+                    Area = 49
+                    Project = 513
+                }
+            }
+        )
         .EXAMPLE
             Remove-TBOrg -ProjectName "MyTestProject" -ImportFile C:\MyTFSOrgImport.csv
         .EXAMPLE
@@ -718,39 +720,9 @@ function New-TBTeam
         [string[]]
         $IterationList = @('{TeamCode}'),
 
-        <# TFS Team Security Groups - List of Application Security Groups to create.
-        Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers".
-        Permission Numbers with categories:  Array of Hastables example below
-        $TeamGroups = @(
-            @{
-                Name = "CodeReviewers"
-                Permissions = @{
-                    Git = 126
-                    Iteration = 7
-                    Area = 49
-                    Project = 513
-                }
-            },
-            @{
-                Name = "Contributors"
-                Permissions = @{
-                    Git = 118
-                    Iteration = 7
-                    Area = 49
-                    Project = 513
-                }
-            },
-            @{
-                Name = "Readers"
-                Permissions = @{
-                    Git = 2
-                    Iteration = 1
-                    Area = 49
-                    Project = 513
-                }
-            }
-        )
-        #>
+        # TFS Team Security Groups - List of Application Security Groups to create.
+        # Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers".
+        # Permission Numbers with categories:  Array of Hastables example in extended help
         [Parameter(Mandatory = $false)]
         [hashtable[]]
         $TeamGroups = @(
@@ -1160,6 +1132,37 @@ function New-TBTeam
             New-TBTeam will create a TFS Team with associated Repos, Areas, Iterations, and TFS Application Security Groups (with assigned permissions)
         .DESCRIPTION
             New-TBTeam will create a TFS Team with associated Repos, Areas, Iterations, and TFS Application Security Groups (with assigned permissions)
+
+            TeamGroups Parameter Example:
+            $TeamGroups = @(
+            @{
+                Name = "CodeReviewers"
+                Permissions = @{
+                    Git = 126
+                    Iteration = 7
+                    Area = 49
+                    Project = 513
+                }
+            },
+            @{
+                Name = "Contributors"
+                Permissions = @{
+                    Git = 118
+                    Iteration = 7
+                    Area = 49
+                    Project = 513
+                }
+            },
+            @{
+                Name = "Readers"
+                Permissions = @{
+                    Git = 2
+                    Iteration = 1
+                    Area = 49
+                    Project = 513
+                }
+            }
+        )
         .EXAMPLE
             New-TBTeam -Name "My Team" -Description "My Best Team" -Teamcode "My-Team" -TeamPath "ParentTeam\MY-TEAM" -ProjectName "MyProject" -IsCoded
     #>
@@ -1196,19 +1199,8 @@ function Remove-TBTeam
 
         <# TFS Team Security Groups -
         List of Application Security Groups to remove.
-        Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers"
-        $TeamGroups = @(
-            @{
-                Name = "CodeReviewers"
-            },
-            @{
-                Name = "Contributors"
-            },
-            @{
-                Name = "Readers"
-            }
-        )
-        #>
+        Default is "{TeamCode}-Contributors","{TeamCode}-CodeReviewers","{TeamCode}-Readers".
+        Example in extended help. #>
         [Parameter(Mandatory = $false)]
         [hashtable[]]
         $TeamGroups = @(
@@ -1395,6 +1387,19 @@ function Remove-TBTeam
             Remove-TBTeam will remove all team security groups,areas,inerations,VersionControl Repos.
         .DESCRIPTION
             Remove-TBTeam will remove all team security groups,areas,inerations,VersionControl Repos
+
+            TeamGroups Example:
+            $TeamGroups = @(
+            @{
+                Name = "CodeReviewers"
+            },
+            @{
+                Name = "Contributors"
+            },
+            @{
+                Name = "Readers"
+            }
+        )
         .EXAMPLE
             Remove-TBTeam -Name "My Team" -Teamcode "My-Team" -TeamPath "ParentTeam\MY-TEAM" -ProjectName "MyProject" -IsCoded
     #>
